@@ -1,0 +1,7 @@
+menu "hello_lz"
+	config HELLO_KERNEL
+		bool "hello_kernel"
+		default n
+	help
+	if you unselect it, you can do nothing.
+endmenu

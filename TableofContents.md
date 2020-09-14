@@ -5,7 +5,7 @@
 #### certs
 #### .cocciconfig
 #### .config
->宏定义，文件内容自动生成，可以通过make menuconfig配置
+>内核配置文件，文件内容自动生成，可以通过make menuconfig配置
 #### COPYING
 #### CREDITS
 #### crypto
