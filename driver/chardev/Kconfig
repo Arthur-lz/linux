@@ -1,0 +1,7 @@
+menu "HELLO_CDEV_DRV"
+	config CDEV_TEST_LZ
+		bool "cdev_test"
+		default n
+	help
+	if you unselected it, you will do nothing.
+endmenu
