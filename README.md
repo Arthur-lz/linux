@@ -19,7 +19,10 @@
 
 ### 跑一下linux内核试一下qemu(以qemu-system-arm为例)
 
-1.首先准备一个busybox
+1.首先准备一个busybox，用它来编译一个最小的文件系统并配置如下
+|||
+|:-|:-|
+|初始化脚本||
 
 2.将busybox生成的_install文件复制到linux内核根目录下
 
