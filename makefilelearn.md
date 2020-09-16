@@ -1,4 +1,60 @@
 # Linux内核Makefile配置学习记录
+#### 学习linux内核Makefile前需要掌握的基础知识
+* 首先需要有gcc基础
+1. gcc常用编译选项
+>-c, -o, -g, -I是什么含义？
+
+>源码中的include \<head.h>与include "head.h"的区别还记得吗
+
+>Linux中默认的头文件都放在了/usr/include/目录
+
+2. gcc常用库选项
+>以.a结尾的是**静态库**
+
+>以.so[主版本号.次版本号.发行号]结尾的是动态库
+
+>-static, -share, -lname, -L dir这些都是神马还记得吗
+
+>被引用的库文件可以有以下三种形式注册动态库路径
+
+```
+一、修改/etc/ld.so.conf
+
+二、修改LD_LIBRARY_PATH环境变量
+
+三、直接将库文件复制到/lib/或者/usr/lib/目录下
+```
+---
+* 之后需要有makefile基础
+>makefile中常用预定义变量
+
+```
+CC，c编译器名称(无默认)，如gcc
+CXX，c++编译器名称，默认g++
+CFLAGS，c编译器选项(无默认值)
+```
+>makefile中常见自动变量
+
+```
+$@目标文件完整名称
+$^不重复的依赖文件，以空格分开
+$<第一个依赖文件名称
+```
+>makefile中常用规则
+
+>makefile中可以使用环境变量，用户makefile中自定义的变量可覆盖同名的环境变量
+
+* 最后需要了解make中常用命令行选项
+
+```
+-C dir 读入指定目录下的makefile
+-f file 读入当前目录下的file作为makefile
+-I dir 指定被包含的makefile所在目录
+```
+
+---
+---
+
 #### Makefile包括五部分
 | 内容           | 说明  |补充|
 |:--------------------------|:-----|:-----|
