@@ -19,15 +19,25 @@
 
 ### 跑一下linux内核试一下qemu(以qemu-system-arm为例)
 
-1.首先准备一个busybox，用它来编译一个最小的文件系统并配置如下
-|||
-|:-|:-|
-|初始化脚本||
-
-2.将busybox生成的_install文件复制到linux内核根目录下
-
-3.准备linux4.0.1内核
-
+#### 实验步骤如下
+|操作|说明|补充|
+|:-|:-|:-|
+|首先准备一个busybox|我用的版本是1.27.1版本||
+|进入busybox文件夹| cd busybox||
+|echo -e "ARCH=arm\nCROSS_COMPILE=arm-linux-gnuebai-" > Makefile|写入配置参数到Makefile|方便执行make|
+|make menuconfig|Busybox Settings --->Build Options--->[\*]Build BusyBox as a static binary(no shared libs)|不使用动态库，这样可执行文件busybox里包含了所有的代码||
+|make|||
+|make install|这步执行成功后，会在busybox根目录下生成一个\_install文件夹||
+|将busybox生成的\_install文件夹复制到linux4.0.1内核文件夹下|||
+|初始化\_install|将init.sh复制到busybox生成的\_install文件夹下执行|在当前页面文件列表中|
+|进入linux4.0.1内核文件夹|cd linux-4.0.1||
+|make vexpress_defconfig|这里我以vexpress开发板为例||
+|make menuconfig|General setup--->[\*]Initial RAM filesystem and RAM disk(initramfs/initrd)support(\_install) Initrams source file(s)
+||Boot options -->()Default kernel command string||
+||Kernel Features-->Memory split(3G/1G user/kernel split)
+||[\*]High Memory Support||
+|make -j4|你的核心多少个就写几个|这一步执行成功后会在boot下生成zImage，以及boot/dts/下生成dtb|
+|运行qemu|qemu-system-arm -M vexpress-a9 -smp 4 -m 256M -kernel arch/arm/boot/zImage -append "rdinit=/linuxrc console=ttyAMA0 loglevel=8" -dtb arch/arm/boot/dtb/vexpress-v2p-ca9.dtb -nographic|注：可以使用qemu-system-arm -machine help来查看qemu支持的设备|
 * 踩过的坑先记一下先
 > yylloc重定义
 
