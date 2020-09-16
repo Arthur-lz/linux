@@ -9,7 +9,7 @@
 |步骤|内容|说明|
 |:-----|:-----|:-----|
 |确定安装目录并进入|cd yourqemupath|我的安装在/opt/中, cd /opt|
-|下载qemu源文件|https://download.qemu.org/qemu-5.1.0.tar.xz|文件不大，但编译后要10G+磁盘空间|
+|下载qemu源文件|wget https://download.qemu.org/qemu-5.1.0.tar.xz|文件不大，但编译后要10G+磁盘空间|
 |解压qemu-5.1.0.tar.xz|tar -xJvf qemu-5.1.0.tar.xz||
 |进入qemu-5.1.0目录| cd qemu-5.1.0||
 |执行.configure||我的电脑是manjaro, 没有安装pkg-config，需要安装, 安装后再次执行./configure成功生成Makefile|
@@ -24,5 +24,13 @@
 2.将busybox生成的_install文件复制到linux内核根目录下
 
 3.准备linux4.0.1内核
-> 注意，linux4.0.1支持的最大版本arm交叉工具链是5.5，所以如果你安装的是高版本的，就需要再安装一个5.5的或低一些版本的交叉工具链
 
+* 踩过的坑先记一下先
+> yylloc重定义
+
+> #include gcc_header(__GNUC__)没有此定义include/linux/compiler-gcc7.h
+```
+提示上面这个错误是因为我第一次make时使用的交叉工具链是7.5版本的。我之后选择的工具链是gcc-linaro-5.5.0-2017.10-rc1-i686_arm-linux-gnueabi;
+linux4.0.1支持的最大版本arm交叉工具链是5.5，所以如果你安装的是高版本的，就需要再安装一个5.5的或低一些版本的交叉工具链
+```
+> 不使用linux4.10版本
