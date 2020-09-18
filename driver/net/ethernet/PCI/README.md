@@ -36,14 +36,18 @@ PCI即Peripheral Component Interconnect，中文意思是“外围器件互联�
 
 ### PCI配置空间-----实现自动配置的关键
 PCI设备(PCI device)都有一个配置空间，大小为256字节，实际上是一组连续的寄存器，位于设备上。其中头部64字节是PCI标准规定的，格式如下
+![alt text](https://raw.githubusercontent.com/Arthur-lz/linux/master/pic/pci1.png "")
 
 剩余的部分是PCI设备自定义的。
 PCI配置空间头部有6个BAR(Base Address Registers)，BAR记录了设备所需要的地址空间的类型(memory space或者I/O space)，基址以及其他属性。BAR的格式如下：
 
+![alt text](https://raw.githubusercontent.com/Arthur-lz/linux/master/pic/pci2.png "")
 可以看出，设备可以申请两类地址空间，memory space和I/O space，它们用BAR的最后一位区别开来。
 说到地址空间，计算机系统中，除了我们常说的memory address(包括逻辑地址、虚拟地址(线性地址)、CPU地址(物理地址))，还有I/O address，这是为了访问I/O设备(主要是设备中的寄存器)而设立的，大部分体系结构中，memory address和I/O address都是分别编址的，且使用不同的寻址指令，构成了两套地址空间，也有少数体系结构将memory address和I/O address统一编址(如ARM)。
 有两套地址空间并不意味着计算机系统中需要两套地址总线，实际上，memory address和I/O address是共用一套地址总线，但通过控制总线上的信号区别当前地址总线上的地址是memory address还是I/O address。北桥芯片(Northbridge，Intel称其Memory Controller Hub，MCH)负责地址的路由工作，它内部有一张address map，记录了memory address，I/O address的映射信息，一个典型的address map如图：
 
+
+![alt text](https://raw.githubusercontent.com/Arthur-lz/linux/master/pic/pci3.png "")
 我们来看北桥是如何进行地址路由的。根据控制总线上的信号，北桥首先可以识别地址属于memory space还是I/O space，然后分别做处理。
 比如若是memory space，则根据address map找出目标设备(DRAM或Memory Mapped I/O)，若是DRAM或VGA，则转换地址然后发送给内存控制器或VGA控制器，若是其它I/O设备，则发送给南桥。
 若是I/O space，则发送给南桥(Southbridge，Intel称其I/O Controller Hub，ICH)，南桥负责解析出目标设备的bus, device, function号，并发送信息给它。
