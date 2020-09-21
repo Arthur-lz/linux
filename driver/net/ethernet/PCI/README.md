@@ -49,6 +49,7 @@ PCI配置空间头部有6个BAR(Base Address Registers)，BAR记录了设备所�
 有两套地址空间并不意味着计算机系统中需要两套地址总线，实际上，memory address和I/O address是共用一套地址总线，但通过控制总线上的信号区别当前地址总线上的地址是memory address还是I/O address。北桥芯片(Northbridge，Intel称其Memory Controller Hub，MCH)负责地址的路由工作，它内部有一张address map，记录了memory address，I/O address的映射信息，一个典型的address map如图：
 
 ![alt text](https://raw.githubusercontent.com/Arthur-lz/linux/master/pic/pci3.png "")
+
 我们来看北桥是如何进行地址路由的。根据控制总线上的信号，北桥首先可以识别地址属于memory space还是I/O space，然后分别做处理。
 比如若是memory space，则根据address map找出目标设备(DRAM或Memory Mapped I/O)，若是DRAM或VGA，则转换地址然后发送给内存控制器或VGA控制器，若是其它I/O设备，则发送给南桥。
 若是I/O space，则发送给南桥(Southbridge，Intel称其I/O Controller Hub，ICH)，南桥负责解析出目标设备的bus, device, function号，并发送信息给它。
