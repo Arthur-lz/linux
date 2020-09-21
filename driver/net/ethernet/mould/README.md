@@ -14,7 +14,29 @@
 > 具体设备了，即物理层
 
 
-### 网络设备驱动程序的注册和注销
+### 网络设备驱动的set_config函数模板 
+```c
+static int xxx_config(struct net_device *dev, struct ifmap *map)
+{
+	if(netif_running(dev))// 不能设置一个正在运行状态的设备
+		return -EBUSY;
+
+	// 假设不允许改变I/O地址
+	if(map->base_addr != dev->base_addr){
+		printk(KERN_DEBUG "xxx: can't change I/O address\n");
+		return -EOPNOTSUPP;
+	}
+
+	// 假设允许改变IRQ
+	if(map->irq != dev->irq)
+		dev->irq = map->irq;
+
+	return 0;
+}
+// net_device_stats 定义在include/linux/netdevice.h中.
+```
+
+### 网络设备驱动程序的注册和注销模板
 
 ```c
 static int xxx_register(void)
@@ -119,6 +141,7 @@ int xxx_tx(struct sk_buff *skb, struct net_device *dev)
 ```
 
 ### 网络设备驱动程序的数据包发送超时函数模板
+> 当数据传输超时时，意味着当前的发送操作失败或硬件已经陷入未知状态，此时，数据包发送超时处理函数xxx_tx_timeout()将被调用。
 ```c
 void xxx_tx_timeout(struct net_device *dev)
 {
@@ -241,6 +264,7 @@ static void xxx_interrupt(int irq, void *dev_id)
 }
 ```
 ### 定时检查连接状态模板
+> 网络适配器电路可以检测出连路上是否有载波，载波反映了网络的连接是否正常。网络设备驱动可以通过函数netif_carrier_on()和off改变设备的连接状态，如果驱动检测到连接状态发生变化，也应该用这两个函数显式的通知内核。
 ```c
 static void xxx_timer(unsigned long data)
 {
@@ -284,4 +308,13 @@ static int xxx_open(struct net_device *dev)
 	add_timer(&priv->timer);
 }
 
+```
+
+### 网络设备驱动的get_stats()函数模板
+```c
+sturct net_device_stats *xxx_stats(struct net_device *dev)
+{
+	...
+	return &dev->stats;
+}
 ```
