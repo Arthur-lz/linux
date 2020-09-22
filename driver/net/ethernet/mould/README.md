@@ -312,7 +312,7 @@ static int xxx_open(struct net_device *dev)
 
 ### 网络设备驱动的get_stats()函数模板
 ```c
-sturct net_device_stats *xxx_stats(struct net_device *dev)
+struct net_device_stats *xxx_stats(struct net_device *dev)
 {
 	...
 	return &dev->stats;
