@@ -68,4 +68,4 @@ PCI设备可以通过两种方式将自己的I/O存储器(Registers/RAM/ROM)暴�
 |MMIO|通过memory space访问设备I/O的方式称为memory mapped I/O|VAG显卡的fb、DRAM|
 |arm使用MMIO|没有独立I/O space，只能使用内存指令访问I/O空间|Alpha与arm一样|
 |北桥负责进行I/O空间和内存空间地址总线的路由|I/O空间和内存空间共用一套地址总线，经由北桥来路由|
-
+|PCI设备枚举(总线枚举)|为防止厂家设置的PCI配置空间内在与其他设备冲突，由BIOS或者OS在启动时会重新为其分配地址空间，然后写入PCI配置空间中|
