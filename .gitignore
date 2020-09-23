@@ -1,6 +1,8 @@
 source
 embedlinux
-src
+src/_install
+src/linux-4.0.1
+src/busybox-1.27.1
 driver/net/e1000e-3.8.4
 *.gz
 *.xz

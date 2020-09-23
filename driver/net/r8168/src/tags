@@ -1,0 +1,1937 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_OUTPUT_FILESEP	slash	/slash or backslash/
+!_TAG_OUTPUT_MODE	u-ctags	/u-ctags or e-ctags/
+!_TAG_PROGRAM_AUTHOR	Universal Ctags Team	//
+!_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
+!_TAG_PROGRAM_URL	https://ctags.io/	/official site/
+!_TAG_PROGRAM_VERSION	0.0.0	/a3c87ab5/
+ADVERTISED_Asym_Pause	r8168.h	/^#define ADVERTISED_Asym_Pause /;"	d
+ADVERTISED_Pause	r8168.h	/^#define ADVERTISED_Pause /;"	d
+ADVERTISE_1000FULL	r8168.h	/^#define ADVERTISE_1000FULL /;"	d
+ADVERTISE_1000HALF	r8168.h	/^#define ADVERTISE_1000HALF /;"	d
+ADVERTISE_PAUSE_ASYM	r8168.h	/^#define ADVERTISE_PAUSE_ASYM /;"	d
+ADVERTISE_PAUSE_CAP	r8168.h	/^#define ADVERTISE_PAUSE_CAP /;"	d
+ALIGN	r8168.h	/^#define ALIGN(/;"	d
+ALIGN_16	r8168_dash.h	/^#define ALIGN_16 /;"	d
+ALIGN_256	r8168_dash.h	/^#define ALIGN_256 /;"	d
+ALIGN_32	r8168_dash.h	/^#define ALIGN_32 /;"	d
+ALIGN_4096	r8168_dash.h	/^#define ALIGN_4096 /;"	d
+ALIGN_64	r8168_dash.h	/^#define ALIGN_64 /;"	d
+ALIGN_8	r8168_dash.h	/^#define ALIGN_8 /;"	d
+ASF	r8168.h	/^        ASF     = (1 << 8),\/\/This bit is reserved in RTL8168C$/;"	e	enum:RTL8168_register_content
+ASFALERTRESND	r8168_asf.h	/^#define ASFALERTRESND	/;"	d
+ASFCAPABILITY	r8168_asf.h	/^#define ASFCAPABILITY	/;"	d
+ASFCAPMASK	r8168_asf.h	/^#define ASFCAPMASK	/;"	d
+ASFCOMMULEN	r8168_asf.h	/^#define ASFCOMMULEN	/;"	d
+ASFCONFIG	r8168_asf.h	/^#define ASFCONFIG	/;"	d
+ASFConfigR0	r8168_asf.h	/^        ASFConfigR0	= 0x000C,$/;"	e	enum:asf_registers
+ASFConfigR1	r8168_asf.h	/^        ASFConfigR1	= 0x000D,$/;"	e	enum:asf_registers
+ASFHBPERIOD	r8168_asf.h	/^#define ASFHBPERIOD	/;"	d
+ASFLSNRPOLLCYC	r8168_asf.h	/^#define ASFLSNRPOLLCYC	/;"	d
+ASFRWHEXNUM	r8168_asf.h	/^#define ASFRWHEXNUM	/;"	d
+ASFSNRPOLLCYC	r8168_asf.h	/^#define ASFSNRPOLLCYC	/;"	d
+ASFSnsr0Addr	r8168_asf.h	/^        ASFSnsr0Addr	= 0x0070,$/;"	e	enum:asf_registers
+ASFSnsrEvAlert	r8168_asf.h	/^        ASFSnsrEvAlert	= 0x0081,$/;"	e	enum:asf_registers
+ASFSnsrEvSt	r8168_asf.h	/^        ASFSnsrEvSt	= 0x0073,$/;"	e	enum:asf_registers
+ASFSnsrPollPrd	r8168_asf.h	/^        ASFSnsrPollPrd	= 0x0007,$/;"	e	enum:asf_registers
+ASFWD16RST	r8168_asf.h	/^#define ASFWD16RST	/;"	d
+ASFWD8RESET	r8168_asf.h	/^#define ASFWD8RESET	/;"	d
+ASF_GET	r8168_asf.h	/^        ASF_GET,$/;"	e	enum:asf_cmdln_opt
+ASF_HELP	r8168_asf.h	/^        ASF_HELP$/;"	e	enum:asf_cmdln_opt
+ASF_SET	r8168_asf.h	/^        ASF_SET,$/;"	e	enum:asf_cmdln_opt
+AUTONEG_DISABLE	r8168.h	/^#define AUTONEG_DISABLE /;"	d
+AUTONEG_ENABLE	r8168.h	/^#define AUTONEG_ENABLE /;"	d
+AcceptAllPhys	r8168.h	/^        AcceptAllPhys = 0x01,$/;"	e	enum:RTL8168_register_content
+AcceptBroadcast	r8168.h	/^        AcceptBroadcast = 0x08,$/;"	e	enum:RTL8168_register_content
+AcceptErr	r8168.h	/^        AcceptErr = 0x20,$/;"	e	enum:RTL8168_register_content
+AcceptMulticast	r8168.h	/^        AcceptMulticast = 0x04,$/;"	e	enum:RTL8168_register_content
+AcceptMyPhys	r8168.h	/^        AcceptMyPhys = 0x02,$/;"	e	enum:RTL8168_register_content
+AcceptRunt	r8168.h	/^        AcceptRunt = 0x10,$/;"	e	enum:RTL8168_register_content
+AdcBiasPatchIoffset	r8168.h	/^        u16 AdcBiasPatchIoffset;$/;"	m	struct:rtl8168_private	typeref:typename:u16
+AfterRecvFromFwBuf	r8168.h	/^        u8 AfterRecvFromFwBuf[RECV_FROM_FW_BUF_SIZE];$/;"	m	struct:rtl8168_private	typeref:typename:u8[]
+AfterRecvFromFwBufLen	r8168.h	/^        u16 AfterRecvFromFwBufLen;$/;"	m	struct:rtl8168_private	typeref:typename:u16
+AfterSendToFwBuf	r8168.h	/^        u8 AfterSendToFwBuf[SEND_TO_FW_BUF_SIZE];$/;"	m	struct:rtl8168_private	typeref:typename:u8[]
+AfterSendToFwBufLen	r8168.h	/^        u16 AfterSendToFwBufLen;$/;"	m	struct:rtl8168_private	typeref:typename:u16
+AlertReSendCnt	r8168_asf.h	/^        AlertReSendCnt	= 0x0008,$/;"	e	enum:asf_registers
+AlertReSendItvl	r8168_asf.h	/^        AlertReSendItvl	= 0x0009,$/;"	e	enum:asf_registers
+Asf_debug_mux	r8168_asf.h	/^        Asf_debug_mux	= 0x0228$/;"	e	enum:asf_registers
+AssrtEvntMsk	r8168_asf.h	/^        AssrtEvntMsk	= 0x00AE,$/;"	e	enum:asf_registers
+AuthPd	r8168_asf.h	/^        AuthPd		= 0x0130,$/;"	e	enum:asf_registers
+BASEDIR	Makefile	/^	BASEDIR := \/lib\/modules\/$(shell uname -r)$/;"	m
+BIT_0	r8168.h	/^        BIT_0 = (1 << 0),$/;"	e	enum:bits
+BIT_1	r8168.h	/^        BIT_1 = (1 << 1),$/;"	e	enum:bits
+BIT_10	r8168.h	/^        BIT_10 = (1 << 10),$/;"	e	enum:bits
+BIT_11	r8168.h	/^        BIT_11 = (1 << 11),$/;"	e	enum:bits
+BIT_12	r8168.h	/^        BIT_12 = (1 << 12),$/;"	e	enum:bits
+BIT_13	r8168.h	/^        BIT_13 = (1 << 13),$/;"	e	enum:bits
+BIT_14	r8168.h	/^        BIT_14 = (1 << 14),$/;"	e	enum:bits
+BIT_15	r8168.h	/^        BIT_15 = (1 << 15),$/;"	e	enum:bits
+BIT_16	r8168.h	/^        BIT_16 = (1 << 16),$/;"	e	enum:bits
+BIT_17	r8168.h	/^        BIT_17 = (1 << 17),$/;"	e	enum:bits
+BIT_18	r8168.h	/^        BIT_18 = (1 << 18),$/;"	e	enum:bits
+BIT_19	r8168.h	/^        BIT_19 = (1 << 19),$/;"	e	enum:bits
+BIT_2	r8168.h	/^        BIT_2 = (1 << 2),$/;"	e	enum:bits
+BIT_20	r8168.h	/^        BIT_20 = (1 << 20),$/;"	e	enum:bits
+BIT_21	r8168.h	/^        BIT_21 = (1 << 21),$/;"	e	enum:bits
+BIT_22	r8168.h	/^        BIT_22 = (1 << 22),$/;"	e	enum:bits
+BIT_23	r8168.h	/^        BIT_23 = (1 << 23),$/;"	e	enum:bits
+BIT_24	r8168.h	/^        BIT_24 = (1 << 24),$/;"	e	enum:bits
+BIT_25	r8168.h	/^        BIT_25 = (1 << 25),$/;"	e	enum:bits
+BIT_26	r8168.h	/^        BIT_26 = (1 << 26),$/;"	e	enum:bits
+BIT_27	r8168.h	/^        BIT_27 = (1 << 27),$/;"	e	enum:bits
+BIT_28	r8168.h	/^        BIT_28 = (1 << 28),$/;"	e	enum:bits
+BIT_29	r8168.h	/^        BIT_29 = (1 << 29),$/;"	e	enum:bits
+BIT_3	r8168.h	/^        BIT_3 = (1 << 3),$/;"	e	enum:bits
+BIT_30	r8168.h	/^        BIT_30 = (1 << 30),$/;"	e	enum:bits
+BIT_31	r8168.h	/^        BIT_31 = (1 << 31)$/;"	e	enum:bits
+BIT_4	r8168.h	/^        BIT_4 = (1 << 4),$/;"	e	enum:bits
+BIT_5	r8168.h	/^        BIT_5 = (1 << 5),$/;"	e	enum:bits
+BIT_6	r8168.h	/^        BIT_6 = (1 << 6),$/;"	e	enum:bits
+BIT_7	r8168.h	/^        BIT_7 = (1 << 7),$/;"	e	enum:bits
+BIT_8	r8168.h	/^        BIT_8 = (1 << 8),$/;"	e	enum:bits
+BIT_9	r8168.h	/^        BIT_9 = (1 << 9),$/;"	e	enum:bits
+BMCR_SPEED10	r8168.h	/^#define BMCR_SPEED10 /;"	d
+BMCR_SPEED100	r8168.h	/^#define BMCR_SPEED100 /;"	d
+BMCR_SPEED1000	r8168.h	/^#define BMCR_SPEED1000 /;"	d
+BWF	r8168.h	/^        BWF     = (1 << 6), \/* Accept Broadcast wakeup frame *\/$/;"	e	enum:RTL8168_register_content
+Beacon_en	r8168.h	/^        Beacon_en   = (1 << 0), \/* This bit is reserved in RTL8168B*\/$/;"	e	enum:RTL8168_register_content
+BufferAddress	r8168_dash.h	/^        u64 BufferAddress;$/;"	m	struct:_RX_DASH_FROM_FW_DESC	typeref:typename:u64
+BufferAddress	r8168_dash.h	/^        u64 BufferAddress;$/;"	m	struct:_TX_DASH_SEND_FW_DESC	typeref:typename:u64
+CCVERSION	Makefile	/^	CCVERSION = $(shell $(CC) -dumpversion)$/;"	m
+CFG_METHOD_1	r8168.h	/^        CFG_METHOD_1=0,$/;"	e	enum:mcfg
+CFG_METHOD_10	r8168.h	/^        CFG_METHOD_10,$/;"	e	enum:mcfg
+CFG_METHOD_11	r8168.h	/^        CFG_METHOD_11,$/;"	e	enum:mcfg
+CFG_METHOD_12	r8168.h	/^        CFG_METHOD_12,$/;"	e	enum:mcfg
+CFG_METHOD_13	r8168.h	/^        CFG_METHOD_13,$/;"	e	enum:mcfg
+CFG_METHOD_14	r8168.h	/^        CFG_METHOD_14,$/;"	e	enum:mcfg
+CFG_METHOD_15	r8168.h	/^        CFG_METHOD_15,$/;"	e	enum:mcfg
+CFG_METHOD_16	r8168.h	/^        CFG_METHOD_16,$/;"	e	enum:mcfg
+CFG_METHOD_17	r8168.h	/^        CFG_METHOD_17,$/;"	e	enum:mcfg
+CFG_METHOD_18	r8168.h	/^        CFG_METHOD_18,$/;"	e	enum:mcfg
+CFG_METHOD_19	r8168.h	/^        CFG_METHOD_19,$/;"	e	enum:mcfg
+CFG_METHOD_2	r8168.h	/^        CFG_METHOD_2,$/;"	e	enum:mcfg
+CFG_METHOD_20	r8168.h	/^        CFG_METHOD_20,$/;"	e	enum:mcfg
+CFG_METHOD_21	r8168.h	/^        CFG_METHOD_21,$/;"	e	enum:mcfg
+CFG_METHOD_22	r8168.h	/^        CFG_METHOD_22,$/;"	e	enum:mcfg
+CFG_METHOD_23	r8168.h	/^        CFG_METHOD_23,$/;"	e	enum:mcfg
+CFG_METHOD_24	r8168.h	/^        CFG_METHOD_24,$/;"	e	enum:mcfg
+CFG_METHOD_25	r8168.h	/^        CFG_METHOD_25,$/;"	e	enum:mcfg
+CFG_METHOD_26	r8168.h	/^        CFG_METHOD_26,$/;"	e	enum:mcfg
+CFG_METHOD_27	r8168.h	/^        CFG_METHOD_27,$/;"	e	enum:mcfg
+CFG_METHOD_28	r8168.h	/^        CFG_METHOD_28,$/;"	e	enum:mcfg
+CFG_METHOD_29	r8168.h	/^        CFG_METHOD_29,$/;"	e	enum:mcfg
+CFG_METHOD_3	r8168.h	/^        CFG_METHOD_3,$/;"	e	enum:mcfg
+CFG_METHOD_30	r8168.h	/^        CFG_METHOD_30,$/;"	e	enum:mcfg
+CFG_METHOD_31	r8168.h	/^        CFG_METHOD_31,$/;"	e	enum:mcfg
+CFG_METHOD_32	r8168.h	/^        CFG_METHOD_32,$/;"	e	enum:mcfg
+CFG_METHOD_33	r8168.h	/^        CFG_METHOD_33,$/;"	e	enum:mcfg
+CFG_METHOD_4	r8168.h	/^        CFG_METHOD_4,$/;"	e	enum:mcfg
+CFG_METHOD_5	r8168.h	/^        CFG_METHOD_5,$/;"	e	enum:mcfg
+CFG_METHOD_6	r8168.h	/^        CFG_METHOD_6,$/;"	e	enum:mcfg
+CFG_METHOD_7	r8168.h	/^        CFG_METHOD_7,$/;"	e	enum:mcfg
+CFG_METHOD_8	r8168.h	/^        CFG_METHOD_8,$/;"	e	enum:mcfg
+CFG_METHOD_9	r8168.h	/^        CFG_METHOD_9 ,$/;"	e	enum:mcfg
+CFG_METHOD_DEFAULT	r8168.h	/^        CFG_METHOD_DEFAULT = 0xFF$/;"	e	enum:mcfg
+CFG_METHOD_MAX	r8168.h	/^        CFG_METHOD_MAX,$/;"	e	enum:mcfg
+CHECKSUM_PARTIAL	r8168.h	/^#define CHECKSUM_PARTIAL /;"	d
+CMAC_IBCR0	r8168.h	/^        CMAC_IBCR0      = 0xF8,$/;"	e	enum:RTL8168_registers
+CMAC_IBCR2	r8168.h	/^        CMAC_IBCR2      = 0xF9,$/;"	e	enum:RTL8168_registers
+CMAC_IBIMR0	r8168.h	/^        CMAC_IBIMR0     = 0xFA,$/;"	e	enum:RTL8168_registers
+CMAC_IBISR0	r8168.h	/^        CMAC_IBISR0     = 0xFB,$/;"	e	enum:RTL8168_registers
+CMAC_OOB_INIT	r8168_dash.h	/^#define CMAC_OOB_INIT /;"	d
+CMAC_OOB_RESET	r8168_dash.h	/^#define CMAC_OOB_RESET /;"	d
+CMAC_OOB_STOP	r8168_dash.h	/^#define CMAC_OOB_STOP /;"	d
+CMAC_RXDESC_OFFSET	r8168_dash.h	/^#define CMAC_RXDESC_OFFSET /;"	d
+CMAC_SYNC_REG	r8168_dash.h	/^#define CMAC_SYNC_REG /;"	d
+CMAC_TXDESC_OFFSET	r8168_dash.h	/^#define CMAC_TXDESC_OFFSET /;"	d
+COMMU_STR_MAX_LEN	r8168_asf.h	/^#define COMMU_STR_MAX_LEN	/;"	d
+CONFIG_ASPM	Makefile	/^CONFIG_ASPM = y$/;"	m
+CONFIG_DOWN_SPEED_100	Makefile	/^CONFIG_DOWN_SPEED_100 = n$/;"	m
+CONFIG_E1000_DISABLE_PACKET_SPLIT	r8168.h	/^#define CONFIG_E1000_DISABLE_PACKET_SPLIT /;"	d
+CONFIG_SOC_LAN	Makefile	/^CONFIG_SOC_LAN = n$/;"	m
+CP	r8168_asf.h	/^        CP		= 0x01CC,$/;"	e	enum:asf_registers
+CPlusCmd	r8168.h	/^        CPlusCmd        = 0xE0,$/;"	e	enum:RTL8168_registers
+CQ	r8168_asf.h	/^        CQ		= 0x01D0,$/;"	e	enum:asf_registers
+CSIAR	r8168.h	/^        CSIAR           = 0x68,$/;"	e	enum:RTL8168_registers
+CSIAR_Addr_Mask	r8168.h	/^        CSIAR_Addr_Mask = 0x0fff,$/;"	e	enum:RTL8168_register_content
+CSIAR_ByteEn	r8168.h	/^        CSIAR_ByteEn = 0x0f,$/;"	e	enum:RTL8168_register_content
+CSIAR_ByteEn_shift	r8168.h	/^        CSIAR_ByteEn_shift = 12,$/;"	e	enum:RTL8168_register_content
+CSIAR_Flag	r8168.h	/^        CSIAR_Flag = 0x80000000,$/;"	e	enum:RTL8168_register_content
+CSIAR_Read	r8168.h	/^        CSIAR_Read = 0x00000000,$/;"	e	enum:RTL8168_register_content
+CSIAR_Write	r8168.h	/^        CSIAR_Write = 0x80000000,$/;"	e	enum:RTL8168_register_content
+CSIDR	r8168.h	/^        CSIDR           = 0x64,$/;"	e	enum:RTL8168_registers
+Cfg9346	r8168.h	/^        Cfg9346         = 0x50,$/;"	e	enum:RTL8168_registers
+Cfg9346_EECS	r8168.h	/^        Cfg9346_EECS = (1 << 3),$/;"	e	enum:RTL8168_register_content
+Cfg9346_EEDI	r8168.h	/^        Cfg9346_EEDI = (1 << 1),$/;"	e	enum:RTL8168_register_content
+Cfg9346_EEDO	r8168.h	/^        Cfg9346_EEDO = (1 << 0),$/;"	e	enum:RTL8168_register_content
+Cfg9346_EEM0	r8168.h	/^        Cfg9346_EEM0 = (1 << 6),$/;"	e	enum:RTL8168_register_content
+Cfg9346_EEM1	r8168.h	/^        Cfg9346_EEM1 = (1 << 7),$/;"	e	enum:RTL8168_register_content
+Cfg9346_EESK	r8168.h	/^        Cfg9346_EESK = (1 << 2),$/;"	e	enum:RTL8168_register_content
+Cfg9346_Lock	r8168.h	/^        Cfg9346_Lock = 0x00,$/;"	e	enum:RTL8168_register_content
+Cfg9346_Unlock	r8168.h	/^        Cfg9346_Unlock = 0xC0,$/;"	e	enum:RTL8168_register_content
+ChipCmd	r8168.h	/^        ChipCmd         = 0x37,$/;"	e	enum:RTL8168_registers
+ClearAndSetEthPhyBit	r8168_n.c	/^static void ClearAndSetEthPhyBit(struct rtl8168_private *tp, u8  addr, u16 clearmask, u16 setmas/;"	f	typeref:typename:void	file:
+ClearAndSetPCIePhyBit	r8168_n.c	/^static void ClearAndSetPCIePhyBit(struct rtl8168_private *tp, u8 addr, u16 clearmask, u16 setmas/;"	f	typeref:typename:void	file:
+ClearPCIePhyBit	r8168_n.c	/^static void ClearPCIePhyBit(struct rtl8168_private *tp, u8 addr, u16 mask)$/;"	f	typeref:typename:void	file:
+CmacOobIssueCmacReset	r8168.h	/^        u8 CmacOobIssueCmacReset ;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+CmacResetIntr	r8168.h	/^        u8 CmacResetIntr ;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+CmacResetIsrCounter	r8168.h	/^        u32 CmacResetIsrCounter;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+CmacResetbyFwCnt	r8168.h	/^        u32 CmacResetbyFwCnt;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+CmacResetting	r8168.h	/^        u8 CmacResetting ;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+CmdReset	r8168.h	/^        CmdReset = 0x10,$/;"	e	enum:RTL8168_register_content
+CmdRxEnb	r8168.h	/^        CmdRxEnb = 0x08,$/;"	e	enum:RTL8168_register_content
+CmdTxEnb	r8168.h	/^        CmdTxEnb = 0x04,$/;"	e	enum:RTL8168_register_content
+Community	r8168_asf.h	/^        Community	= 0x0036,$/;"	e	enum:asf_registers
+Config0	r8168.h	/^        Config0         = 0x51,$/;"	e	enum:RTL8168_registers
+Config1	r8168.h	/^        Config1         = 0x52,$/;"	e	enum:RTL8168_registers
+Config2	r8168.h	/^        Config2         = 0x53,$/;"	e	enum:RTL8168_registers
+Config3	r8168.h	/^        Config3         = 0x54,$/;"	e	enum:RTL8168_registers
+Config4	r8168.h	/^        Config4         = 0x55,$/;"	e	enum:RTL8168_registers
+Config5	r8168.h	/^        Config5         = 0x56,$/;"	e	enum:RTL8168_registers
+ConsoleIP	r8168_asf.h	/^        ConsoleIP	= 0x0016,$/;"	e	enum:asf_registers
+ConsoleMA	r8168_asf.h	/^        ConsoleMA	= 0x0010,$/;"	e	enum:asf_registers
+ConsoleSid	r8168_asf.h	/^        ConsoleSid	= 0x01E8,$/;"	e	enum:asf_registers
+CounterAddrHigh	r8168.h	/^        CounterAddrHigh     = 0x14,$/;"	e	enum:RTL8168_registers
+CounterAddrLow	r8168.h	/^        CounterAddrLow      = 0x10,$/;"	e	enum:RTL8168_registers
+CounterDump	r8168.h	/^        CounterDump = 0x8,$/;"	e	enum:RTL8168_register_content
+CounterReset	r8168.h	/^        CounterReset = 0x1,$/;"	e	enum:RTL8168_register_content
+CurrNumRxDashRecvFwDesc	r8168.h	/^        u32 CurrNumRxDashRecvFwDesc ;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+CurrNumTxDashSendFwDesc	r8168.h	/^        u32 CurrNumTxDashSendFwDesc ;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+CustomLED	r8168.h	/^        CustomLED       = 0x18,$/;"	e	enum:RTL8168_registers
+Cxpl_dbg_sel	r8168.h	/^        Cxpl_dbg_sel    = (1 << 9),\/\/This bit is reserved in RTL8168B$/;"	e	enum:RTL8168_register_content
+DASH	r8168.h	/^        u8 DASH;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+DASH_SUFFIX	r8168.h	/^#define DASH_SUFFIX /;"	d
+DBGPIN_E2	r8168.h	/^        DBGPIN_E2 = (1 << 0),$/;"	e	enum:RTL8168_register_content
+DBG_reg	r8168.h	/^        DBG_reg         = 0xD1,$/;"	e	enum:RTL8168_registers
+DIPv4	r8168_realwow.h	/^        u8 DIPv4[4];$/;"	m	struct:_KCPInfo	typeref:typename:u8[4]
+DIPv4	r8168_realwow.h	/^        u8 DIPv4[4];$/;"	m	struct:_MP_KCPInfo	typeref:typename:u8[4]
+DISABLE_MASK	r8168_asf.h	/^#define DISABLE_MASK	/;"	d
+DMA_32BIT_MASK	r8168.h	/^#define DMA_32BIT_MASK /;"	d
+DMA_64BIT_MASK	r8168.h	/^#define DMA_64BIT_MASK /;"	d
+DMA_BIT_MASK	r8168.h	/^#define DMA_BIT_MASK(/;"	d
+DRIVERDIR	Makefile	/^		DRIVERDIR := $(BASEDIR)\/kernel\/drivers\/net$/;"	m
+DRIVERDIR	Makefile	/^		DRIVERDIR := $(shell find $(BASEDIR)\/kernel\/drivers\/net -name realtek -type d)$/;"	m
+DRIVERDIR	Makefile	/^	DRIVERDIR := $(shell find $(BASEDIR)\/kernel\/drivers\/net\/ethernet -name realtek -type d)$/;"	m
+DSM_IF_DOWN	r8168.h	/^        DSM_IF_DOWN = 3,$/;"	e	enum:RTL8168_DSM_STATE
+DSM_IF_UP	r8168.h	/^        DSM_IF_UP = 5,$/;"	e	enum:RTL8168_DSM_STATE
+DSM_MAC_INIT	r8168.h	/^        DSM_MAC_INIT = 1,$/;"	e	enum:RTL8168_DSM_STATE
+DSM_NIC_GOTO_D3	r8168.h	/^        DSM_NIC_GOTO_D3 = 2,$/;"	e	enum:RTL8168_DSM_STATE
+DSM_NIC_RESUME_D3	r8168.h	/^        DSM_NIC_RESUME_D3 = 4,$/;"	e	enum:RTL8168_DSM_STATE
+DUPLEX_UNKNOWN	r8168.h	/^#define DUPLEX_UNKNOWN /;"	d
+DashFwDisableRx	r8168.h	/^        u8 DashFwDisableRx;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+DashReqRegValue	r8168.h	/^        u8 DashReqRegValue;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+DeAssrtEvntMsk	r8168_asf.h	/^        DeAssrtEvntMsk	= 0x00AF,$/;"	e	enum:asf_registers
+DescOwn	r8168.h	/^        DescOwn     = (1 << 31), \/* Descriptor is owned by NIC *\/$/;"	e	enum:_DescStatusBit
+DhcpTimeout	r8168.h	/^        u32 DhcpTimeout;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+ECRCEN	r8168.h	/^        ECRCEN      = (1 << 3), \/* This bit is reserved in RTL8168B*\/$/;"	e	enum:RTL8168_register_content
+EEPROM_TWSI	r8168.h	/^        EEPROM_TWSI$/;"	e	enum:eetype
+EEPROM_TYPE_93C46	r8168.h	/^        EEPROM_TYPE_93C46,$/;"	e	enum:eetype
+EEPROM_TYPE_93C56	r8168.h	/^        EEPROM_TYPE_93C56,$/;"	e	enum:eetype
+EEPROM_TYPE_NONE	r8168.h	/^        EEPROM_TYPE_NONE=0,$/;"	e	enum:eetype
+EFUSEAR	r8168.h	/^        EFUSEAR         = 0xDC,$/;"	e	enum:RTL8168_registers
+EFUSE_Check_Cnt	r8168.h	/^        EFUSE_Check_Cnt = 300,$/;"	e	enum:RTL8168_register_content
+EFUSE_Data_Mask	r8168.h	/^        EFUSE_Data_Mask = 0x000000FF,$/;"	e	enum:RTL8168_register_content
+EFUSE_NOT_SUPPORT	r8168.h	/^        EFUSE_NOT_SUPPORT = 0,$/;"	e	enum:effuse
+EFUSE_READ	r8168.h	/^        EFUSE_READ  = 0x00000000,$/;"	e	enum:RTL8168_register_content
+EFUSE_READ_FAIL	r8168.h	/^        EFUSE_READ_FAIL = 0xFF,$/;"	e	enum:RTL8168_register_content
+EFUSE_READ_OK	r8168.h	/^        EFUSE_READ_OK   = 0x80000000,$/;"	e	enum:RTL8168_register_content
+EFUSE_READ_OK_V3	r8168.h	/^        EFUSE_READ_OK_V3   = 0x00000000,$/;"	e	enum:RTL8168_register_content
+EFUSE_READ_V3	r8168.h	/^        EFUSE_READ_V3  = 0x80000000,$/;"	e	enum:RTL8168_register_content
+EFUSE_Reg_Mask	r8168.h	/^        EFUSE_Reg_Mask  = 0x03FF,$/;"	e	enum:RTL8168_register_content
+EFUSE_Reg_Shift	r8168.h	/^        EFUSE_Reg_Shift = 8,$/;"	e	enum:RTL8168_register_content
+EFUSE_SUPPORT_V1	r8168.h	/^        EFUSE_SUPPORT_V1,$/;"	e	enum:effuse
+EFUSE_SUPPORT_V2	r8168.h	/^        EFUSE_SUPPORT_V2,$/;"	e	enum:effuse
+EFUSE_SUPPORT_V3	r8168.h	/^        EFUSE_SUPPORT_V3,$/;"	e	enum:effuse
+EFUSE_WRITE	r8168.h	/^        EFUSE_WRITE = 0x80000000,$/;"	e	enum:RTL8168_register_content
+EFUSE_WRITE_OK	r8168.h	/^        EFUSE_WRITE_OK  = 0x00000000,$/;"	e	enum:RTL8168_register_content
+EFUSE_WRITE_OK_V3	r8168.h	/^        EFUSE_WRITE_OK_V3  = 0x00000000,$/;"	e	enum:RTL8168_register_content
+EFUSE_WRITE_V3	r8168.h	/^        EFUSE_WRITE_V3 = 0x40000000,$/;"	e	enum:RTL8168_register_content
+ENABLE_DASH_PRINTER_SUPPORT	Makefile	/^ENABLE_DASH_PRINTER_SUPPORT = n$/;"	m
+ENABLE_DASH_SUPPORT	Makefile	/^ENABLE_DASH_SUPPORT = n$/;"	m
+ENABLE_EEE	Makefile	/^ENABLE_EEE = y$/;"	m
+ENABLE_FIBER_SUPPORT	Makefile	/^ENABLE_FIBER_SUPPORT = n$/;"	m
+ENABLE_R8168_PROCFS	r8168.h	/^#define ENABLE_R8168_PROCFS$/;"	d
+ENABLE_REALWOW_SUPPORT	Makefile	/^ENABLE_REALWOW_SUPPORT = n$/;"	m
+ENABLE_S0_MAGIC_PACKET	Makefile	/^ENABLE_S0_MAGIC_PACKET = n$/;"	m
+ENABLE_S5WOL	Makefile	/^ENABLE_S5WOL = y$/;"	m
+ENABLE_S5_KEEP_CURR_MAC	Makefile	/^ENABLE_S5_KEEP_CURR_MAC = n$/;"	m
+EPHYAR	r8168.h	/^        EPHYAR          = 0x80,$/;"	e	enum:RTL8168_registers
+EPHYAR_Data_Mask	r8168.h	/^        EPHYAR_Data_Mask = 0xffff,$/;"	e	enum:RTL8168_register_content
+EPHYAR_Flag	r8168.h	/^        EPHYAR_Flag = 0x80000000,$/;"	e	enum:RTL8168_register_content
+EPHYAR_Read	r8168.h	/^        EPHYAR_Read = 0x00000000,$/;"	e	enum:RTL8168_register_content
+EPHYAR_Reg_Mask	r8168.h	/^        EPHYAR_Reg_Mask = 0x3f,$/;"	e	enum:RTL8168_register_content
+EPHYAR_Reg_shift	r8168.h	/^        EPHYAR_Reg_shift = 16,$/;"	e	enum:RTL8168_register_content
+EPHYAR_Write	r8168.h	/^        EPHYAR_Write = 0x80000000,$/;"	e	enum:RTL8168_register_content
+EPHY_RXER_NUM	r8168.h	/^        EPHY_RXER_NUM   = 0x7C,$/;"	e	enum:RTL8168_registers
+ERIAR	r8168.h	/^        ERIAR           = 0x74,$/;"	e	enum:RTL8168_registers
+ERIAR_ASF	r8168.h	/^        ERIAR_ASF = 2,$/;"	e	enum:RTL8168_register_content
+ERIAR_Addr_Align	r8168.h	/^        ERIAR_Addr_Align = 4, \/* ERI access register address must be 4 byte alignment *\/$/;"	e	enum:RTL8168_register_content
+ERIAR_ByteEn	r8168.h	/^        ERIAR_ByteEn = 0x0f,$/;"	e	enum:RTL8168_register_content
+ERIAR_ByteEn_shift	r8168.h	/^        ERIAR_ByteEn_shift = 12,$/;"	e	enum:RTL8168_register_content
+ERIAR_ExGMAC	r8168.h	/^        ERIAR_ExGMAC = 0,$/;"	e	enum:RTL8168_register_content
+ERIAR_Flag	r8168.h	/^        ERIAR_Flag = 0x80000000,$/;"	e	enum:RTL8168_register_content
+ERIAR_MSIX	r8168.h	/^        ERIAR_MSIX = 1,$/;"	e	enum:RTL8168_register_content
+ERIAR_OOB	r8168.h	/^        ERIAR_OOB = 2,$/;"	e	enum:RTL8168_register_content
+ERIAR_Read	r8168.h	/^        ERIAR_Read = 0x00000000,$/;"	e	enum:RTL8168_register_content
+ERIAR_Type_shift	r8168.h	/^        ERIAR_Type_shift = 16,$/;"	e	enum:RTL8168_register_content
+ERIAR_Write	r8168.h	/^        ERIAR_Write = 0x80000000,$/;"	e	enum:RTL8168_register_content
+ERIDR	r8168.h	/^        ERIDR           = 0x70,$/;"	e	enum:RTL8168_registers
+ERSR	r8168.h	/^        ERSR            = 0x36,$/;"	e	enum:RTL8168_registers
+ETHTOOL_BUSINFO_LEN	r8168.h	/^#define ETHTOOL_BUSINFO_LEN /;"	d
+ETHTOOL_GCOALESCE	r8168.h	/^#define ETHTOOL_GCOALESCE /;"	d
+ETHTOOL_GEEPROM	r8168.h	/^#define ETHTOOL_GEEPROM /;"	d
+ETHTOOL_GLINK	r8168.h	/^#define ETHTOOL_GLINK /;"	d
+ETHTOOL_GMSGLVL	r8168.h	/^#define ETHTOOL_GMSGLVL /;"	d
+ETHTOOL_GPAUSEPARAM	r8168.h	/^#define ETHTOOL_GPAUSEPARAM /;"	d
+ETHTOOL_GREGS	r8168.h	/^#define ETHTOOL_GREGS /;"	d
+ETHTOOL_GRINGPARAM	r8168.h	/^#define ETHTOOL_GRINGPARAM /;"	d
+ETHTOOL_GRXCSUM	r8168.h	/^#define ETHTOOL_GRXCSUM /;"	d
+ETHTOOL_GSG	r8168.h	/^#define ETHTOOL_GSG /;"	d
+ETHTOOL_GSTATS	r8168.h	/^#define ETHTOOL_GSTATS /;"	d
+ETHTOOL_GSTRINGS	r8168.h	/^#define ETHTOOL_GSTRINGS /;"	d
+ETHTOOL_GTSO	r8168.h	/^#define ETHTOOL_GTSO /;"	d
+ETHTOOL_GTXCSUM	r8168.h	/^#define ETHTOOL_GTXCSUM /;"	d
+ETHTOOL_NWAY_RST	r8168.h	/^#define ETHTOOL_NWAY_RST /;"	d
+ETHTOOL_OPS_COMPAT	r8168.h	/^#define ETHTOOL_OPS_COMPAT$/;"	d
+ETHTOOL_PHYS_ID	r8168.h	/^#define ETHTOOL_PHYS_ID /;"	d
+ETHTOOL_SCOALESCE	r8168.h	/^#define ETHTOOL_SCOALESCE /;"	d
+ETHTOOL_SEEPROM	r8168.h	/^#define ETHTOOL_SEEPROM /;"	d
+ETHTOOL_SMSGLVL	r8168.h	/^#define ETHTOOL_SMSGLVL /;"	d
+ETHTOOL_SPAUSEPARAM	r8168.h	/^#define ETHTOOL_SPAUSEPARAM /;"	d
+ETHTOOL_SRINGPARAM	r8168.h	/^#define ETHTOOL_SRINGPARAM /;"	d
+ETHTOOL_SRXCSUM	r8168.h	/^#define ETHTOOL_SRXCSUM /;"	d
+ETHTOOL_SSG	r8168.h	/^#define ETHTOOL_SSG /;"	d
+ETHTOOL_STSO	r8168.h	/^#define ETHTOOL_STSO /;"	d
+ETHTOOL_STXCSUM	r8168.h	/^#define ETHTOOL_STXCSUM /;"	d
+ETHTOOL_TEST	r8168.h	/^#define ETHTOOL_TEST /;"	d
+ETH_FCS_LEN	r8168.h	/^#define ETH_FCS_LEN	/;"	d
+ETH_GSTRING_LEN	r8168.h	/^#define ETH_GSTRING_LEN /;"	d
+ETH_SS_STATS	r8168.h	/^        ETH_SS_STATS,$/;"	e	enum:ethtool_stringset
+ETH_SS_TEST	r8168.h	/^        ETH_SS_TEST             = 0,$/;"	e	enum:ethtool_stringset
+ETH_TEST_FL_FAILED	r8168.h	/^        ETH_TEST_FL_FAILED  = (1 << 1),$/;"	e	enum:ethtool_test_flags
+ETH_TEST_FL_OFFLINE	r8168.h	/^        ETH_TEST_FL_OFFLINE = (1 << 0),$/;"	e	enum:ethtool_test_flags
+EnableBist	r8168.h	/^        EnableBist  = (1 << 15),$/;"	e	enum:RTL8168_register_content
+EnableDhcpTimeoutWake	r8168.h	/^        u8 EnableDhcpTimeoutWake;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+EnableKCPOffload	r8168.h	/^        u8 EnableKCPOffload;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+EnableTeredoOffload	r8168.h	/^        u8 EnableTeredoOffload;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+EntityInst	r8168_asf.h	/^        EntityInst	= 0x004F,$/;"	e	enum:asf_registers
+FALSE	r8168.h	/^#define FALSE /;"	d
+FIBER_MODE_MAX	r8168_fiber.h	/^        FIBER_MODE_MAX$/;"	e	enum:__anonaaf291cb0103
+FIBER_MODE_NIC_ONLY	r8168_fiber.h	/^        FIBER_MODE_NIC_ONLY = 0,$/;"	e	enum:__anonaaf291cb0103
+FIBER_MODE_RTL8168H_MDI_SWITCH_RTL8211FS	r8168_fiber.h	/^        FIBER_MODE_RTL8168H_MDI_SWITCH_RTL8211FS,$/;"	e	enum:__anonaaf291cb0103
+FIBER_MODE_RTL8168H_RTL8211FS	r8168_fiber.h	/^        FIBER_MODE_RTL8168H_RTL8211FS,$/;"	e	enum:__anonaaf291cb0103
+FIBER_STAT_CONNECT	r8168_fiber.h	/^        FIBER_STAT_CONNECT,$/;"	e	enum:__anonaaf291cb0203
+FIBER_STAT_DISCONNECT	r8168_fiber.h	/^        FIBER_STAT_DISCONNECT,$/;"	e	enum:__anonaaf291cb0203
+FIBER_STAT_MAX	r8168_fiber.h	/^        FIBER_STAT_MAX$/;"	e	enum:__anonaaf291cb0203
+FIBER_STAT_NOT_CHECKED	r8168_fiber.h	/^        FIBER_STAT_NOT_CHECKED = 0,$/;"	e	enum:__anonaaf291cb0203
+FIBER_SUFFIX	r8168.h	/^#define FIBER_SUFFIX /;"	d
+FLASH	r8168.h	/^        FLASH           = 0x30,$/;"	e	enum:RTL8168_registers
+FMW_CAP_MASK	r8168_asf.h	/^#define FMW_CAP_MASK	/;"	d
+FSWInt	r8168.h	/^        FSWInt = 0x01,$/;"	e	enum:RTL8168_register_content
+FUNCTION_DISABLE	r8168_asf.h	/^#define FUNCTION_DISABLE	/;"	d
+FUNCTION_ENABLE	r8168_asf.h	/^#define FUNCTION_ENABLE	/;"	d
+FirstFrag	r8168.h	/^        FirstFrag   = (1 << 29), \/* First segment of a packet *\/$/;"	e	enum:_DescStatusBit
+Fix_Nak_1	r8168.h	/^        Fix_Nak_1 = (1 << 4),$/;"	e	enum:RTL8168_register_content
+Fix_Nak_2	r8168.h	/^        Fix_Nak_2 = (1 << 3),$/;"	e	enum:RTL8168_register_content
+FlagFOffset	r8168_asf.h	/^        FlagFOffset	= 0x011C,$/;"	e	enum:asf_registers
+FmCapMsk	r8168_asf.h	/^        FmCapMsk	= 0x0050,$/;"	e	enum:asf_registers
+Force_halfdup	r8168.h	/^        Force_halfdup   = (1 << 12),$/;"	e	enum:RTL8168_register_content
+Force_rxflow_en	r8168.h	/^        Force_rxflow_en = (1 << 11),$/;"	e	enum:RTL8168_register_content
+Force_txflow_en	r8168.h	/^        Force_txflow_en = (1 << 10),$/;"	e	enum:RTL8168_register_content
+FullDup	r8168.h	/^        FullDup = 0x01,$/;"	e	enum:RTL8168_register_content
+FuncEvent	r8168.h	/^        FuncEvent       = 0xF0,$/;"	e	enum:RTL8168_registers
+FuncEventMask	r8168.h	/^        FuncEventMask   = 0xF4,$/;"	e	enum:RTL8168_registers
+FuncForceEvent	r8168.h	/^        FuncForceEvent  = 0xFC,$/;"	e	enum:RTL8168_registers
+FuncPresetState	r8168.h	/^        FuncPresetState = 0xF8,$/;"	e	enum:RTL8168_registers
+GPIO	r8168.h	/^        GPIO            = 0x6E,$/;"	e	enum:RTL8168_registers
+GPIO_en	r8168.h	/^        GPIO_en = (1 << 0),$/;"	e	enum:RTL8168_register_content
+GPL_CLAIM	r8168.h	/^#define GPL_CLAIM /;"	d
+GTPKTSIZE_MAX	r8168.h	/^#define GTPKTSIZE_MAX /;"	d
+GTTCPHO_MAX	r8168.h	/^#define GTTCPHO_MAX /;"	d
+GTTCPHO_SHIFT	r8168.h	/^#define GTTCPHO_SHIFT /;"	d
+GiantSendv4	r8168.h	/^        GiantSendv4 = (1 << 26), \/* TCP Giant Send Offload V4 (GSOv4) *\/$/;"	e	enum:_DescStatusBit
+GiantSendv6	r8168.h	/^        GiantSendv6 = (1 << 25), \/* TCP Giant Send Offload V6 (GSOv6) *\/$/;"	e	enum:_DescStatusBit
+HBPeriod	r8168_asf.h	/^        HBPeriod	= 0x0000,$/;"	e	enum:asf_registers
+HPQ	r8168.h	/^        HPQ = 0x80,$/;"	e	enum:RTL8168_register_content
+HW_DASH_SUPPORT_DASH	r8168_dash.h	/^#define HW_DASH_SUPPORT_DASH(/;"	d
+HW_DASH_SUPPORT_TYPE_1	r8168_dash.h	/^#define HW_DASH_SUPPORT_TYPE_1(/;"	d
+HW_DASH_SUPPORT_TYPE_2	r8168_dash.h	/^#define HW_DASH_SUPPORT_TYPE_2(/;"	d
+HW_DASH_SUPPORT_TYPE_3	r8168_dash.h	/^#define HW_DASH_SUPPORT_TYPE_3(/;"	d
+HW_FIBER_MODE_ENABLED	r8168_fiber.h	/^#define HW_FIBER_MODE_ENABLED(/;"	d
+HW_HAS_WRITE_PHY_MCU_RAM_CODE	r8168.h	/^#define HW_HAS_WRITE_PHY_MCU_RAM_CODE(/;"	d
+HW_PATCH_SAMSUNG_LAN_DONGLE	r8168.h	/^#define HW_PATCH_SAMSUNG_LAN_DONGLE /;"	d
+HW_PATCH_SOC_LAN	r8168.h	/^#define HW_PATCH_SOC_LAN /;"	d
+HW_SUPPORT_CHECK_PHY_DISABLE_MODE	r8168.h	/^#define HW_SUPPORT_CHECK_PHY_DISABLE_MODE(/;"	d
+HW_SUPPORT_KCP_OFFLOAD	r8168_realwow.h	/^#define HW_SUPPORT_KCP_OFFLOAD(/;"	d
+HW_SUPP_SERDES_PHY	r8168.h	/^#define HW_SUPP_SERDES_PHY(/;"	d
+HbtEI	r8168_asf.h	/^        HbtEI		= 0x011F,$/;"	e	enum:asf_registers
+HostReqReg	r8168_dash.h	/^#define HostReqReg /;"	d
+HostReqValue	r8168.h	/^        u16 HostReqValue;$/;"	m	struct:rtl8168_private	typeref:typename:u16
+HwFiberModeVer	r8168.h	/^        u32 HwFiberModeVer;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+HwFiberStat	r8168.h	/^        u32 HwFiberStat;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+HwHasWrRamCodeToMicroP	r8168.h	/^        u8  HwHasWrRamCodeToMicroP;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+HwIcVerUnknown	r8168.h	/^        u8  HwIcVerUnknown;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+HwPcieSNOffset	r8168.h	/^        u32 HwPcieSNOffset;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+HwPkgDet	r8168.h	/^        u8 HwPkgDet;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+HwSuppCheckPhyDisableModeVer	r8168.h	/^        u8 HwSuppCheckPhyDisableModeVer;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+HwSuppDashVer	r8168.h	/^        u8 HwSuppDashVer;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+HwSuppGigaForceMode	r8168.h	/^        u8 HwSuppGigaForceMode;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+HwSuppKCPOffloadVer	r8168.h	/^        u8 HwSuppKCPOffloadVer;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+HwSuppMagicPktVer	r8168.h	/^        u8 HwSuppMagicPktVer;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+HwSuppNowIsOobVer	r8168.h	/^        u8 HwSuppNowIsOobVer;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+HwSuppPhyOcpVer	r8168.h	/^        u8 HwSuppPhyOcpVer;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+HwSuppSerDesPhyVer	r8168.h	/^        u8 HwSuppSerDesPhyVer;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+HwSwitchMdiToFiber	r8168.h	/^        u8 HwSwitchMdiToFiber;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+IANA	r8168_asf.h	/^        IANA		= 0x0030,$/;"	e	enum:asf_registers
+INIT_WORK	r8168.h	/^#define INIT_WORK(/;"	d
+INTT_0	r8168.h	/^        INTT_0      = 0x0000,$/;"	e	enum:RTL8168_register_content
+INTT_1	r8168.h	/^        INTT_1      = 0x0001,$/;"	e	enum:RTL8168_register_content
+INTT_2	r8168.h	/^        INTT_2      = 0x0002,$/;"	e	enum:RTL8168_register_content
+INTT_3	r8168.h	/^        INTT_3      = 0x0003,$/;"	e	enum:RTL8168_register_content
+IOMAP	r8168.h	/^        IOMAP       = (1 << 2),$/;"	e	enum:RTL8168_register_content
+IPAddr	r8168_asf.h	/^        IPAddr		= 0x001A,$/;"	e	enum:asf_registers
+IPIdfr	r8168_asf.h	/^        IPIdfr		= 0x011A,$/;"	e	enum:asf_registers
+IPServiceType	r8168_asf.h	/^        IPServiceType	= 0x0119,$/;"	e	enum:asf_registers
+IPv4Gateway	r8168_dash.h	/^        __u32	IPv4Gateway;$/;"	m	struct:settings_ipv4	typeref:typename:__u32
+IPv4addr	r8168_dash.h	/^        __u32	IPv4addr;$/;"	m	struct:settings_ipv4	typeref:typename:__u32
+IPv4mask	r8168_dash.h	/^        __u32	IPv4mask;$/;"	m	struct:settings_ipv4	typeref:typename:__u32
+IPv6Gateway	r8168_dash.h	/^        __u16	IPv6Gateway[8];$/;"	m	struct:settings_ipv6	typeref:typename:__u16[8]
+IPv6addr	r8168_dash.h	/^        __u16	IPv6addr[8];$/;"	m	struct:settings_ipv6	typeref:typename:__u16[8]
+IRQ_HANDLED	r8168.h	/^#define IRQ_HANDLED /;"	d
+IRQ_NONE	r8168.h	/^#define IRQ_NONE /;"	d
+IRQ_RETVAL	r8168.h	/^#define IRQ_RETVAL(/;"	d
+ISRIMR_DASH_INTR_CMAC_RESET	r8168_dash.h	/^#define ISRIMR_DASH_INTR_CMAC_RESET /;"	d
+ISRIMR_DASH_INTR_EN	r8168_dash.h	/^#define ISRIMR_DASH_INTR_EN /;"	d
+ISRIMR_DASH_TYPE2_RDU	r8168_dash.h	/^#define ISRIMR_DASH_TYPE2_RDU /;"	d
+ISRIMR_DASH_TYPE2_ROK	r8168_dash.h	/^#define ISRIMR_DASH_TYPE2_ROK /;"	d
+ISRIMR_DASH_TYPE2_RX_DISABLE_IDLE	r8168_dash.h	/^#define ISRIMR_DASH_TYPE2_RX_DISABLE_IDLE /;"	d
+ISRIMR_DASH_TYPE2_TDU	r8168_dash.h	/^#define ISRIMR_DASH_TYPE2_TDU /;"	d
+ISRIMR_DASH_TYPE2_TOK	r8168_dash.h	/^#define ISRIMR_DASH_TYPE2_TOK /;"	d
+ISRIMR_DASH_TYPE2_TX_DISABLE_IDLE	r8168_dash.h	/^#define ISRIMR_DASH_TYPE2_TX_DISABLE_IDLE /;"	d
+ISRIMR_DASH_TYPE2_TX_FIFO_FULL	r8168_dash.h	/^#define ISRIMR_DASH_TYPE2_TX_FIFO_FULL /;"	d
+ISRIMR_DP_DASH_OK	r8168_dash.h	/^#define ISRIMR_DP_DASH_OK /;"	d
+ISRIMR_DP_HOST_OK	r8168_dash.h	/^#define ISRIMR_DP_HOST_OK /;"	d
+ISRIMR_DP_REQSYS_OK	r8168_dash.h	/^#define ISRIMR_DP_REQSYS_OK /;"	d
+IS_ERR_OR_NULL	r8168.h	/^#define IS_ERR_OR_NULL(/;"	d
+InterFrameGap	r8168.h	/^#define InterFrameGap /;"	d
+IntrMask	r8168.h	/^        IntrMask        = 0x3C,$/;"	e	enum:RTL8168_registers
+IntrMitigate	r8168.h	/^        IntrMitigate    = 0xE2,$/;"	e	enum:RTL8168_registers
+IntrStatus	r8168.h	/^        IntrStatus      = 0x3E,$/;"	e	enum:RTL8168_registers
+IntyPd	r8168_asf.h	/^        IntyPd		= 0x0138,$/;"	e	enum:asf_registers
+Isolate_en	r8168.h	/^        Isolate_en  = (1 << 12), \/* Isolate enable *\/$/;"	e	enum:RTL8168_register_content
+Jumbo_En0	r8168.h	/^        Jumbo_En0   = (1 << 2), \/* This bit is reserved in RTL8168B*\/$/;"	e	enum:RTL8168_register_content
+Jumbo_En1	r8168.h	/^        Jumbo_En1   = (1 << 1), \/* This bit is reserved in RTL8168B*\/$/;"	e	enum:RTL8168_register_content
+Jumbo_Frame_1k	r8168.h	/^#define Jumbo_Frame_1k /;"	d
+Jumbo_Frame_2k	r8168.h	/^#define Jumbo_Frame_2k /;"	d
+Jumbo_Frame_3k	r8168.h	/^#define Jumbo_Frame_3k /;"	d
+Jumbo_Frame_4k	r8168.h	/^#define Jumbo_Frame_4k /;"	d
+Jumbo_Frame_5k	r8168.h	/^#define Jumbo_Frame_5k /;"	d
+Jumbo_Frame_6k	r8168.h	/^#define Jumbo_Frame_6k /;"	d
+Jumbo_Frame_7k	r8168.h	/^#define Jumbo_Frame_7k /;"	d
+Jumbo_Frame_8k	r8168.h	/^#define Jumbo_Frame_8k /;"	d
+Jumbo_Frame_9k	r8168.h	/^#define Jumbo_Frame_9k /;"	d
+KA	r8168_asf.h	/^        KA		= 0x0190,$/;"	e	enum:asf_registers
+KA_TX_PACKET_SIZE	r8168_realwow.h	/^#define KA_TX_PACKET_SIZE /;"	d
+KA_WAKEUP_PATTERN_SIZE	r8168_realwow.h	/^#define KA_WAKEUP_PATTERN_SIZE /;"	d
+KC	r8168_asf.h	/^        KC		= 0x01D4,$/;"	e	enum:asf_registers
+KCPContent	r8168_realwow.h	/^} KCPContent, *PKCPContent;$/;"	t	typeref:struct:_KCPContent
+KCPInfo	r8168_realwow.h	/^} KCPInfo, *PKCPInfo;$/;"	t	typeref:struct:_KCPInfo
+KCP_AckPacket	r8168_realwow.h	/^        u8 KCP_AckPacket[MAX_RealWoW_Payload];$/;"	m	struct:_MP_KCPInfo	typeref:typename:u8[]
+KCP_AckPacket_Len	r8168_realwow.h	/^        u8 KCP_AckPacket_Len;$/;"	m	struct:_MP_KCPInfo	typeref:typename:u8
+KCP_TxPacket	r8168_realwow.h	/^        u8 KCP_TxPacket[2][KA_TX_PACKET_SIZE];$/;"	m	struct:_MP_KCPInfo	typeref:typename:u8[2][]
+KCP_WakePattern	r8168_realwow.h	/^        u8 KCP_WakePattern[MAX_RealWoW_Payload];$/;"	m	struct:_MP_KCPInfo	typeref:typename:u8[]
+KCP_WakePattern_Len	r8168_realwow.h	/^        u8 KCP_WakePattern_Len;$/;"	m	struct:_MP_KCPInfo	typeref:typename:u8
+KCP_interval	r8168_realwow.h	/^        u32 KCP_interval;$/;"	m	struct:_MP_KCPInfo	typeref:typename:u32
+KERNELDIR	Makefile	/^	KERNELDIR ?= $(BASEDIR)\/build$/;"	m
+KERNEL_GCC_VERSION	Makefile	/^	KERNEL_GCC_VERSION := $(shell cat \/proc\/version | sed -n 's\/.*gcc version \\([[:digit:]]\\.[/;"	m
+KEY_LEN	r8168_asf.h	/^#define KEY_LEN	/;"	d
+KG	r8168_asf.h	/^        KG		= 0x01A4,$/;"	e	enum:asf_registers
+KMAJ	Makefile	/^	KMAJ = $(shell echo $(KVER) | \\$/;"	m
+KMIN	Makefile	/^	KMIN = $(shell echo $(KVER) | \\$/;"	m
+KO	r8168_asf.h	/^        KO		= 0x017C,$/;"	e	enum:asf_registers
+KR	r8168_asf.h	/^        KR		= 0x01B8,$/;"	e	enum:asf_registers
+KREV	Makefile	/^	KREV = $(shell echo $(KVER) | \\$/;"	m
+KVER	Makefile	/^	KVER = $(shell uname -r)$/;"	m
+LAlertCMD0	r8168_asf.h	/^        LAlertCMD0	= 0x00B1,$/;"	e	enum:asf_registers
+LAlertCMD1	r8168_asf.h	/^        LAlertCMD1	= 0x00BE,$/;"	e	enum:asf_registers
+LAlertCMD2	r8168_asf.h	/^        LAlertCMD2	= 0x00CB,$/;"	e	enum:asf_registers
+LAlertCMD3	r8168_asf.h	/^        LAlertCMD3	= 0x00D8,$/;"	e	enum:asf_registers
+LAlertCMD4	r8168_asf.h	/^        LAlertCMD4	= 0x00E5,$/;"	e	enum:asf_registers
+LAlertCMD5	r8168_asf.h	/^        LAlertCMD5	= 0x00F2,$/;"	e	enum:asf_registers
+LAlertCMD6	r8168_asf.h	/^        LAlertCMD6	= 0x00FF,$/;"	e	enum:asf_registers
+LAlertCMD7	r8168_asf.h	/^        LAlertCMD7	= 0x010C,$/;"	e	enum:asf_registers
+LAlertCmp0	r8168_asf.h	/^        LAlertCmp0	= 0x00B3,$/;"	e	enum:asf_registers
+LAlertCmp1	r8168_asf.h	/^        LAlertCmp1	= 0x00C0,$/;"	e	enum:asf_registers
+LAlertCmp2	r8168_asf.h	/^        LAlertCmp2	= 0x00CD,$/;"	e	enum:asf_registers
+LAlertCmp3	r8168_asf.h	/^        LAlertCmp3	= 0x00DA,$/;"	e	enum:asf_registers
+LAlertCmp4	r8168_asf.h	/^        LAlertCmp4	= 0x00E7,$/;"	e	enum:asf_registers
+LAlertCmp5	r8168_asf.h	/^        LAlertCmp5	= 0x00F4,$/;"	e	enum:asf_registers
+LAlertCmp6	r8168_asf.h	/^        LAlertCmp6	= 0x0101,$/;"	e	enum:asf_registers
+LAlertCmp7	r8168_asf.h	/^        LAlertCmp7	= 0x010E,$/;"	e	enum:asf_registers
+LAlertDataMsk0	r8168_asf.h	/^        LAlertDataMsk0	= 0x00B2,$/;"	e	enum:asf_registers
+LAlertDataMsk1	r8168_asf.h	/^        LAlertDataMsk1	= 0x00BF,$/;"	e	enum:asf_registers
+LAlertDataMsk2	r8168_asf.h	/^        LAlertDataMsk2	= 0x00CC,$/;"	e	enum:asf_registers
+LAlertDataMsk3	r8168_asf.h	/^        LAlertDataMsk3	= 0x00D9,$/;"	e	enum:asf_registers
+LAlertDataMsk4	r8168_asf.h	/^        LAlertDataMsk4	= 0x00E6,$/;"	e	enum:asf_registers
+LAlertDataMsk5	r8168_asf.h	/^        LAlertDataMsk5	= 0x00F3,$/;"	e	enum:asf_registers
+LAlertDataMsk6	r8168_asf.h	/^        LAlertDataMsk6	= 0x0100,$/;"	e	enum:asf_registers
+LAlertDataMsk7	r8168_asf.h	/^        LAlertDataMsk7	= 0x010D,$/;"	e	enum:asf_registers
+LAlertEI0	r8168_asf.h	/^        LAlertEI0	= 0x00BA,$/;"	e	enum:asf_registers
+LAlertEI1	r8168_asf.h	/^        LAlertEI1	= 0x00C7,$/;"	e	enum:asf_registers
+LAlertEI2	r8168_asf.h	/^        LAlertEI2	= 0x00D4,$/;"	e	enum:asf_registers
+LAlertEI3	r8168_asf.h	/^        LAlertEI3	= 0x00E1,$/;"	e	enum:asf_registers
+LAlertEI4	r8168_asf.h	/^        LAlertEI4	= 0x00EE,$/;"	e	enum:asf_registers
+LAlertEI5	r8168_asf.h	/^        LAlertEI5	= 0x00FB,$/;"	e	enum:asf_registers
+LAlertEI6	r8168_asf.h	/^        LAlertEI6	= 0x0108,$/;"	e	enum:asf_registers
+LAlertEI7	r8168_asf.h	/^        LAlertEI7	= 0x0115,$/;"	e	enum:asf_registers
+LAlertEOffset0	r8168_asf.h	/^        LAlertEOffset0	= 0x00B6,$/;"	e	enum:asf_registers
+LAlertEOffset1	r8168_asf.h	/^        LAlertEOffset1	= 0x00C3,$/;"	e	enum:asf_registers
+LAlertEOffset2	r8168_asf.h	/^        LAlertEOffset2	= 0x00D0,$/;"	e	enum:asf_registers
+LAlertEOffset3	r8168_asf.h	/^        LAlertEOffset3	= 0x00DD,$/;"	e	enum:asf_registers
+LAlertEOffset4	r8168_asf.h	/^        LAlertEOffset4	= 0x00EA,$/;"	e	enum:asf_registers
+LAlertEOffset5	r8168_asf.h	/^        LAlertEOffset5	= 0x00F7,$/;"	e	enum:asf_registers
+LAlertEOffset6	r8168_asf.h	/^        LAlertEOffset6	= 0x0104,$/;"	e	enum:asf_registers
+LAlertEOffset7	r8168_asf.h	/^        LAlertEOffset7	= 0x0111,$/;"	e	enum:asf_registers
+LAlertES0	r8168_asf.h	/^        LAlertES0	= 0x00B7,$/;"	e	enum:asf_registers
+LAlertES1	r8168_asf.h	/^        LAlertES1	= 0x00C4,$/;"	e	enum:asf_registers
+LAlertES2	r8168_asf.h	/^        LAlertES2	= 0x00D1,$/;"	e	enum:asf_registers
+LAlertES3	r8168_asf.h	/^        LAlertES3	= 0x00DE,$/;"	e	enum:asf_registers
+LAlertES4	r8168_asf.h	/^        LAlertES4	= 0x00EB,$/;"	e	enum:asf_registers
+LAlertES5	r8168_asf.h	/^        LAlertES5	= 0x00F8,$/;"	e	enum:asf_registers
+LAlertES6	r8168_asf.h	/^        LAlertES6	= 0x0105,$/;"	e	enum:asf_registers
+LAlertES7	r8168_asf.h	/^        LAlertES7	= 0x0112,$/;"	e	enum:asf_registers
+LAlertESnsrT0	r8168_asf.h	/^        LAlertESnsrT0	= 0x00B4,$/;"	e	enum:asf_registers
+LAlertESnsrT1	r8168_asf.h	/^        LAlertESnsrT1	= 0x00C1,$/;"	e	enum:asf_registers
+LAlertESnsrT2	r8168_asf.h	/^        LAlertESnsrT2	= 0x00CE,$/;"	e	enum:asf_registers
+LAlertESnsrT3	r8168_asf.h	/^        LAlertESnsrT3	= 0x00DB,$/;"	e	enum:asf_registers
+LAlertESnsrT4	r8168_asf.h	/^        LAlertESnsrT4	= 0x00E8,$/;"	e	enum:asf_registers
+LAlertESnsrT5	r8168_asf.h	/^        LAlertESnsrT5	= 0x00F5,$/;"	e	enum:asf_registers
+LAlertESnsrT6	r8168_asf.h	/^        LAlertESnsrT6	= 0x0102,$/;"	e	enum:asf_registers
+LAlertESnsrT7	r8168_asf.h	/^        LAlertESnsrT7	= 0x010F,$/;"	e	enum:asf_registers
+LAlertET0	r8168_asf.h	/^        LAlertET0	= 0x00B5,$/;"	e	enum:asf_registers
+LAlertET1	r8168_asf.h	/^        LAlertET1	= 0x00C2,$/;"	e	enum:asf_registers
+LAlertET2	r8168_asf.h	/^        LAlertET2	= 0x00CF,$/;"	e	enum:asf_registers
+LAlertET3	r8168_asf.h	/^        LAlertET3	= 0x00DC,$/;"	e	enum:asf_registers
+LAlertET4	r8168_asf.h	/^        LAlertET4	= 0x00E9,$/;"	e	enum:asf_registers
+LAlertET5	r8168_asf.h	/^        LAlertET5	= 0x00F6,$/;"	e	enum:asf_registers
+LAlertET6	r8168_asf.h	/^        LAlertET6	= 0x0103,$/;"	e	enum:asf_registers
+LAlertET7	r8168_asf.h	/^        LAlertET7	= 0x0110,$/;"	e	enum:asf_registers
+LAlertEntity0	r8168_asf.h	/^        LAlertEntity0	= 0x00B9,$/;"	e	enum:asf_registers
+LAlertEntity1	r8168_asf.h	/^        LAlertEntity1	= 0x00C6,$/;"	e	enum:asf_registers
+LAlertEntity2	r8168_asf.h	/^        LAlertEntity2	= 0x00D3,$/;"	e	enum:asf_registers
+LAlertEntity3	r8168_asf.h	/^        LAlertEntity3	= 0x00E0,$/;"	e	enum:asf_registers
+LAlertEntity4	r8168_asf.h	/^        LAlertEntity4	= 0x00ED,$/;"	e	enum:asf_registers
+LAlertEntity5	r8168_asf.h	/^        LAlertEntity5	= 0x00FA,$/;"	e	enum:asf_registers
+LAlertEntity6	r8168_asf.h	/^        LAlertEntity6	= 0x0107,$/;"	e	enum:asf_registers
+LAlertEntity7	r8168_asf.h	/^        LAlertEntity7	= 0x0114,$/;"	e	enum:asf_registers
+LAlertSN0	r8168_asf.h	/^        LAlertSN0	= 0x00B8,$/;"	e	enum:asf_registers
+LAlertSN1	r8168_asf.h	/^        LAlertSN1	= 0x00C5,$/;"	e	enum:asf_registers
+LAlertSN2	r8168_asf.h	/^        LAlertSN2	= 0x00D2,$/;"	e	enum:asf_registers
+LAlertSN3	r8168_asf.h	/^        LAlertSN3	= 0x00DF,$/;"	e	enum:asf_registers
+LAlertSN4	r8168_asf.h	/^        LAlertSN4	= 0x00EC,$/;"	e	enum:asf_registers
+LAlertSN5	r8168_asf.h	/^        LAlertSN5	= 0x00F9,$/;"	e	enum:asf_registers
+LAlertSN6	r8168_asf.h	/^        LAlertSN6	= 0x0106,$/;"	e	enum:asf_registers
+LAlertSN7	r8168_asf.h	/^        LAlertSN7	= 0x0113,$/;"	e	enum:asf_registers
+LAssert	r8168_asf.h	/^        LAssert		= 0x0117,$/;"	e	enum:asf_registers
+LC	r8168_asf.h	/^        LC		= 0x004E,$/;"	e	enum:asf_registers
+LDAssert	r8168_asf.h	/^        LDAssert	= 0x0118,$/;"	e	enum:asf_registers
+LEDS0	r8168.h	/^        LEDS0       = (1 << 6),$/;"	e	enum:RTL8168_register_content
+LEDS1	r8168.h	/^        LEDS1       = (1 << 7),$/;"	e	enum:RTL8168_register_content
+LPA_1000FULL	r8168_n.c	/^#define LPA_1000FULL /;"	d	file:
+LPA_1000HALF	r8168_n.c	/^#define LPA_1000HALF /;"	d	file:
+LSOPKTSIZE_MAX	r8168.h	/^#define LSOPKTSIZE_MAX /;"	d
+LSO_32K	r8168.h	/^#define LSO_32K /;"	d
+LSO_64K	r8168.h	/^#define LSO_64K /;"	d
+LSnsrAddr0	r8168_asf.h	/^        LSnsrAddr0	= 0x00B0,$/;"	e	enum:asf_registers
+LSnsrAddr1	r8168_asf.h	/^        LSnsrAddr1	= 0x00BD,$/;"	e	enum:asf_registers
+LSnsrAddr2	r8168_asf.h	/^        LSnsrAddr2	= 0x00CA,$/;"	e	enum:asf_registers
+LSnsrAddr3	r8168_asf.h	/^        LSnsrAddr3	= 0x00D7,$/;"	e	enum:asf_registers
+LSnsrAddr4	r8168_asf.h	/^        LSnsrAddr4	= 0x00E4,$/;"	e	enum:asf_registers
+LSnsrAddr5	r8168_asf.h	/^        LSnsrAddr5	= 0x00F1,$/;"	e	enum:asf_registers
+LSnsrAddr6	r8168_asf.h	/^        LSnsrAddr6	= 0x00FE,$/;"	e	enum:asf_registers
+LSnsrAddr7	r8168_asf.h	/^        LSnsrAddr7	= 0x010B,$/;"	e	enum:asf_registers
+LSnsrNo	r8168_asf.h	/^        LSnsrNo		= 0x00AD,$/;"	e	enum:asf_registers
+LSnsrPollCycle	r8168_asf.h	/^        LSnsrPollCycle	= 0x0006,$/;"	e	enum:asf_registers
+LSnsrState0	r8168_asf.h	/^        LSnsrState0	= 0x00BB,$/;"	e	enum:asf_registers
+LSnsrState1	r8168_asf.h	/^        LSnsrState1	= 0x00C8,$/;"	e	enum:asf_registers
+LSnsrState2	r8168_asf.h	/^        LSnsrState2	= 0x00D5,$/;"	e	enum:asf_registers
+LSnsrState3	r8168_asf.h	/^        LSnsrState3	= 0x00E2,$/;"	e	enum:asf_registers
+LSnsrState4	r8168_asf.h	/^        LSnsrState4	= 0x00EF,$/;"	e	enum:asf_registers
+LSnsrState5	r8168_asf.h	/^        LSnsrState5	= 0x00FC,$/;"	e	enum:asf_registers
+LSnsrState6	r8168_asf.h	/^        LSnsrState6	= 0x0109,$/;"	e	enum:asf_registers
+LSnsrState7	r8168_asf.h	/^        LSnsrState7	= 0x0116,$/;"	e	enum:asf_registers
+LanWake	r8168.h	/^        LanWake     = (1 << 1), \/* LanWake enable\/disable *\/$/;"	e	enum:RTL8168_register_content
+LargeSend	r8168.h	/^        LargeSend   = (1 << 27), \/* TCP Large Send Offload (TSO) *\/$/;"	e	enum:_DescStatusBit
+LargeSend_DP	r8168.h	/^        LargeSend_DP = (1 << 16), \/* TCP Large Send Offload (TSO) *\/$/;"	e	enum:_DescStatusBit
+LastFrag	r8168.h	/^        LastFrag    = (1 << 28), \/* Final segment of a packet *\/$/;"	e	enum:_DescStatusBit
+LastSendNumTxDashSendFwDesc	r8168.h	/^        u32 LastSendNumTxDashSendFwDesc ;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+LinkChg	r8168.h	/^        LinkChg     = 0x0020,$/;"	e	enum:RTL8168_register_content
+LinkStatus	r8168.h	/^        LinkStatus = 0x02,$/;"	e	enum:RTL8168_register_content
+LinkUp	r8168.h	/^        LinkUp      = (1 << 4), \/* This bit is reserved in RTL8168B.*\/$/;"	e	enum:RTL8168_register_content
+MAC0	r8168.h	/^        MAC0            = 0x00,     \/* Ethernet hardware address. *\/$/;"	e	enum:RTL8168_registers
+MAC4	r8168.h	/^        MAC4            = 0x04,$/;"	e	enum:RTL8168_registers
+MACDBG	r8168.h	/^        MACDBG          = 0x6D,$/;"	e	enum:RTL8168_registers
+MACOCP	r8168.h	/^        MACOCP          = 0xB0,$/;"	e	enum:RTL8168_registers
+MAC_ADDR_LEN	r8168.h	/^#define MAC_ADDR_LEN /;"	d
+MAC_PROTOCOL_LEN	r8168.h	/^#define MAC_PROTOCOL_LEN /;"	d
+MAR0	r8168.h	/^        MAR0            = 0x08,     \/* Multicast filter. *\/$/;"	e	enum:RTL8168_registers
+MAX_DATA_LEN	r8168_asf.h	/^#define MAX_DATA_LEN	/;"	d
+MAX_JIFFY_OFFSET	r8168_n.c	/^#define MAX_JIFFY_OFFSET /;"	d	file:
+MAX_RealWoW_KCP_SIZE	r8168_realwow.h	/^#define MAX_RealWoW_KCP_SIZE /;"	d
+MAX_RealWoW_Payload	r8168_realwow.h	/^#define MAX_RealWoW_Payload /;"	d
+MAX_STR_LEN	r8168_asf.h	/^#define MAX_STR_LEN	/;"	d
+MCUCmd_reg	r8168.h	/^        MCUCmd_reg      = 0xD3,$/;"	e	enum:RTL8168_registers
+MDIO_EEE_1000T	r8168.h	/^#define  MDIO_EEE_1000T /;"	d
+MDIO_EEE_100TX	r8168.h	/^#define  MDIO_EEE_100TX /;"	d
+MEMMAP	r8168.h	/^        MEMMAP      = (1 << 3),$/;"	e	enum:RTL8168_register_content
+MII_CTRL1000	r8168.h	/^#define MII_CTRL1000 /;"	d
+MODE_NONE	rtltool.h	/^        MODE_NONE=0,$/;"	e	enum:mode_access
+MODE_READ	rtltool.h	/^        MODE_READ,$/;"	e	enum:mode_access
+MODE_WRITE	rtltool.h	/^        MODE_WRITE$/;"	e	enum:mode_access
+MODULENAME	r8168.h	/^#define MODULENAME /;"	d
+MODULE_INFO	r8168.h	/^#define MODULE_INFO(/;"	d
+MODULE_VERSION	r8168.h	/^#define MODULE_VERSION(/;"	d
+MP_KCP_INFO	r8168_realwow.h	/^} MP_KCP_INFO, *PMP_KCP_INFO;$/;"	t	typeref:struct:_MP_KCPInfo
+MSEC_PER_SEC	r8168_n.c	/^#define MSEC_PER_SEC /;"	d	file:
+MSSMask	r8168.h	/^        MSSMask     = 0x7FFU,    \/* MSS value 11 bits *\/$/;"	e	enum:_DescStatusBit
+MSSShift	r8168.h	/^        MSSShift    = 16,        \/* MSS value position *\/$/;"	e	enum:_DescStatusBit
+MSS_MAX	r8168.h	/^#define MSS_MAX /;"	d
+MTPS	r8168.h	/^        MTPS            = 0xEC,$/;"	e	enum:RTL8168_registers
+MWF	r8168.h	/^        MWF     = (1 << 5), \/* Accept Multicast wakeup frame *\/$/;"	e	enum:RTL8168_register_content
+MacID	r8168_realwow.h	/^        u8 MacID[6];$/;"	m	struct:_KCPInfo	typeref:typename:u8[6]
+MacID	r8168_realwow.h	/^        u8 MacID[6];$/;"	m	struct:_MP_KCPInfo	typeref:typename:u8[6]
+Macdbgo_oe	r8168.h	/^        Macdbgo_oe  = (1 << 14),$/;"	e	enum:RTL8168_register_content
+Macdbgo_sel	r8168.h	/^        Macdbgo_sel = 0x001C,$/;"	e	enum:RTL8168_register_content
+MagicPacket	r8168.h	/^        MagicPacket = (1 << 5), \/* Wake up when receives a Magic Packet *\/$/;"	e	enum:RTL8168_register_content
+MgdCltSID	r8168_asf.h	/^        MgdCltSID	= 0x0128,$/;"	e	enum:asf_registers
+MgdCtlRN	r8168_asf.h	/^        MgdCtlRN	= 0x0150,$/;"	e	enum:asf_registers
+MgtConRN	r8168_asf.h	/^        MgtConRN	= 0x0140,$/;"	e	enum:asf_registers
+MgtConSID1	r8168_asf.h	/^        MgtConSID1	= 0x0120,$/;"	e	enum:asf_registers
+MgtConSID2	r8168_asf.h	/^        MgtConSID2	= 0x0124,$/;"	e	enum:asf_registers
+MgtConUN	r8168_asf.h	/^        MgtConUN	= 0x0160,$/;"	e	enum:asf_registers
+MgtConUNL	r8168_asf.h	/^        MgtConUNL	= 0x012E,$/;"	e	enum:asf_registers
+MgtConUR	r8168_asf.h	/^        MgtConUR	= 0x012D,$/;"	e	enum:asf_registers
+MpKCPInfo	r8168.h	/^        MP_KCP_INFO MpKCPInfo;$/;"	m	struct:rtl8168_private	typeref:typename:MP_KCP_INFO
+NAPI_SUFFIX	r8168.h	/^#define NAPI_SUFFIX /;"	d
+NETDEV_ALIGN	r8168.h	/^#define NETDEV_ALIGN /;"	d
+NETDEV_ALIGN_CONST	r8168.h	/^#define NETDEV_ALIGN_CONST /;"	d
+NETDEV_TX_BUSY	r8168.h	/^#define NETDEV_TX_BUSY /;"	d
+NETDEV_TX_LOCKED	r8168.h	/^#define NETDEV_TX_LOCKED /;"	d
+NETDEV_TX_OK	r8168.h	/^#define NETDEV_TX_OK /;"	d
+NETIF_F_ALL_CSUM	r8168.h	/^#define NETIF_F_ALL_CSUM /;"	d
+NETIF_F_HW_VLAN_RX	r8168.h	/^#define NETIF_F_HW_VLAN_RX	/;"	d
+NETIF_F_HW_VLAN_TX	r8168.h	/^#define NETIF_F_HW_VLAN_TX	/;"	d
+NETIF_F_RXALL	r8168.h	/^#define NETIF_F_RXALL /;"	d
+NETIF_F_RXFCS	r8168.h	/^#define NETIF_F_RXFCS /;"	d
+NETIF_F_TSO6	r8168.h	/^#define NETIF_F_TSO6 /;"	d
+NET_IP_ALIGN	r8168.h	/^#define NET_IP_ALIGN /;"	d
+NICChkTypeEnableDashInterrupt	r8168_n.c	/^NICChkTypeEnableDashInterrupt(struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+NIC_MAX_PHYS_BUF_COUNT_LSO2	r8168.h	/^#define NIC_MAX_PHYS_BUF_COUNT_LSO2 /;"	d
+NIC_MAX_PHYS_BUF_COUNT_LSO_64K	r8168.h	/^#define NIC_MAX_PHYS_BUF_COUNT_LSO_64K /;"	d
+NIC_MIN_PHYS_BUF_COUNT	r8168.h	/^#define NIC_MIN_PHYS_BUF_COUNT /;"	d
+NIC_RAMCODE_VERSION_CFG_METHOD_14	r8168.h	/^#define NIC_RAMCODE_VERSION_CFG_METHOD_14 /;"	d
+NIC_RAMCODE_VERSION_CFG_METHOD_16	r8168.h	/^#define NIC_RAMCODE_VERSION_CFG_METHOD_16 /;"	d
+NIC_RAMCODE_VERSION_CFG_METHOD_18	r8168.h	/^#define NIC_RAMCODE_VERSION_CFG_METHOD_18 /;"	d
+NIC_RAMCODE_VERSION_CFG_METHOD_20	r8168.h	/^#define NIC_RAMCODE_VERSION_CFG_METHOD_20 /;"	d
+NIC_RAMCODE_VERSION_CFG_METHOD_21	r8168.h	/^#define NIC_RAMCODE_VERSION_CFG_METHOD_21 /;"	d
+NIC_RAMCODE_VERSION_CFG_METHOD_23	r8168.h	/^#define NIC_RAMCODE_VERSION_CFG_METHOD_23 /;"	d
+NIC_RAMCODE_VERSION_CFG_METHOD_24	r8168.h	/^#define NIC_RAMCODE_VERSION_CFG_METHOD_24 /;"	d
+NIC_RAMCODE_VERSION_CFG_METHOD_26	r8168.h	/^#define NIC_RAMCODE_VERSION_CFG_METHOD_26 /;"	d
+NIC_RAMCODE_VERSION_CFG_METHOD_28	r8168.h	/^#define NIC_RAMCODE_VERSION_CFG_METHOD_28 /;"	d
+NIC_RAMCODE_VERSION_CFG_METHOD_29	r8168.h	/^#define NIC_RAMCODE_VERSION_CFG_METHOD_29 /;"	d
+NIC_RAMCODE_VERSION_CFG_METHOD_31	r8168.h	/^#define NIC_RAMCODE_VERSION_CFG_METHOD_31 /;"	d
+NODE_ADDRESS_SIZE	r8168.h	/^#define NODE_ADDRESS_SIZE /;"	d
+NO_BASE_ADDRESS	r8168_dash.h	/^#define NO_BASE_ADDRESS /;"	d
+NPQ	r8168.h	/^        NPQ = 0x40,$/;"	e	enum:RTL8168_register_content
+NUM_RX_DESC	r8168.h	/^#define NUM_RX_DESC /;"	d
+NUM_TX_DESC	r8168.h	/^#define NUM_TX_DESC /;"	d
+NicCustLedValue	r8168.h	/^        u16 NicCustLedValue;$/;"	m	struct:rtl8168_private	typeref:typename:u16
+Normal_mode	r8168.h	/^        Normal_mode = (1 << 13),$/;"	e	enum:RTL8168_register_content
+NotWrMcuPatchCode	r8168.h	/^        u8  NotWrMcuPatchCode;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+NotWrRamCodeToMicroP	r8168.h	/^        u8  NotWrRamCodeToMicroP;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+Now_is_oob	r8168.h	/^        Now_is_oob = (1 << 7),$/;"	e	enum:RTL8168_register_content
+NumOfSendToFwBuffer	r8168.h	/^        u32 NumOfSendToFwBuffer ;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+NumRecvFromFwBuffer	r8168.h	/^        u32 NumRecvFromFwBuffer ;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+NumRxDashRecvFwDesc	r8168.h	/^        u32 NumRxDashRecvFwDesc ;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+NumTxDashSendFwDesc	r8168.h	/^        u32 NumTxDashSendFwDesc ;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+OCPAR	r8168.h	/^        OCPAR           = 0xB4,$/;"	e	enum:RTL8168_registers
+OCPAR_Flag	r8168.h	/^        OCPAR_Flag = 0x80000000,$/;"	e	enum:RTL8168_register_content
+OCPAR_GPHY_Read	r8168.h	/^        OCPAR_GPHY_Read = 0x0000F060,$/;"	e	enum:RTL8168_register_content
+OCPAR_GPHY_Write	r8168.h	/^        OCPAR_GPHY_Write = 0x8000F060,$/;"	e	enum:RTL8168_register_content
+OCPDR	r8168.h	/^        OCPDR           = 0xB0,$/;"	e	enum:RTL8168_registers
+OCPDR_Data_Mask	r8168.h	/^        OCPDR_Data_Mask = 0xFFFF,$/;"	e	enum:RTL8168_register_content
+OCPDR_GPHY_Reg_shift	r8168.h	/^        OCPDR_GPHY_Reg_shift = 16,$/;"	e	enum:RTL8168_register_content
+OCPDR_Read	r8168.h	/^        OCPDR_Read = 0x00000000,$/;"	e	enum:RTL8168_register_content
+OCPDR_Reg_Mask	r8168.h	/^        OCPDR_Reg_Mask = 0xFF,$/;"	e	enum:RTL8168_register_content
+OCPDR_Write	r8168.h	/^        OCPDR_Write = 0x80000000,$/;"	e	enum:RTL8168_register_content
+OCPR_Addr_Reg_shift	r8168.h	/^        OCPR_Addr_Reg_shift = 16,$/;"	e	enum:RTL8168_register_content
+OCPR_Flag	r8168.h	/^        OCPR_Flag = 0x80000000,$/;"	e	enum:RTL8168_register_content
+OCPR_Read	r8168.h	/^        OCPR_Read = 0x00000000,$/;"	e	enum:RTL8168_register_content
+OCPR_Write	r8168.h	/^        OCPR_Write = 0x80000000,$/;"	e	enum:RTL8168_register_content
+OCP_REG_CONFIG0	r8168_dash.h	/^#define OCP_REG_CONFIG0 /;"	d
+OCP_REG_CONFIG0_APRDY	r8168_dash.h	/^#define OCP_REG_CONFIG0_APRDY /;"	d
+OCP_REG_CONFIG0_DASHEN	r8168_dash.h	/^#define OCP_REG_CONFIG0_DASHEN /;"	d
+OCP_REG_CONFIG0_DRIVERRDY	r8168_dash.h	/^#define OCP_REG_CONFIG0_DRIVERRDY /;"	d
+OCP_REG_CONFIG0_DRV_WAIT_OOB	r8168_dash.h	/^#define OCP_REG_CONFIG0_DRV_WAIT_OOB /;"	d
+OCP_REG_CONFIG0_FIRMWARERDY	r8168_dash.h	/^#define OCP_REG_CONFIG0_FIRMWARERDY /;"	d
+OCP_REG_CONFIG0_OOBRESET	r8168_dash.h	/^#define OCP_REG_CONFIG0_OOBRESET /;"	d
+OCP_REG_CONFIG0_OOB_WDT	r8168_dash.h	/^#define OCP_REG_CONFIG0_OOB_WDT /;"	d
+OCP_REG_CONFIG0_REV_F	r8168_dash.h	/^#define OCP_REG_CONFIG0_REV_F /;"	d
+OCP_REG_CONFIG0_TLSEN	r8168_dash.h	/^#define OCP_REG_CONFIG0_TLSEN /;"	d
+OCP_REG_CR	r8168_dash.h	/^#define OCP_REG_CR /;"	d
+OCP_REG_DASH_POLL	r8168_dash.h	/^#define OCP_REG_DASH_POLL /;"	d
+OCP_REG_DASH_REQ	r8168_dash.h	/^#define OCP_REG_DASH_REQ /;"	d
+OCP_REG_DMEMSTA	r8168_dash.h	/^#define OCP_REG_DMEMSTA /;"	d
+OCP_REG_GPHYAR	r8168_dash.h	/^#define OCP_REG_GPHYAR /;"	d
+OCP_REG_HOST_REQ	r8168_dash.h	/^#define OCP_REG_HOST_REQ /;"	d
+OCP_STD_PHY_BASE_PAGE	r8168.h	/^        OCP_STD_PHY_BASE_PAGE = 0x0A40,$/;"	e	enum:RTL8168_register_content
+OOB_CMD_DRIVER_START	r8168.h	/^#define OOB_CMD_DRIVER_START /;"	d
+OOB_CMD_DRIVER_STOP	r8168.h	/^#define OOB_CMD_DRIVER_STOP /;"	d
+OOB_CMD_RESET	r8168.h	/^#define OOB_CMD_RESET /;"	d
+OOB_CMD_SET_IPMAC	r8168.h	/^#define OOB_CMD_SET_IPMAC /;"	d
+OSOOBHdr	r8168_dash.h	/^OSOOBHdr, *POSOOBHdr;$/;"	t	typeref:struct:_OSOOBHdr
+OSPUSHDATA	r8168_dash.h	/^#define OSPUSHDATA /;"	d
+OobAck	r8168.h	/^        u8 OobAck;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+OobAckComplete	r8168.h	/^        u32 OobAckComplete;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+OobReq	r8168.h	/^        u8 OobReq;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+OobReqComplete	r8168.h	/^        u32 OobReqComplete;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+PCI_D0	r8168_n.c	/^#define PCI_D0 /;"	d	file:
+PCI_D1	r8168_n.c	/^#define PCI_D1 /;"	d	file:
+PCI_D2	r8168_n.c	/^#define PCI_D2 /;"	d	file:
+PCI_D3cold	r8168_n.c	/^#define PCI_D3cold /;"	d	file:
+PCI_D3hot	r8168_n.c	/^#define PCI_D3hot /;"	d	file:
+PCI_DEVICE	r8168.h	/^#define PCI_DEVICE(/;"	d
+PCI_POWER_ERROR	r8168_n.c	/^#define PCI_POWER_ERROR /;"	d	file:
+PCI_VENDOR_ID_DLINK	r8168.h	/^#define PCI_VENDOR_ID_DLINK /;"	d
+PCI_VENDOR_ID_DLINK	r8168_n.c	/^#define PCI_VENDOR_ID_DLINK /;"	d	file:
+PCSTimeout	r8168.h	/^        PCSTimeout  = 0x4000,$/;"	e	enum:RTL8168_register_content
+PFX	r8168.h	/^#define PFX /;"	d
+PHYAR	r8168.h	/^        PHYAR           = 0x60,$/;"	e	enum:RTL8168_registers
+PHYAR_Data_Mask	r8168.h	/^        PHYAR_Data_Mask = 0xffff,$/;"	e	enum:RTL8168_register_content
+PHYAR_Flag	r8168.h	/^        PHYAR_Flag = 0x80000000,$/;"	e	enum:RTL8168_register_content
+PHYAR_Read	r8168.h	/^        PHYAR_Read = 0x00000000,$/;"	e	enum:RTL8168_register_content
+PHYAR_Reg_Mask	r8168.h	/^        PHYAR_Reg_Mask = 0x1f,$/;"	e	enum:RTL8168_register_content
+PHYAR_Reg_shift	r8168.h	/^        PHYAR_Reg_shift = 16,$/;"	e	enum:RTL8168_register_content
+PHYAR_Write	r8168.h	/^        PHYAR_Write = 0x80000000,$/;"	e	enum:RTL8168_register_content
+PHYOCP	r8168.h	/^        PHYOCP          = 0xB8,$/;"	e	enum:RTL8168_registers
+PHYstatus	r8168.h	/^        PHYstatus       = 0x6C,$/;"	e	enum:RTL8168_registers
+PID0	r8168.h	/^        PID0        = (1 << 17), \/* Protocol ID bit 2\/2 *\/$/;"	e	enum:_DescStatusBit
+PID1	r8168.h	/^        PID1        = (1 << 18), \/* Protocol ID bit 1\/2 *\/$/;"	e	enum:_DescStatusBit
+PKCPContent	r8168_realwow.h	/^} KCPContent, *PKCPContent;$/;"	t	typeref:struct:_KCPContent *
+PKCPInfo	r8168_realwow.h	/^} KCPInfo, *PKCPInfo;$/;"	t	typeref:struct:_KCPInfo *
+PKTLEN	r8168_realwow.h	/^        u16 PKTLEN;$/;"	m	struct:_KCPInfo	typeref:typename:u16
+PKTLEN	r8168_realwow.h	/^        u8 PKTLEN[2];$/;"	m	struct:_MP_KCPInfo	typeref:typename:u8[2]
+PMCH	r8168.h	/^        PMCH            = 0x6F,$/;"	e	enum:RTL8168_registers
+PMEStatus	r8168.h	/^        PMEStatus   = (1 << 0), \/* PME status can be reset by PCI RST# *\/$/;"	e	enum:RTL8168_register_content
+PMEnable	r8168.h	/^        PMEnable    = (1 << 0), \/* Power Management Enable *\/$/;"	e	enum:RTL8168_register_content
+PMP_KCP_INFO	r8168_realwow.h	/^} MP_KCP_INFO, *PMP_KCP_INFO;$/;"	t	typeref:struct:_MP_KCPInfo *
+PMSTS_En	r8168.h	/^        PMSTS_En    = (1 << 5),$/;"	e	enum:RTL8168_register_content
+POSOOBHdr	r8168_dash.h	/^OSOOBHdr, *POSOOBHdr;$/;"	t	typeref:struct:_OSOOBHdr *
+PPSW	r8168.h	/^        PPSW            = 0xF2,$/;"	e	enum:RTL8168_registers
+PREPARE_WORK	r8168.h	/^#define PREPARE_WORK(/;"	d
+PRX_DASH_BUFFER_TYPE_2	r8168_dash.h	/^RX_DASH_BUFFER_TYPE_2, *PRX_DASH_BUFFER_TYPE_2;$/;"	t	typeref:struct:_RX_DASH_BUFFER_TYPE_2 *
+PRX_DASH_FROM_FW_DESC	r8168_dash.h	/^RX_DASH_FROM_FW_DESC, *PRX_DASH_FROM_FW_DESC;$/;"	t	typeref:struct:_RX_DASH_FROM_FW_DESC *
+PRealWoWAckPktInfo	r8168_realwow.h	/^} RealWoWAckPktInfo,*PRealWoWAckPktInfo;$/;"	t	typeref:struct:_RealWoWAckPktInfo *
+PRealWoWWPInfo	r8168_realwow.h	/^} RealWoWWPInfo,*PRealWoWWPInfo;$/;"	t	typeref:struct:_RealWoWWPInfo *
+PTX_DASH_SEND_FW_DESC	r8168_dash.h	/^TX_DASH_SEND_FW_DESC, *PTX_DASH_SEND_FW_DESC;$/;"	t	typeref:struct:_TX_DASH_SEND_FW_DESC *
+PWD	Makefile	/^	PWD :=$(shell pwd)$/;"	m
+PktCntrDisable	r8168.h	/^        PktCntrDisable  = (1 << 7),$/;"	e	enum:RTL8168_register_content
+PowerSaveStatus	r8168.h	/^        PowerSaveStatus = 0x80,$/;"	e	enum:RTL8168_register_content
+R8168_EPHY_REGS_SIZE	r8168.h	/^#define R8168_EPHY_REGS_SIZE /;"	d
+R8168_ERI_REGS_SIZE	r8168.h	/^#define R8168_ERI_REGS_SIZE /;"	d
+R8168_MAC_REGS_SIZE	r8168.h	/^#define R8168_MAC_REGS_SIZE /;"	d
+R8168_MSG_DEFAULT	r8168.h	/^#define R8168_MSG_DEFAULT /;"	d
+R8168_NAPI_WEIGHT	r8168.h	/^#define R8168_NAPI_WEIGHT /;"	d
+R8168_PCI_REGS_SIZE	r8168.h	/^#define R8168_PCI_REGS_SIZE /;"	d
+R8168_PHY_REGS_SIZE	r8168.h	/^#define R8168_PHY_REGS_SIZE /;"	d
+R8168_REGS_DUMP_SIZE	r8168.h	/^#define R8168_REGS_DUMP_SIZE /;"	d
+R8168_REGS_SIZE	r8168.h	/^#define R8168_REGS_SIZE /;"	d
+R8168_RX_RING_BYTES	r8168.h	/^#define R8168_RX_RING_BYTES /;"	d
+R8168_TX_RING_BYTES	r8168.h	/^#define R8168_TX_RING_BYTES /;"	d
+RCR_Cfg	r8168_n.c	/^        u32 RCR_Cfg;$/;"	m	struct:__anonbdf4efac0108	typeref:typename:u32	file:
+RDY_TO_L23	r8168.h	/^        RDY_TO_L23  = (1 << 1), \/* This bit is reserved in RTL8168B*\/$/;"	e	enum:RTL8168_register_content
+REALWOW_SUFFIX	r8168.h	/^#define REALWOW_SUFFIX /;"	d
+RECV_FROM_FW_BUF_SIZE	r8168_dash.h	/^#define RECV_FROM_FW_BUF_SIZE /;"	d
+RMCP_IANA	r8168_asf.h	/^        RMCP_IANA	= 0x006A,$/;"	e	enum:asf_registers
+RMCP_OEM	r8168_asf.h	/^        RMCP_OEM	= 0x006E,$/;"	e	enum:asf_registers
+RTKDIR	Makefile	/^	RTKDIR := $(subst $(BASEDIR)\/,,$(DRIVERDIR))$/;"	m
+RTK_KEEP_INTERRUPT_COUNT	r8168.h	/^#define RTK_KEEP_INTERRUPT_COUNT /;"	d
+RTK_MAGIC_DEBUG_VALUE	r8168.h	/^#define RTK_MAGIC_DEBUG_VALUE /;"	d
+RTK_RX_ALIGN	r8168.h	/^#define RTK_RX_ALIGN /;"	d
+RTL8168FP_CMAC_IOBASE	r8168_dash.h	/^#define RTL8168FP_CMAC_IOBASE /;"	d
+RTL8168FP_KVM_BASE	r8168_dash.h	/^#define RTL8168FP_KVM_BASE /;"	d
+RTL8168FP_OOBMAC_BASE	r8168_dash.h	/^#define RTL8168FP_OOBMAC_BASE /;"	d
+RTL8168_DSM_STATE	r8168.h	/^enum RTL8168_DSM_STATE {$/;"	g
+RTL8168_ESD_TIMEOUT	r8168.h	/^#define RTL8168_ESD_TIMEOUT /;"	d
+RTL8168_LINK_TIMEOUT	r8168.h	/^#define RTL8168_LINK_TIMEOUT /;"	d
+RTL8168_TX_TIMEOUT	r8168.h	/^#define RTL8168_TX_TIMEOUT /;"	d
+RTL8168_VERSION	r8168.h	/^#define RTL8168_VERSION /;"	d
+RTL8168_register_content	r8168.h	/^enum RTL8168_register_content {$/;"	g
+RTL8168_registers	r8168.h	/^enum RTL8168_registers {$/;"	g
+RTLDEV	r8168.h	/^#define RTLDEV /;"	d
+RTLTOOL_INVALID	rtltool.h	/^        RTLTOOL_INVALID$/;"	e	enum:rtl_cmd
+RTLTOOL_READ_EEPROM	rtltool.h	/^        RTLTOOL_READ_EEPROM,$/;"	e	enum:rtl_cmd
+RTLTOOL_READ_EPHY	rtltool.h	/^        RTLTOOL_READ_EPHY,$/;"	e	enum:rtl_cmd
+RTLTOOL_READ_ERI	rtltool.h	/^        RTLTOOL_READ_ERI,$/;"	e	enum:rtl_cmd
+RTLTOOL_READ_MAC	rtltool.h	/^        RTLTOOL_READ_MAC=0,$/;"	e	enum:rtl_cmd
+RTLTOOL_READ_PCI	rtltool.h	/^        RTLTOOL_READ_PCI,$/;"	e	enum:rtl_cmd
+RTLTOOL_READ_PHY	rtltool.h	/^        RTLTOOL_READ_PHY,$/;"	e	enum:rtl_cmd
+RTLTOOL_WRITE_EEPROM	rtltool.h	/^        RTLTOOL_WRITE_EEPROM,$/;"	e	enum:rtl_cmd
+RTLTOOL_WRITE_EPHY	rtltool.h	/^        RTLTOOL_WRITE_EPHY,$/;"	e	enum:rtl_cmd
+RTLTOOL_WRITE_ERI	rtltool.h	/^        RTLTOOL_WRITE_ERI,$/;"	e	enum:rtl_cmd
+RTLTOOL_WRITE_MAC	rtltool.h	/^        RTLTOOL_WRITE_MAC,$/;"	e	enum:rtl_cmd
+RTLTOOL_WRITE_PCI	rtltool.h	/^        RTLTOOL_WRITE_PCI,$/;"	e	enum:rtl_cmd
+RTLTOOL_WRITE_PHY	rtltool.h	/^        RTLTOOL_WRITE_PHY,$/;"	e	enum:rtl_cmd
+RTLT_DASH_COMMAND_INVALID	r8168_dash.h	/^        RTLT_DASH_COMMAND_INVALID,$/;"	e	enum:rtl_dash_cmd
+RTLT_REALWOW_COMMAND_INVALID	r8168_realwow.h	/^        RTLT_REALWOW_COMMAND_INVALID$/;"	e	enum:rtl_realwow_cmd
+RTL_ALLOC_SKB_INTR	r8168.h	/^#define RTL_ALLOC_SKB_INTR(/;"	d
+RTL_CLOCK_RATE	rtl_eeprom.h	/^#define RTL_CLOCK_RATE /;"	d
+RTL_CMAC_R16	r8168_dash.h	/^#define RTL_CMAC_R16(/;"	d
+RTL_CMAC_R32	r8168_dash.h	/^#define RTL_CMAC_R32(/;"	d
+RTL_CMAC_R8	r8168_dash.h	/^#define RTL_CMAC_R8(/;"	d
+RTL_CMAC_W16	r8168_dash.h	/^#define RTL_CMAC_W16(/;"	d
+RTL_CMAC_W32	r8168_dash.h	/^#define RTL_CMAC_W32(/;"	d
+RTL_CMAC_W8	r8168_dash.h	/^#define RTL_CMAC_W8(/;"	d
+RTL_DASH_ARP_NS_OFFLOAD	r8168_dash.h	/^        RTL_DASH_ARP_NS_OFFLOAD = 0,$/;"	e	enum:rtl_dash_cmd
+RTL_DASH_CHECK_SEND_BUFFER_TO_DASH_FW_COMPLETE	r8168_dash.h	/^        RTL_DASH_CHECK_SEND_BUFFER_TO_DASH_FW_COMPLETE,$/;"	e	enum:rtl_dash_cmd
+RTL_DASH_DETACH_OOB_ACK	r8168_dash.h	/^        RTL_DASH_DETACH_OOB_ACK,$/;"	e	enum:rtl_dash_cmd
+RTL_DASH_DETACH_OOB_REQ	r8168_dash.h	/^        RTL_DASH_DETACH_OOB_REQ,$/;"	e	enum:rtl_dash_cmd
+RTL_DASH_GET_RCV_FROM_FW_BUFFER_DATA	r8168_dash.h	/^        RTL_DASH_GET_RCV_FROM_FW_BUFFER_DATA,$/;"	e	enum:rtl_dash_cmd
+RTL_DASH_NOTIFY_OOB	r8168_dash.h	/^        RTL_DASH_NOTIFY_OOB,$/;"	e	enum:rtl_dash_cmd
+RTL_DASH_OOB_ACK	r8168_dash.h	/^        RTL_DASH_OOB_ACK,$/;"	e	enum:rtl_dash_cmd
+RTL_DASH_OOB_REQ	r8168_dash.h	/^        RTL_DASH_OOB_REQ,$/;"	e	enum:rtl_dash_cmd
+RTL_DASH_SEND_BUFFER_DATA_TO_DASH_FW	r8168_dash.h	/^        RTL_DASH_SEND_BUFFER_DATA_TO_DASH_FW,$/;"	e	enum:rtl_dash_cmd
+RTL_DASH_SET_OOB_IPMAC	r8168_dash.h	/^        RTL_DASH_SET_OOB_IPMAC,$/;"	e	enum:rtl_dash_cmd
+RTL_DIRECT_READ_PHY_OCP	rtltool.h	/^        RTL_DIRECT_READ_PHY_OCP,$/;"	e	enum:rtl_cmd
+RTL_DIRECT_WRITE_PHY_OCP	rtltool.h	/^        RTL_DIRECT_WRITE_PHY_OCP,$/;"	e	enum:rtl_cmd
+RTL_DISABLE_PCI_DIAG	rtltool.h	/^        RTL_DISABLE_PCI_DIAG,$/;"	e	enum:rtl_cmd
+RTL_EEPROM_ERASE_OPCODE	rtl_eeprom.h	/^#define RTL_EEPROM_ERASE_OPCODE /;"	d
+RTL_EEPROM_EWDS_OPCODE	rtl_eeprom.h	/^#define RTL_EEPROM_EWDS_OPCODE /;"	d
+RTL_EEPROM_EWEN_OPCODE	rtl_eeprom.h	/^#define RTL_EEPROM_EWEN_OPCODE /;"	d
+RTL_EEPROM_READ_OPCODE	rtl_eeprom.h	/^#define RTL_EEPROM_READ_OPCODE /;"	d
+RTL_EEPROM_WRITE_OPCODE	rtl_eeprom.h	/^#define RTL_EEPROM_WRITE_OPCODE /;"	d
+RTL_ENABLE_PCI_DIAG	rtltool.h	/^        RTL_ENABLE_PCI_DIAG,$/;"	e	enum:rtl_cmd
+RTL_FEATURE_MSI	r8168.h	/^        RTL_FEATURE_MSI = (1 << 1),$/;"	e	enum:features
+RTL_FW_DEL_WAKEUP_PATTERN	r8168_dash.h	/^        RTL_FW_DEL_WAKEUP_PATTERN,$/;"	e	enum:rtl_dash_cmd
+RTL_FW_GET_EXT_SNMP	r8168_dash.h	/^        RTL_FW_GET_EXT_SNMP,$/;"	e	enum:rtl_dash_cmd
+RTL_FW_GET_IPV4	r8168_dash.h	/^        RTL_FW_GET_IPV4,$/;"	e	enum:rtl_dash_cmd
+RTL_FW_GET_IPV6	r8168_dash.h	/^        RTL_FW_GET_IPV6,$/;"	e	enum:rtl_dash_cmd
+RTL_FW_GET_WAKEUP_PATTERN	r8168_dash.h	/^        RTL_FW_GET_WAKEUP_PATTERN,$/;"	e	enum:rtl_dash_cmd
+RTL_FW_SET_EXT_SNMP	r8168_dash.h	/^        RTL_FW_SET_EXT_SNMP,$/;"	e	enum:rtl_dash_cmd
+RTL_FW_SET_IPV4	r8168_dash.h	/^        RTL_FW_SET_IPV4 = 0x10,$/;"	e	enum:rtl_dash_cmd
+RTL_FW_SET_IPV6	r8168_dash.h	/^        RTL_FW_SET_IPV6,$/;"	e	enum:rtl_dash_cmd
+RTL_FW_SET_WAKEUP_PATTERN	r8168_dash.h	/^        RTL_FW_SET_WAKEUP_PATTERN,$/;"	e	enum:rtl_dash_cmd
+RTL_GET_NETDEV	r8168.h	/^#define RTL_GET_NETDEV(/;"	d
+RTL_GET_PRIV	r8168.h	/^#define RTL_GET_PRIV(/;"	d
+RTL_NAPI_CONFIG	r8168.h	/^#define RTL_NAPI_CONFIG(/;"	d
+RTL_NAPI_DEL	r8168.h	/^#define RTL_NAPI_DEL(/;"	d
+RTL_NAPI_DISABLE	r8168.h	/^#define RTL_NAPI_DISABLE(/;"	d
+RTL_NAPI_ENABLE	r8168.h	/^#define RTL_NAPI_ENABLE(/;"	d
+RTL_NAPI_QUOTA	r8168.h	/^#define RTL_NAPI_QUOTA(/;"	d
+RTL_NAPI_QUOTA_UPDATE	r8168.h	/^#define RTL_NAPI_QUOTA_UPDATE(/;"	d
+RTL_NAPI_RETURN_VALUE	r8168.h	/^#define RTL_NAPI_RETURN_VALUE /;"	d
+RTL_NETIF_RX_COMPLETE	r8168.h	/^#define RTL_NETIF_RX_COMPLETE(/;"	d
+RTL_NETIF_RX_SCHEDULE_PREP	r8168.h	/^#define RTL_NETIF_RX_SCHEDULE_PREP(/;"	d
+RTL_NET_DEVICE_OPS	r8168.h	/^#define RTL_NET_DEVICE_OPS(/;"	d
+RTL_NET_POLL_CONTROLLER	r8168.h	/^#define RTL_NET_POLL_CONTROLLER /;"	d
+RTL_NET_POLL_CONTROLLER	r8168.h	/^#define RTL_NET_POLL_CONTROLLER$/;"	d
+RTL_R16	r8168.h	/^#define RTL_R16(/;"	d
+RTL_R32	r8168.h	/^#define RTL_R32(/;"	d
+RTL_R8	r8168.h	/^#define RTL_R8(/;"	d
+RTL_READ_MAC_OCP	rtltool.h	/^        RTL_READ_MAC_OCP,$/;"	e	enum:rtl_cmd
+RTL_READ_OOB_MAC	rtltool.h	/^        RTL_READ_OOB_MAC,$/;"	e	enum:rtl_cmd
+RTL_REALWOW_SET_KCPDHCP_TIMEOUT	r8168_realwow.h	/^        RTL_REALWOW_SET_KCPDHCP_TIMEOUT,$/;"	e	enum:rtl_realwow_cmd
+RTL_REALWOW_SET_KCP_ACKPKTINFO	r8168_realwow.h	/^        RTL_REALWOW_SET_KCP_ACKPKTINFO,$/;"	e	enum:rtl_realwow_cmd
+RTL_REALWOW_SET_KCP_CONTENT	r8168_realwow.h	/^        RTL_REALWOW_SET_KCP_CONTENT,$/;"	e	enum:rtl_realwow_cmd
+RTL_REALWOW_SET_KCP_DISABLE	r8168_realwow.h	/^        RTL_REALWOW_SET_KCP_DISABLE=0,$/;"	e	enum:rtl_realwow_cmd
+RTL_REALWOW_SET_KCP_INFO	r8168_realwow.h	/^        RTL_REALWOW_SET_KCP_INFO,$/;"	e	enum:rtl_realwow_cmd
+RTL_REALWOW_SET_KCP_WPINFO	r8168_realwow.h	/^        RTL_REALWOW_SET_KCP_WPINFO,$/;"	e	enum:rtl_realwow_cmd
+RTL_RX_QUOTA	r8168.h	/^#define RTL_RX_QUOTA(/;"	d
+RTL_SET_VLAN	r8168.h	/^#define RTL_SET_VLAN /;"	d
+RTL_SET_VLAN	r8168.h	/^#define RTL_SET_VLAN$/;"	d
+RTL_W16	r8168.h	/^#define RTL_W16(/;"	d
+RTL_W32	r8168.h	/^#define RTL_W32(/;"	d
+RTL_W8	r8168.h	/^#define RTL_W8(/;"	d
+RTL_WRITE_MAC_OCP	rtltool.h	/^        RTL_WRITE_MAC_OCP,$/;"	e	enum:rtl_cmd
+RTL_WRITE_OOB_MAC	rtltool.h	/^        RTL_WRITE_OOB_MAC,$/;"	e	enum:rtl_cmd
+RW_FOUR_BYTES	r8168_asf.h	/^#define RW_FOUR_BYTES	/;"	d
+RW_ONE_BYTE	r8168_asf.h	/^#define RW_ONE_BYTE	/;"	d
+RW_TWO_BYTES	r8168_asf.h	/^#define RW_TWO_BYTES	/;"	d
+RXS_EOR	r8168_dash.h	/^#define RXS_EOR /;"	d
+RXS_FS	r8168_dash.h	/^#define RXS_FS /;"	d
+RXS_LS	r8168_dash.h	/^#define RXS_LS /;"	d
+RXS_OWN	r8168_dash.h	/^#define RXS_OWN /;"	d
+RX_BUF_SIZE	r8168.h	/^#define RX_BUF_SIZE /;"	d
+RX_DASH_BUFFER_TYPE_2	r8168_dash.h	/^RX_DASH_BUFFER_TYPE_2, *PRX_DASH_BUFFER_TYPE_2;$/;"	t	typeref:struct:_RX_DASH_BUFFER_TYPE_2
+RX_DASH_FROM_FW_DESC	r8168_dash.h	/^RX_DASH_FROM_FW_DESC, *PRX_DASH_FROM_FW_DESC;$/;"	t	typeref:struct:_RX_DASH_FROM_FW_DESC
+RX_DASH_FROM_FW_OWN	r8168_dash.h	/^#define RX_DASH_FROM_FW_OWN /;"	d
+RX_DMA_BURST	r8168.h	/^#define RX_DMA_BURST /;"	d
+Rakp2IntCk	r8168_asf.h	/^        Rakp2IntCk	= 0x0170,$/;"	e	enum:asf_registers
+RcvFwDashOkEvt	r8168.h	/^        u8 RcvFwDashOkEvt;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+RcvFwReqSysOkEvt	r8168.h	/^        u8 RcvFwReqSysOkEvt;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+RealWoWAckPktInfo	r8168_realwow.h	/^} RealWoWAckPktInfo,*PRealWoWAckPktInfo;$/;"	t	typeref:struct:_RealWoWAckPktInfo
+RealWoWWPInfo	r8168_realwow.h	/^} RealWoWWPInfo,*PRealWoWWPInfo;$/;"	t	typeref:struct:_RealWoWWPInfo
+RecvFromFwBuffer	r8168.h	/^        void *RecvFromFwBuffer ;$/;"	m	struct:rtl8168_private	typeref:typename:void *
+RecvFromFwBufferPhy	r8168.h	/^        u64 RecvFromFwBufferPhy ;$/;"	m	struct:rtl8168_private	typeref:typename:u64
+RequireAdcBiasPatch	r8168.h	/^        u8 RequireAdcBiasPatch;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+RequireAdjustUpsTxLinkPulseTiming	r8168.h	/^        u8 RequireAdjustUpsTxLinkPulseTiming;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+RequiredSecLanDonglePatch	r8168.h	/^        u8 RequiredSecLanDonglePatch;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+Reserved1_data	r8168.h	/^#define Reserved1_data /;"	d
+Reserved2_data	r8168.h	/^#define Reserved2_data /;"	d
+Reserved2_shift	r8168.h	/^        Reserved2_shift = 13,$/;"	e	enum:RTL8168_register_content
+RingEnd	r8168.h	/^        RingEnd     = (1 << 30), \/* End of descriptor ring *\/$/;"	e	enum:_DescStatusBit
+RmtPCRAddr	r8168_asf.h	/^        RmtPCRAddr	= 0x0067,$/;"	e	enum:asf_registers
+RmtPCRCmd	r8168_asf.h	/^        RmtPCRCmd	= 0x0068,$/;"	e	enum:asf_registers
+RmtPCRData	r8168_asf.h	/^        RmtPCRData	= 0x0069,$/;"	e	enum:asf_registers
+RmtPwrOffAddr	r8168_asf.h	/^        RmtPwrOffAddr	= 0x0061,$/;"	e	enum:asf_registers
+RmtPwrOffCmd	r8168_asf.h	/^        RmtPwrOffCmd	= 0x0062,$/;"	e	enum:asf_registers
+RmtPwrOffData	r8168_asf.h	/^        RmtPwrOffData	= 0x0063,$/;"	e	enum:asf_registers
+RmtPwrOnAddr	r8168_asf.h	/^        RmtPwrOnAddr	= 0x0064,$/;"	e	enum:asf_registers
+RmtPwrOnCmd	r8168_asf.h	/^        RmtPwrOnCmd	= 0x0065,$/;"	e	enum:asf_registers
+RmtPwrOnData	r8168_asf.h	/^        RmtPwrOnData	= 0x0066,$/;"	e	enum:asf_registers
+RmtRstAddr	r8168_asf.h	/^        RmtRstAddr	= 0x005E,$/;"	e	enum:asf_registers
+RmtRstCmd	r8168_asf.h	/^        RmtRstCmd	= 0x005F,$/;"	e	enum:asf_registers
+RmtRstData	r8168_asf.h	/^        RmtRstData	= 0x0060,$/;"	e	enum:asf_registers
+RsvdMask	r8168.h	/^#define RsvdMask /;"	d
+RxBtOpMsk	r8168_asf.h	/^        RxBtOpMsk	= 0x005C,$/;"	e	enum:asf_registers
+RxBufEmpty	r8168.h	/^        RxBufEmpty = 0x01,$/;"	e	enum:RTL8168_register_content
+RxCRC	r8168.h	/^        RxCRC = (1 << 19),$/;"	e	enum:RTL8168_register_content
+RxCfgDMAShift	r8168.h	/^        RxCfgDMAShift = 8,$/;"	e	enum:RTL8168_register_content
+RxCfg_128_int_en	r8168.h	/^        RxCfg_128_int_en = (1 << 15),$/;"	e	enum:RTL8168_register_content
+RxCfg_9356SEL	r8168.h	/^        RxCfg_9356SEL = (1 << 6),$/;"	e	enum:RTL8168_register_content
+RxCfg_fet_multi_en	r8168.h	/^        RxCfg_fet_multi_en = (1 << 14),$/;"	e	enum:RTL8168_register_content
+RxCfg_half_refetch	r8168.h	/^        RxCfg_half_refetch = (1 << 13),$/;"	e	enum:RTL8168_register_content
+RxChkSum	r8168.h	/^        RxChkSum    = (1 << 5),$/;"	e	enum:RTL8168_register_content
+RxConfig	r8168.h	/^        RxConfig        = 0x44,$/;"	e	enum:RTL8168_registers
+RxConfigMask	r8168_n.c	/^        u32 RxConfigMask;   \/* Clears the bits supported by this chip *\/$/;"	m	struct:__anonbdf4efac0108	typeref:typename:u32	file:
+RxDashRecvFwDesc	r8168.h	/^        PRX_DASH_FROM_FW_DESC RxDashRecvFwDesc;$/;"	m	struct:rtl8168_private	typeref:typename:PRX_DASH_FROM_FW_DESC
+RxDashRecvFwDescPhy	r8168.h	/^        u64 RxDashRecvFwDescPhy;$/;"	m	struct:rtl8168_private	typeref:typename:u64
+RxDataBuffer	r8168_dash.h	/^        u8 RxDataBuffer[0];$/;"	m	struct:_RX_DASH_BUFFER_TYPE_2	typeref:typename:u8[0]
+RxDesc	r8168.h	/^struct RxDesc {$/;"	s
+RxDescAddrHigh	r8168.h	/^        RxDescAddrHigh  = 0xE8,$/;"	e	enum:RTL8168_registers
+RxDescAddrLow	r8168.h	/^        RxDescAddrLow   = 0xE4,$/;"	e	enum:RTL8168_registers
+RxDescArray	r8168.h	/^        struct RxDesc *RxDescArray; \/* 256-aligned Rx descriptor ring *\/$/;"	m	struct:rtl8168_private	typeref:struct:RxDesc *
+RxDescUnavail	r8168.h	/^        RxDescUnavail   = 0x0010,$/;"	e	enum:RTL8168_register_content
+RxEarly_off_V1	r8168.h	/^#define RxEarly_off_V1 /;"	d
+RxEarly_off_V2	r8168.h	/^#define RxEarly_off_V2 /;"	d
+RxErr	r8168.h	/^        RxErr       = 0x0002,$/;"	e	enum:RTL8168_register_content
+RxFIFOOver	r8168.h	/^        RxFIFOOver  = 0x0040,$/;"	e	enum:RTL8168_register_content
+RxFlowCtrl	r8168.h	/^        RxFlowCtrl = 0x20,$/;"	e	enum:RTL8168_register_content
+RxIPF	r8168.h	/^        RxIPF       = (1 << 16), \/* IP checksum failed *\/$/;"	e	enum:_DescStatusBit
+RxMaxSize	r8168.h	/^        RxMaxSize       = 0xDA,$/;"	e	enum:RTL8168_registers
+RxMsgType	r8168_asf.h	/^        RxMsgType	= 0x0058,$/;"	e	enum:asf_registers
+RxOK	r8168.h	/^        RxOK        = 0x0001,$/;"	e	enum:RTL8168_register_content
+RxPacketMaxSize	r8168.h	/^#define RxPacketMaxSize /;"	d
+RxPhyAddr	r8168.h	/^        dma_addr_t RxPhyAddr;$/;"	m	struct:rtl8168_private	typeref:typename:dma_addr_t
+RxProtoIP	r8168.h	/^#define RxProtoIP /;"	d
+RxProtoMask	r8168.h	/^#define RxProtoMask /;"	d
+RxProtoTCP	r8168.h	/^#define RxProtoTCP /;"	d
+RxProtoUDP	r8168.h	/^#define RxProtoUDP /;"	d
+RxRES	r8168.h	/^        RxRES = (1 << 21),$/;"	e	enum:RTL8168_register_content
+RxRUNT	r8168.h	/^        RxRUNT = (1 << 20),$/;"	e	enum:RTL8168_register_content
+RxRWT	r8168.h	/^        RxRWT = (1 << 22),$/;"	e	enum:RTL8168_register_content
+RxSpCMD	r8168_asf.h	/^        RxSpCMD		= 0x0059,$/;"	e	enum:asf_registers
+RxSpCMDPa	r8168_asf.h	/^        RxSpCMDPa	= 0x005A,$/;"	e	enum:asf_registers
+RxTCPF	r8168.h	/^        RxTCPF      = (1 << 14), \/* TCP\/IP checksum failed *\/$/;"	e	enum:_DescStatusBit
+RxTCPT	r8168.h	/^        RxTCPT      = (1 << 17),$/;"	e	enum:_DescStatusBit
+RxUDPF	r8168.h	/^        RxUDPF      = (1 << 15), \/* UDP\/IP checksum failed *\/$/;"	e	enum:_DescStatusBit
+RxUDPT	r8168.h	/^        RxUDPT      = (1 << 18),$/;"	e	enum:_DescStatusBit
+RxV4F	r8168.h	/^        RxV4F       = (1 << 30),$/;"	e	enum:_DescStatusBit
+RxV6F	r8168.h	/^        RxV6F       = (1 << 31),$/;"	e	enum:_DescStatusBit
+RxVlan	r8168.h	/^        RxVlan      = (1 << 6),$/;"	e	enum:RTL8168_register_content
+RxVlanTag	r8168.h	/^        RxVlanTag   = (1 << 16), \/* VLAN tag available *\/$/;"	e	enum:_DescStatusBit
+Rx_Single_fetch_V2	r8168.h	/^#define Rx_Single_fetch_V2 /;"	d
+Rx_skbuff	r8168.h	/^        struct sk_buff *Rx_skbuff[NUM_RX_DESC]; \/* Rx data buffers *\/$/;"	m	struct:rtl8168_private	typeref:struct:sk_buff * []
+Rxfifo_empty	r8168.h	/^        Rxfifo_empty = (1 << 4),$/;"	e	enum:RTL8168_register_content
+SA_SHIRQ	r8168.h	/^#define SA_SHIRQ /;"	d
+SEND_TO_FW_BUF_SIZE	r8168_dash.h	/^#define SEND_TO_FW_BUF_SIZE /;"	d
+SET_ETHTOOL_OPS	r8168_n.c	/^#define SET_ETHTOOL_OPS(/;"	d	file:
+SET_MODULE_OWNER	r8168.h	/^#define SET_MODULE_OWNER(/;"	d
+SET_NETDEV_DEV	r8168.h	/^#define SET_NETDEV_DEV(/;"	d
+SHORT_PACKET_PADDING_BUF_SIZE	r8168.h	/^#define SHORT_PACKET_PADDING_BUF_SIZE /;"	d
+SIK1	r8168_asf.h	/^        SIK1		= 0x01FC,$/;"	e	enum:asf_registers
+SIK2	r8168_asf.h	/^        SIK2		= 0x0210,$/;"	e	enum:asf_registers
+SIOCDEVPRIVATE_RTLASF	r8168_asf.h	/^#define SIOCDEVPRIVATE_RTLASF /;"	d
+SIOCDEVPRIVATE_RTLDASH	r8168_dash.h	/^#define SIOCDEVPRIVATE_RTLDASH /;"	d
+SIOCDEVPRIVATE_RTLREALWOW	r8168_realwow.h	/^#define SIOCDEVPRIVATE_RTLREALWOW /;"	d
+SIOCRTLTOOL	rtltool.h	/^#define SIOCRTLTOOL	/;"	d
+SMBAddr	r8168_asf.h	/^        SMBAddr		= 0x000A,$/;"	e	enum:asf_registers
+SMBCap	r8168_asf.h	/^        SMBCap		= 0x000B,$/;"	e	enum:asf_registers
+SPC_CMD_MASK	r8168_asf.h	/^#define SPC_CMD_MASK	/;"	d
+SPEED_UNKNOWN	r8168.h	/^#define SPEED_UNKNOWN /;"	d
+SUPPORTED_Asym_Pause	r8168.h	/^#define SUPPORTED_Asym_Pause /;"	d
+SUPPORTED_Pause	r8168.h	/^#define SUPPORTED_Pause /;"	d
+SWInt	r8168.h	/^        SWInt       = 0x0100,$/;"	e	enum:RTL8168_register_content
+SYSErr	r8168.h	/^        SYSErr      = 0x8000,$/;"	e	enum:RTL8168_register_content
+SYSID_LEN	r8168_asf.h	/^#define SYSID_LEN	/;"	d
+SYS_CAP_MASK	r8168_asf.h	/^#define SYS_CAP_MASK	/;"	d
+SecMAC0	r8168.h	/^        SecMAC0         = 0xB4,$/;"	e	enum:RTL8168_registers
+SecMAC4	r8168.h	/^        SecMAC4         = 0xB8,$/;"	e	enum:RTL8168_registers
+SendFwHostOkEvt	r8168.h	/^        u8 SendFwHostOkEvt;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+SendToFwBuffer	r8168.h	/^        void *SendToFwBuffer ;$/;"	m	struct:rtl8168_private	typeref:typename:void *
+SendToFwBufferLen	r8168.h	/^        u16 SendToFwBufferLen;$/;"	m	struct:rtl8168_private	typeref:typename:u16
+SendToFwBufferPhy	r8168.h	/^        u64 SendToFwBufferPhy ;$/;"	m	struct:rtl8168_private	typeref:typename:u64
+SendingToFw	r8168.h	/^        u8 SendingToFw;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+SetPCIePhyBit	r8168_n.c	/^static void SetPCIePhyBit( struct rtl8168_private *tp, u8 addr, u16 mask)$/;"	f	typeref:typename:void	file:
+ShortPacketEmptyBuffer	r8168.h	/^        void *ShortPacketEmptyBuffer;$/;"	m	struct:rtl8168_private	typeref:typename:void *
+ShortPacketEmptyBufferPhy	r8168.h	/^        dma_addr_t ShortPacketEmptyBufferPhy;$/;"	m	struct:rtl8168_private	typeref:typename:dma_addr_t
+ShortPacketSwChecksum	r8168.h	/^        u8 ShortPacketSwChecksum;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+SizeOfRecvFromFwBuffer	r8168.h	/^        u32 SizeOfRecvFromFwBuffer ;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+SizeOfRecvFromFwBufferMemAlloc	r8168.h	/^        u32 SizeOfRecvFromFwBufferMemAlloc ;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+SizeOfRxDashRecvFwDesc	r8168.h	/^        u32 SizeOfRxDashRecvFwDesc ;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+SizeOfRxDashRecvFwDescMemAlloc	r8168.h	/^        u32 SizeOfRxDashRecvFwDescMemAlloc;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+SizeOfSendToFwBuffer	r8168.h	/^        u32 SizeOfSendToFwBuffer ;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+SizeOfSendToFwBufferMemAlloc	r8168.h	/^        u32 SizeOfSendToFwBufferMemAlloc ;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+SizeOfTxDashSendFwDesc	r8168.h	/^        u32 SizeOfTxDashSendFwDesc ;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+SizeOfTxDashSendFwDescMemAlloc	r8168.h	/^        u32 SizeOfTxDashSendFwDescMemAlloc;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+SpCMDMsk	r8168_asf.h	/^        SpCMDMsk	= 0x0054,$/;"	e	enum:asf_registers
+Speed_down	r8168.h	/^        Speed_down  = (1 << 4),$/;"	e	enum:RTL8168_register_content
+StCd	r8168_asf.h	/^        StCd		= 0x012C,$/;"	e	enum:asf_registers
+StopReq	r8168.h	/^        StopReq  = 0x80,$/;"	e	enum:RTL8168_register_content
+StringLength	r8168_asf.h	/^        StringLength	= 0x004D,$/;"	e	enum:asf_registers
+SwrCnt1msIni	r8168.h	/^        u16 SwrCnt1msIni;$/;"	m	struct:rtl8168_private	typeref:typename:u16
+SysCapMsk	r8168_asf.h	/^        SysCapMsk	= 0x0056,$/;"	e	enum:asf_registers
+SysID	r8168_asf.h	/^        SysID		= 0x0034,$/;"	e	enum:asf_registers
+SystemMasterDescStartAddrHigh	r8168_dash.h	/^#define SystemMasterDescStartAddrHigh /;"	d
+SystemMasterDescStartAddrLow	r8168_dash.h	/^#define SystemMasterDescStartAddrLow /;"	d
+SystemSlaveDescStartAddrHigh	r8168_dash.h	/^#define SystemSlaveDescStartAddrHigh /;"	d
+SystemSlaveDescStartAddrLow	r8168_dash.h	/^#define SystemSlaveDescStartAddrLow /;"	d
+TCPHO_MAX	r8168.h	/^#define TCPHO_MAX /;"	d
+TCPHO_SHIFT	r8168.h	/^#define TCPHO_SHIFT /;"	d
+TCTR	r8168.h	/^        TCTR            = 0x48,$/;"	e	enum:RTL8168_registers
+TDFNR	r8168.h	/^        TDFNR           = 0x57,$/;"	e	enum:RTL8168_registers
+TPPool_HRDY	r8168_dash.h	/^#define TPPool_HRDY /;"	d
+TRUE	r8168.h	/^#define TRUE /;"	d
+TTL	r8168_asf.h	/^        TTL		= 0x011E,$/;"	e	enum:asf_registers
+TXS_CC3_0	r8168_dash.h	/^#define TXS_CC3_0 /;"	d
+TXS_EOR	r8168_dash.h	/^#define TXS_EOR /;"	d
+TXS_EXC	r8168_dash.h	/^#define TXS_EXC /;"	d
+TXS_FS	r8168_dash.h	/^#define TXS_FS /;"	d
+TXS_LGSEN	r8168_dash.h	/^#define TXS_LGSEN /;"	d
+TXS_LNKF	r8168_dash.h	/^#define TXS_LNKF /;"	d
+TXS_LS	r8168_dash.h	/^#define TXS_LS /;"	d
+TXS_OWC	r8168_dash.h	/^#define TXS_OWC /;"	d
+TXS_OWN	r8168_dash.h	/^#define TXS_OWN /;"	d
+TXS_TES	r8168_dash.h	/^#define TXS_TES /;"	d
+TXS_UNF	r8168_dash.h	/^#define TXS_UNF /;"	d
+TX_DASH_SEND_FW_DESC	r8168_dash.h	/^TX_DASH_SEND_FW_DESC, *PTX_DASH_SEND_FW_DESC;$/;"	t	typeref:struct:_TX_DASH_SEND_FW_DESC
+TX_DASH_SEND_FW_OWN	r8168_dash.h	/^#define TX_DASH_SEND_FW_OWN /;"	d
+TX_DASH_SEND_FW_OWN_HIGHBYTE	r8168_dash.h	/^#define TX_DASH_SEND_FW_OWN_HIGHBYTE /;"	d
+TX_DMA_BURST_1024	r8168.h	/^#define TX_DMA_BURST_1024 /;"	d
+TX_DMA_BURST_128	r8168.h	/^#define TX_DMA_BURST_128 /;"	d
+TX_DMA_BURST_16	r8168.h	/^#define TX_DMA_BURST_16 /;"	d
+TX_DMA_BURST_256	r8168.h	/^#define TX_DMA_BURST_256 /;"	d
+TX_DMA_BURST_32	r8168.h	/^#define TX_DMA_BURST_32 /;"	d
+TX_DMA_BURST_512	r8168.h	/^#define TX_DMA_BURST_512 /;"	d
+TX_DMA_BURST_64	r8168.h	/^#define TX_DMA_BURST_64 /;"	d
+TX_DMA_BURST_unlimited	r8168.h	/^#define TX_DMA_BURST_unlimited /;"	d
+TimeInt0	r8168.h	/^        TimeInt0        = 0x58,$/;"	e	enum:RTL8168_registers
+TimeInt1	r8168.h	/^        TimeInt1        = 0x5C,$/;"	e	enum:RTL8168_registers
+TimeInt2	r8168.h	/^        TimeInt2        = 0x8C,$/;"	e	enum:RTL8168_registers
+TimeInt3	r8168.h	/^        TimeInt3        = 0xF4,$/;"	e	enum:RTL8168_registers
+TwiCmdReg	r8168.h	/^        TwiCmdReg       = 0xD2,$/;"	e	enum:RTL8168_registers
+TxConfig	r8168.h	/^        TxConfig        = 0x40,$/;"	e	enum:RTL8168_registers
+TxDMAShift	r8168.h	/^        TxDMAShift = 8, \/* DMA burst value (0-7) is shift this many bits *\/$/;"	e	enum:RTL8168_register_content
+TxDashSendFwDesc	r8168.h	/^        PTX_DASH_SEND_FW_DESC TxDashSendFwDesc;$/;"	m	struct:rtl8168_private	typeref:typename:PTX_DASH_SEND_FW_DESC
+TxDashSendFwDescPhy	r8168.h	/^        u64 TxDashSendFwDescPhy;$/;"	m	struct:rtl8168_private	typeref:typename:u64
+TxDesc	r8168.h	/^struct TxDesc {$/;"	s
+TxDescArray	r8168.h	/^        struct TxDesc *TxDescArray; \/* 256-aligned Tx descriptor ring *\/$/;"	m	struct:rtl8168_private	typeref:struct:TxDesc *
+TxDescStartAddrHigh	r8168.h	/^        TxDescStartAddrHigh = 0x24,$/;"	e	enum:RTL8168_registers
+TxDescStartAddrLow	r8168.h	/^        TxDescStartAddrLow  = 0x20,$/;"	e	enum:RTL8168_registers
+TxDescUnavail	r8168.h	/^        TxDescUnavail   = 0x0080,$/;"	e	enum:RTL8168_register_content
+TxErr	r8168.h	/^        TxErr       = 0x0008,$/;"	e	enum:RTL8168_register_content
+TxFlowCtrl	r8168.h	/^        TxFlowCtrl = 0x40,$/;"	e	enum:RTL8168_register_content
+TxHDescStartAddrHigh	r8168.h	/^        TxHDescStartAddrHigh    = 0x2c,$/;"	e	enum:RTL8168_registers
+TxHDescStartAddrLow	r8168.h	/^        TxHDescStartAddrLow = 0x28,$/;"	e	enum:RTL8168_registers
+TxIPCS	r8168.h	/^        TxIPCS      = (1 << 18), \/* Calculate IP checksum *\/$/;"	e	enum:_DescStatusBit
+TxIPCS_C	r8168.h	/^        TxIPCS_C    = (1 << 29), \/* Calculate IP checksum *\/$/;"	e	enum:_DescStatusBit
+TxIPV6F_C	r8168.h	/^        TxIPV6F_C   = (1 << 28), \/* Indicate it is an IPv6 packet *\/$/;"	e	enum:_DescStatusBit
+TxInterFrameGapShift	r8168.h	/^        TxInterFrameGapShift = 24,$/;"	e	enum:RTL8168_register_content
+TxMACLoopBack	r8168.h	/^        TxMACLoopBack = (1 << 17),  \/* MAC loopback *\/$/;"	e	enum:RTL8168_register_content
+TxOK	r8168.h	/^        TxOK        = 0x0004,$/;"	e	enum:RTL8168_register_content
+TxPhyAddr	r8168.h	/^        dma_addr_t TxPhyAddr;$/;"	m	struct:rtl8168_private	typeref:typename:dma_addr_t
+TxPoll	r8168.h	/^        TxPoll          = 0x38,$/;"	e	enum:RTL8168_registers
+TxTCPCS	r8168.h	/^        TxTCPCS     = (1 << 16), \/* Calculate TCP\/IP checksum *\/$/;"	e	enum:_DescStatusBit
+TxTCPCS_C	r8168.h	/^        TxTCPCS_C   = (1 << 30), \/* Calculate TCP\/IP checksum *\/$/;"	e	enum:_DescStatusBit
+TxUDPCS	r8168.h	/^        TxUDPCS     = (1 << 17), \/* Calculate UDP\/IP checksum *\/$/;"	e	enum:_DescStatusBit
+TxUDPCS_C	r8168.h	/^        TxUDPCS_C   = (1 << 31), \/* Calculate UDP\/IP checksum *\/$/;"	e	enum:_DescStatusBit
+TxVlanTag	r8168.h	/^        TxVlanTag   = (1 << 17), \/* Add VLAN tag *\/$/;"	e	enum:_DescStatusBit
+Txfifo_empty	r8168.h	/^        Txfifo_empty = (1 << 5),$/;"	e	enum:RTL8168_register_content
+UUID	r8168_asf.h	/^        UUID		= 0x0020,$/;"	e	enum:asf_registers
+UUID_LEN	r8168_asf.h	/^#define UUID_LEN	/;"	d
+UWF	r8168.h	/^        UWF     = (1 << 4), \/* Accept Unicast wakeup frame *\/$/;"	e	enum:RTL8168_register_content
+UdpPort	r8168_realwow.h	/^        u16 UdpPort;$/;"	m	struct:_KCPInfo	typeref:typename:u16
+UdpPort	r8168_realwow.h	/^        u16 UdpPort[2];$/;"	m	struct:_MP_KCPInfo	typeref:typename:u16[2]
+Udpdes_port	r8168_asf.h	/^        Udpdes_port	= 0x0226,$/;"	e	enum:asf_registers
+Udpsrc_port	r8168_asf.h	/^        Udpsrc_port	= 0x0224,$/;"	e	enum:asf_registers
+UnalignedRecvFromFwBufferPa	r8168.h	/^        dma_addr_t UnalignedRecvFromFwBufferPa;$/;"	m	struct:rtl8168_private	typeref:typename:dma_addr_t
+UnalignedRecvFromFwBufferVa	r8168.h	/^        void *UnalignedRecvFromFwBufferVa;$/;"	m	struct:rtl8168_private	typeref:typename:void *
+UnalignedRxDashRecvFwDescPa	r8168.h	/^        dma_addr_t UnalignedRxDashRecvFwDescPa;$/;"	m	struct:rtl8168_private	typeref:typename:dma_addr_t
+UnalignedRxDashRecvFwDescVa	r8168.h	/^        u8 *UnalignedRxDashRecvFwDescVa;$/;"	m	struct:rtl8168_private	typeref:typename:u8 *
+UnalignedSendToFwBufferPa	r8168.h	/^        dma_addr_t UnalignedSendToFwBufferPa;$/;"	m	struct:rtl8168_private	typeref:typename:dma_addr_t
+UnalignedSendToFwBufferVa	r8168.h	/^        void *UnalignedSendToFwBufferVa;$/;"	m	struct:rtl8168_private	typeref:typename:void *
+UnalignedTxDashSendFwDescPa	r8168.h	/^        dma_addr_t UnalignedTxDashSendFwDescPa;$/;"	m	struct:rtl8168_private	typeref:typename:dma_addr_t
+UnalignedTxDashSendFwDescVa	r8168.h	/^        u8 *UnalignedTxDashSendFwDescVa;$/;"	m	struct:rtl8168_private	typeref:typename:u8 *
+UseSwPaddingShortPkt	r8168.h	/^        u8 UseSwPaddingShortPkt;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+VPD	r8168.h	/^        VPD         = (1 << 1),$/;"	e	enum:RTL8168_register_content
+WAKEUP_MAGIC_PACKET_NOT_SUPPORT	r8168.h	/^#define WAKEUP_MAGIC_PACKET_NOT_SUPPORT /;"	d
+WAKEUP_MAGIC_PACKET_V1	r8168.h	/^#define WAKEUP_MAGIC_PACKET_V1 /;"	d
+WAKEUP_MAGIC_PACKET_V2	r8168.h	/^#define WAKEUP_MAGIC_PACKET_V2 /;"	d
+WAKE_ANY	r8168_n.c	/^#define WAKE_ANY /;"	d	file:
+WD16Rst	r8168_asf.h	/^        WD16Rst		= 0x0004,$/;"	e	enum:asf_registers
+WD16Timer	r8168_asf.h	/^        WD16Timer	= 0x000E,$/;"	e	enum:asf_registers
+WD8Rst	r8168_asf.h	/^        WD8Rst		= 0x0002,$/;"	e	enum:asf_registers
+WD8Timer	r8168_asf.h	/^        WD8Timer	= 0x0003,$/;"	e	enum:asf_registers
+WDSysSt	r8168_asf.h	/^        WDSysSt		= 0x0057,$/;"	e	enum:asf_registers
+WOL_DISABLED	r8168.h	/^        WOL_DISABLED = 0,$/;"	e	enum:wol_capability
+WOL_ENABLED	r8168.h	/^        WOL_ENABLED = 1$/;"	e	enum:wol_capability
+WSMANREG	r8168_dash.h	/^#define WSMANREG /;"	d
+_1000bpsF	r8168.h	/^        _1000bpsF = 0x10,$/;"	e	enum:RTL8168_register_content
+_100bps	r8168.h	/^        _100bps = 0x08,$/;"	e	enum:RTL8168_register_content
+_10bps	r8168.h	/^        _10bps = 0x04,$/;"	e	enum:RTL8168_register_content
+_DescStatusBit	r8168.h	/^enum _DescStatusBit {$/;"	g
+_KCPContent	r8168_realwow.h	/^typedef struct _KCPContent {$/;"	s
+_KCPInfo	r8168_realwow.h	/^typedef struct _KCPInfo {$/;"	s
+_LINUX_R8168_DASH_H	r8168_dash.h	/^#define _LINUX_R8168_DASH_H$/;"	d
+_LINUX_R8168_FIBER_H	r8168_fiber.h	/^#define _LINUX_R8168_FIBER_H$/;"	d
+_LINUX_R8168_REALWOW_H	r8168_realwow.h	/^#define _LINUX_R8168_REALWOW_H$/;"	d
+_LINUX_RTLTOOL_H	rtltool.h	/^#define _LINUX_RTLTOOL_H$/;"	d
+_MP_KCPInfo	r8168_realwow.h	/^typedef struct _MP_KCPInfo {$/;"	s
+_OSOOBHdr	r8168_dash.h	/^typedef struct _OSOOBHdr {$/;"	s
+_R	r8168_n.c	/^#define _R(/;"	d	file:
+_RX_DASH_BUFFER_TYPE_2	r8168_dash.h	/^typedef struct _RX_DASH_BUFFER_TYPE_2 {$/;"	s
+_RX_DASH_FROM_FW_DESC	r8168_dash.h	/^typedef struct _RX_DASH_FROM_FW_DESC {$/;"	s
+_RealWoWAckPktInfo	r8168_realwow.h	/^typedef struct _RealWoWAckPktInfo {$/;"	s
+_RealWoWWPInfo	r8168_realwow.h	/^typedef struct _RealWoWWPInfo {$/;"	s
+_TX_DASH_SEND_FW_DESC	r8168_dash.h	/^typedef struct _TX_DASH_SEND_FW_DESC {$/;"	s
+__RTL_NETIF_RX_SCHEDULE	r8168.h	/^#define __RTL_NETIF_RX_SCHEDULE(/;"	d
+__anon0e2a355d010a	r8168_asf.h	/^        union {$/;"	u	struct:asf_ioctl_struct
+__anonaaf291cb0103	r8168_fiber.h	/^enum {$/;"	g
+__anonaaf291cb0203	r8168_fiber.h	/^enum {$/;"	g
+__anonba846e04010a	r8168_realwow.h	/^        union {$/;"	u	struct:rtl_realwow_ioctl_struct
+__anonbdf4efac0108	r8168_n.c	/^static const struct {$/;"	s	file:
+__anonbdf4efac0208	r8168_n.c	/^static struct {$/;"	s	file:
+__anonbdf4efac0308	r8168_n.c	/^        static struct {$/;"	s	function:rtl8168_set_hw_wol	file:
+__anond932b263010a	r8168_dash.h	/^        union {$/;"	u	struct:rtl_dash_ioctl_struct
+__bitwise	r8168.h	/^#define __bitwise /;"	d
+__bitwise	r8168.h	/^#define __bitwise$/;"	d
+__chk_io_ptr	r8168.h	/^#define __chk_io_ptr(/;"	d
+__devexit	r8168.h	/^#define __devexit$/;"	d
+__devexit_p	r8168.h	/^#define __devexit_p(/;"	d
+__devinit	r8168.h	/^#define __devinit$/;"	d
+__force	r8168.h	/^#define __force /;"	d
+__force	r8168.h	/^#define __force$/;"	d
+__iomem	r8168.h	/^#define __iomem /;"	d
+__iomem	r8168.h	/^#define __iomem$/;"	d
+__pad	r8168.h	/^        u8      __pad[sizeof(void *) - sizeof(u32)];$/;"	m	struct:ring_info	typeref:typename:u8[]
+__sched	r8168_n.c	/^#define __sched /;"	d	file:
+_kc_ethtool_coalesce	r8168.h	/^struct _kc_ethtool_coalesce {$/;"	s
+_kc_ethtool_op_get_link	r8168_n.c	/^static u32 _kc_ethtool_op_get_link(struct net_device *dev)$/;"	f	typeref:typename:u32	file:
+_kc_ethtool_op_get_sg	r8168_n.c	/^static u32 _kc_ethtool_op_get_sg(struct net_device *dev)$/;"	f	typeref:typename:u32	file:
+_kc_ethtool_op_set_sg	r8168_n.c	/^static int _kc_ethtool_op_set_sg(struct net_device *dev, u32 data)$/;"	f	typeref:typename:int	file:
+_kc_ethtool_ops	r8168_n.c	/^struct _kc_ethtool_ops {$/;"	s	file:
+_kc_ethtool_pauseparam	r8168.h	/^struct _kc_ethtool_pauseparam {$/;"	s
+_kc_ethtool_regs	r8168.h	/^struct _kc_ethtool_regs {$/;"	s
+_kc_ethtool_ringparam	r8168.h	/^struct _kc_ethtool_ringparam {$/;"	s
+_kc_jiffies_to_msecs	r8168_n.c	/^static inline unsigned int _kc_jiffies_to_msecs(const unsigned long j)$/;"	f	typeref:typename:unsigned int	file:
+_kc_msecs_to_jiffies	r8168_n.c	/^static inline unsigned long _kc_msecs_to_jiffies(const unsigned int m)$/;"	f	typeref:typename:unsigned long	file:
+_kc_msleep_interruptible	r8168_n.c	/^unsigned long _kc_msleep_interruptible(unsigned int msecs)$/;"	f	typeref:typename:unsigned long
+_kc_pci_dma_mapping_error	r8168.h	/^static inline int _kc_pci_dma_mapping_error(dma_addr_t dma_addr)$/;"	f	typeref:typename:int
+_kc_synchronize_irq	r8168.h	/^static inline void _kc_synchronize_irq(void)$/;"	f	typeref:typename:void
+ackLostCnt	r8168_realwow.h	/^        u16 ackLostCnt;$/;"	m	struct:_MP_KCPInfo	typeref:typename:u16
+ackLostCnt	r8168_realwow.h	/^        u16 ackLostCnt;$/;"	m	struct:_RealWoWAckPktInfo	typeref:typename:u16
+addr	r8168.h	/^        u64 addr;$/;"	m	struct:RxDesc	typeref:typename:u64
+addr	r8168.h	/^        u64 addr;$/;"	m	struct:TxDesc	typeref:typename:u64
+advertising	r8168.h	/^        u32 advertising;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+advertising_mode	r8168_n.c	/^static unsigned int advertising_mode =  ADVERTISED_10baseT_Half |$/;"	v	typeref:typename:unsigned int	file:
+align_errors	r8168_n.c	/^        u16 align_errors;$/;"	m	struct:rtl8168_counters	typeref:typename:u16	file:
+all	Makefile	/^all: print_vars clean modules install$/;"	t
+arg	r8168_asf.h	/^        unsigned int arg;$/;"	m	struct:asf_ioctl_struct	typeref:typename:unsigned int
+asf_cmdln_opt	r8168_asf.h	/^enum asf_cmdln_opt {$/;"	g
+asf_ioctl_struct	r8168_asf.h	/^struct asf_ioctl_struct {$/;"	s
+asf_registers	r8168_asf.h	/^enum asf_registers {$/;"	g
+aspm	r8168_n.c	/^static int aspm = 0;$/;"	v	typeref:typename:int	file:
+aspm	r8168_n.c	/^static int aspm = 1;$/;"	v	typeref:typename:int	file:
+assert	r8168.h	/^#define assert(/;"	d
+autoneg	r8168.h	/^        u32 autoneg;$/;"	m	struct:_kc_ethtool_pauseparam	typeref:typename:u32
+autoneg	r8168.h	/^        u8  autoneg;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+autoneg_mode	r8168_n.c	/^static unsigned int autoneg_mode = AUTONEG_ENABLE;$/;"	v	typeref:typename:unsigned int	file:
+bPacket	r8168_realwow.h	/^        u8 bPacket[MAX_RealWoW_KCP_SIZE]; \/\/ put packet here$/;"	m	struct:_KCPContent	typeref:typename:u8[]
+bios_setting	r8168.h	/^        u32 bios_setting;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+bits	r8168.h	/^enum bits {$/;"	g
+bus_info	r8168.h	/^        char bus_info[32];$/;"	m	struct:k_ethtool_drvinfo	typeref:typename:char[32]
+chipset	r8168.h	/^        int chipset;$/;"	m	struct:rtl8168_private	typeref:typename:int
+clean	Makefile	/^clean:$/;"	t
+cls	r8168.h	/^        u8  cls;$/;"	m	struct:pci_resource	typeref:typename:u8
+cmac_ioaddr	r8168.h	/^        void __iomem *cmac_ioaddr; \/* cmac memory map physical address *\/$/;"	m	struct:rtl8168_private	typeref:typename:void __iomem *
+cmd	r8168.h	/^        u32 cmd;            \/* ETHTOOL_GSTRINGS *\/$/;"	m	struct:ethtool_gstrings	typeref:typename:u32
+cmd	r8168.h	/^        u32 cmd;    \/* ETHTOOL_{G,S}COALESCE *\/$/;"	m	struct:_kc_ethtool_coalesce	typeref:typename:u32
+cmd	r8168.h	/^        u32 cmd;    \/* ETHTOOL_{G,S}PAUSEPARAM *\/$/;"	m	struct:_kc_ethtool_pauseparam	typeref:typename:u32
+cmd	r8168.h	/^        u32 cmd;    \/* ETHTOOL_{G,S}RINGPARAM *\/$/;"	m	struct:_kc_ethtool_ringparam	typeref:typename:u32
+cmd	r8168.h	/^        u32 cmd;$/;"	m	struct:_kc_ethtool_regs	typeref:typename:u32
+cmd	r8168.h	/^        u32 cmd;$/;"	m	struct:ethtool_eeprom	typeref:typename:u32
+cmd	r8168.h	/^        u32 cmd;$/;"	m	struct:ethtool_stats	typeref:typename:u32
+cmd	r8168.h	/^        u32 cmd;$/;"	m	struct:ethtool_test	typeref:typename:u32
+cmd	r8168.h	/^        u32 cmd;$/;"	m	struct:ethtool_value	typeref:typename:u32
+cmd	r8168.h	/^        u32 cmd;$/;"	m	struct:k_ethtool_drvinfo	typeref:typename:u32
+cmd	r8168.h	/^        u8  cmd;$/;"	m	struct:pci_resource	typeref:typename:u8
+cmd	r8168_dash.h	/^        __u32	cmd;$/;"	m	struct:rtl_dash_ioctl_struct	typeref:typename:__u32
+cmd	r8168_realwow.h	/^        __u32	cmd;$/;"	m	struct:rtl_realwow_ioctl_struct	typeref:typename:__u32
+cmd	rtltool.h	/^        __u32	cmd;$/;"	m	struct:rtltool_cmd	typeref:typename:__u32
+container_of	r8168.h	/^#define container_of /;"	d
+cp_cmd	r8168.h	/^        u16 cp_cmd;$/;"	m	struct:rtl8168_private	typeref:typename:u16
+cur_page	r8168.h	/^        u16 cur_page;$/;"	m	struct:rtl8168_private	typeref:typename:u16
+cur_rx	r8168.h	/^        u32 cur_rx; \/* Index into the Rx descriptor buffer of next Rx pkt. *\/$/;"	m	struct:rtl8168_private	typeref:typename:u32
+cur_tx	r8168.h	/^        u32 cur_tx; \/* Index into the Tx descriptor buffer of next Rx pkt. *\/$/;"	m	struct:rtl8168_private	typeref:typename:u32
+dash_printer_enabled	r8168.h	/^        u8 dash_printer_enabled;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+data	r8168.h	/^        u32 data;$/;"	m	struct:ethtool_value	typeref:typename:u32
+data	r8168.h	/^        u64 data[0];$/;"	m	struct:ethtool_stats	typeref:typename:u64[0]
+data	r8168.h	/^        u64 data[0];$/;"	m	struct:ethtool_test	typeref:typename:u64[0]
+data	r8168.h	/^        u8 data[0];$/;"	m	struct:_kc_ethtool_regs	typeref:typename:u8[0]
+data	r8168.h	/^        u8 data[0];$/;"	m	struct:ethtool_eeprom	typeref:typename:u8[0]
+data	r8168.h	/^        u8 data[0];$/;"	m	struct:ethtool_gstrings	typeref:typename:u8[0]
+data	r8168_asf.h	/^                unsigned int data[MAX_DATA_LEN];$/;"	m	union:asf_ioctl_struct::__anon0e2a355d010a	typeref:typename:unsigned int[]
+data	r8168_dash.h	/^                __u32	data;$/;"	m	union:rtl_dash_ioctl_struct::__anond932b263010a	typeref:typename:__u32
+data	r8168_realwow.h	/^                __u32	data;$/;"	m	union:rtl_realwow_ioctl_struct::__anonba846e04010a	typeref:typename:__u32
+data	rtltool.h	/^        __u32	data;$/;"	m	struct:rtltool_cmd	typeref:typename:__u32
+data_buffer	r8168_dash.h	/^                void *data_buffer;$/;"	m	union:rtl_dash_ioctl_struct::__anond932b263010a	typeref:typename:void *
+data_buffer	r8168_realwow.h	/^                void *data_buffer;$/;"	m	union:rtl_realwow_ioctl_struct::__anonba846e04010a	typeref:typename:void *
+debug	r8168_n.c	/^} debug = { -1 };$/;"	v	typeref:struct:__anonbdf4efac0208
+dev	r8168.h	/^        struct net_device *dev;$/;"	m	struct:rtl8168_private	typeref:struct:net_device *
+dev_printk	r8168_n.c	/^#define dev_printk(/;"	d	file:
+dev_put	r8168.h	/^#define dev_put(/;"	d
+device_set_wakeup_enable	r8168.h	/^#define device_set_wakeup_enable(/;"	d
+dirty_rx	r8168.h	/^        u32 dirty_rx;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+dirty_tx	r8168.h	/^        u32 dirty_tx;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+dma_mapping_error	r8168.h	/^#define dma_mapping_error(/;"	d
+dprintk	r8168.h	/^#define dprintk(/;"	d
+driver	r8168.h	/^        char driver[32];$/;"	m	struct:k_ethtool_drvinfo	typeref:typename:char[32]
+duplex	r8168.h	/^        u8  duplex;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+duplex_mode	r8168_n.c	/^static unsigned int duplex_mode = DUPLEX_FULL;$/;"	v	typeref:typename:unsigned int	file:
+eedump_len	r8168.h	/^        u32 eedump_len;$/;"	m	struct:k_ethtool_drvinfo	typeref:typename:u32
+eee_adv_t	r8168.h	/^        u32 eee_adv_t;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+eee_enable	r8168_n.c	/^static int eee_enable = 0;$/;"	v	typeref:typename:int	file:
+eee_enable	r8168_n.c	/^static int eee_enable = 1;$/;"	v	typeref:typename:int	file:
+eee_enabled	r8168.h	/^        u8 eee_enabled;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+eeprom_len	r8168.h	/^        u16 eeprom_len;$/;"	m	struct:rtl8168_private	typeref:typename:u16
+eeprom_type	r8168.h	/^        u8  eeprom_type;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+eetype	r8168.h	/^enum eetype {$/;"	g
+effuse	r8168.h	/^enum effuse {$/;"	g
+efuse_ver	r8168.h	/^        u8  efuse_ver;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+esd_flag	r8168.h	/^        unsigned int esd_flag;$/;"	m	struct:rtl8168_private	typeref:typename:unsigned int
+esd_timer	r8168.h	/^        struct timer_list esd_timer;$/;"	m	struct:rtl8168_private	typeref:struct:timer_list
+eth_copy_and_sum	r8168_n.c	/^static inline void eth_copy_and_sum (struct sk_buff *dest,$/;"	f	typeref:typename:void	file:
+eth_hw_addr_random	r8168_n.c	/^static inline void eth_hw_addr_random(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+ether_addr_copy	r8168.h	/^static inline void ether_addr_copy(u8 *dst, const u8 *src)$/;"	f	typeref:typename:void
+ethtool_coalesce	r8168.h	/^#define ethtool_coalesce /;"	d
+ethtool_convert_legacy_u32_to_link_mode	r8168_n.c	/^void ethtool_convert_legacy_u32_to_link_mode(unsigned long *dst,$/;"	f	typeref:typename:void
+ethtool_convert_link_mode_to_legacy_u32	r8168_n.c	/^bool ethtool_convert_link_mode_to_legacy_u32(u32 *legacy_u32,$/;"	f	typeref:typename:bool
+ethtool_drvinfo	r8168.h	/^#define ethtool_drvinfo /;"	d
+ethtool_eeprom	r8168.h	/^struct ethtool_eeprom {$/;"	s
+ethtool_get_coalesce	r8168_n.c	/^static int ethtool_get_coalesce(struct net_device *dev, void *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_get_drvinfo	r8168_n.c	/^static int ethtool_get_drvinfo(struct net_device *dev, void *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_get_eeprom	r8168_n.c	/^static int ethtool_get_eeprom(struct net_device *dev, void *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_get_link	r8168_n.c	/^static int ethtool_get_link(struct net_device *dev, void *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_get_msglevel	r8168_n.c	/^static int ethtool_get_msglevel(struct net_device *dev, char *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_get_pauseparam	r8168_n.c	/^static int ethtool_get_pauseparam(struct net_device *dev, void *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_get_regs	r8168_n.c	/^static int ethtool_get_regs(struct net_device *dev, char *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_get_ringparam	r8168_n.c	/^static int ethtool_get_ringparam(struct net_device *dev, void *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_get_rx_csum	r8168_n.c	/^static int ethtool_get_rx_csum(struct net_device *dev, char *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_get_settings	r8168_n.c	/^static int ethtool_get_settings(struct net_device *dev, void *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_get_sg	r8168_n.c	/^static int ethtool_get_sg(struct net_device *dev, char *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_get_stats	r8168_n.c	/^static int ethtool_get_stats(struct net_device *dev, void *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_get_strings	r8168_n.c	/^static int ethtool_get_strings(struct net_device *dev, void *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_get_tso	r8168_n.c	/^static int ethtool_get_tso(struct net_device *dev, char *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_get_tx_csum	r8168_n.c	/^static int ethtool_get_tx_csum(struct net_device *dev, char *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_get_wol	r8168_n.c	/^static int ethtool_get_wol(struct net_device *dev, char *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_gstrings	r8168.h	/^struct ethtool_gstrings {$/;"	s
+ethtool_ioctl	r8168_n.c	/^static int ethtool_ioctl(struct ifreq *ifr)$/;"	f	typeref:typename:int	file:
+ethtool_nway_reset	r8168_n.c	/^static int ethtool_nway_reset(struct net_device *dev)$/;"	f	typeref:typename:int	file:
+ethtool_op_get_link	r8168_n.c	/^#define ethtool_op_get_link /;"	d	file:
+ethtool_op_get_sg	r8168_n.c	/^#define ethtool_op_get_sg /;"	d	file:
+ethtool_op_set_sg	r8168_n.c	/^#define ethtool_op_set_sg /;"	d	file:
+ethtool_ops	r8168_n.c	/^#define ethtool_ops /;"	d	file:
+ethtool_ops	r8168_n.c	/^} *ethtool_ops = NULL;$/;"	v	typeref:struct:_kc_ethtool_ops *
+ethtool_pauseparam	r8168.h	/^#define ethtool_pauseparam /;"	d
+ethtool_phys_id	r8168_n.c	/^static int ethtool_phys_id(struct net_device *dev, void *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_regs	r8168.h	/^#define ethtool_regs /;"	d
+ethtool_ringparam	r8168.h	/^#define ethtool_ringparam /;"	d
+ethtool_self_test	r8168_n.c	/^static int ethtool_self_test(struct net_device *dev, char *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_set_coalesce	r8168_n.c	/^static int ethtool_set_coalesce(struct net_device *dev, void *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_set_eeprom	r8168_n.c	/^static int ethtool_set_eeprom(struct net_device *dev, void *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_set_msglevel	r8168_n.c	/^static int ethtool_set_msglevel(struct net_device *dev, char *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_set_pauseparam	r8168_n.c	/^static int ethtool_set_pauseparam(struct net_device *dev, void *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_set_ringparam	r8168_n.c	/^static int ethtool_set_ringparam(struct net_device *dev, void *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_set_rx_csum	r8168_n.c	/^static int ethtool_set_rx_csum(struct net_device *dev, char *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_set_settings	r8168_n.c	/^static int ethtool_set_settings(struct net_device *dev, void *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_set_sg	r8168_n.c	/^static int ethtool_set_sg(struct net_device *dev, char *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_set_tso	r8168_n.c	/^static int ethtool_set_tso(struct net_device *dev, char *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_set_tx_csum	r8168_n.c	/^static int ethtool_set_tx_csum(struct net_device *dev, char *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_set_wol	r8168_n.c	/^static int ethtool_set_wol(struct net_device *dev, char *useraddr)$/;"	f	typeref:typename:int	file:
+ethtool_stats	r8168.h	/^struct ethtool_stats {$/;"	s
+ethtool_stringset	r8168.h	/^enum ethtool_stringset {$/;"	g
+ethtool_test	r8168.h	/^struct ethtool_test {$/;"	s
+ethtool_test_flags	r8168.h	/^enum ethtool_test_flags {$/;"	g
+ethtool_value	r8168.h	/^struct ethtool_value {$/;"	s
+false	r8168.h	/^#define false /;"	d
+features	r8168.h	/^        unsigned features;$/;"	m	struct:rtl8168_private	typeref:typename:unsigned
+features	r8168.h	/^enum features {$/;"	g
+flag	r8168_dash.h	/^        u8 flag;$/;"	m	struct:_OSOOBHdr	typeref:typename:u8
+flags	r8168.h	/^        u32 flags;$/;"	m	struct:ethtool_test	typeref:typename:u32
+flush_scheduled_work	r8168.h	/^#define flush_scheduled_work /;"	d
+free_netdev	r8168.h	/^#define free_netdev(/;"	d
+fw_ack	r8168.h	/^        struct completion fw_ack;$/;"	m	struct:rtl8168_private	typeref:struct:completion
+fw_host_ok	r8168.h	/^        struct completion fw_host_ok;$/;"	m	struct:rtl8168_private	typeref:struct:completion
+fw_req	r8168.h	/^        struct completion fw_req;$/;"	m	struct:rtl8168_private	typeref:struct:completion
+fw_version	r8168.h	/^        char fw_version[32];$/;"	m	struct:k_ethtool_drvinfo	typeref:typename:char[32]
+get_coalesce	r8168_n.c	/^        int  (*get_coalesce)(struct net_device *, struct ethtool_coalesce *);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:int (*)(struct net_device *,struct ethtool_coalesce *)	file:
+get_drvinfo	r8168_n.c	/^        void (*get_drvinfo)(struct net_device *, struct ethtool_drvinfo *);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:void (*)(struct net_device *,struct ethtool_drvinfo *)	file:
+get_eeprom	r8168_n.c	/^        int  (*get_eeprom)(struct net_device *, struct ethtool_eeprom *, u8 *);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:int (*)(struct net_device *,struct ethtool_eeprom *,u8 *)	file:
+get_eeprom_len	r8168_n.c	/^        int  (*get_eeprom_len)(struct net_device *);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:int (*)(struct net_device *)	file:
+get_ethtool_stats	r8168_n.c	/^        void (*get_ethtool_stats)(struct net_device *, struct ethtool_stats *,$/;"	m	struct:_kc_ethtool_ops	typeref:typename:void (*)(struct net_device *,struct ethtool_stats *,u64 *)	file:
+get_link	r8168_n.c	/^        u32  (*get_link)(struct net_device *);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:u32 (*)(struct net_device *)	file:
+get_msglevel	r8168_n.c	/^        u32  (*get_msglevel)(struct net_device *);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:u32 (*)(struct net_device *)	file:
+get_pauseparam	r8168_n.c	/^        void (*get_pauseparam)(struct net_device *,$/;"	m	struct:_kc_ethtool_ops	typeref:typename:void (*)(struct net_device *,struct ethtool_pauseparam *)	file:
+get_protocol	r8168_n.c	/^__be16 get_protocol(struct sk_buff *skb)$/;"	f	typeref:typename:__be16	file:
+get_regs	r8168_n.c	/^        void (*get_regs)(struct net_device *, struct ethtool_regs *, void *);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:void (*)(struct net_device *,struct ethtool_regs *,void *)	file:
+get_regs_len	r8168_n.c	/^        int  (*get_regs_len)(struct net_device *);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:int (*)(struct net_device *)	file:
+get_ringparam	r8168_n.c	/^        void (*get_ringparam)(struct net_device *, struct ethtool_ringparam *);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:void (*)(struct net_device *,struct ethtool_ringparam *)	file:
+get_rx_csum	r8168_n.c	/^        u32  (*get_rx_csum)(struct net_device *);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:u32 (*)(struct net_device *)	file:
+get_settings	r8168.h	/^        void (*get_settings)(struct net_device *, struct ethtool_cmd *);$/;"	m	struct:rtl8168_private	typeref:typename:void (*)(struct net_device *,struct ethtool_cmd *)
+get_settings	r8168.h	/^        void (*get_settings)(struct net_device *, struct ethtool_link_ksettings *);$/;"	m	struct:rtl8168_private	typeref:typename:void (*)(struct net_device *,struct ethtool_link_ksettings *)
+get_settings	r8168_n.c	/^        int  (*get_settings)(struct net_device *, struct ethtool_cmd *);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:int (*)(struct net_device *,struct ethtool_cmd *)	file:
+get_sg	r8168_n.c	/^        u32  (*get_sg)(struct net_device *);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:u32 (*)(struct net_device *)	file:
+get_stats_count	r8168_n.c	/^        int  (*get_stats_count)(struct net_device *);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:int (*)(struct net_device *)	file:
+get_strings	r8168_n.c	/^        void (*get_strings)(struct net_device *, u32 stringset, u8 *);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:void (*)(struct net_device *,u32 stringset,u8 *)	file:
+get_tso	r8168_n.c	/^        u32  (*get_tso)(struct net_device *);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:u32 (*)(struct net_device *)	file:
+get_tx_csum	r8168_n.c	/^        u32  (*get_tx_csum)(struct net_device *);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:u32 (*)(struct net_device *)	file:
+get_wol	r8168_n.c	/^        void (*get_wol)(struct net_device *, struct ethtool_wolinfo *);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:void (*)(struct net_device *,struct ethtool_wolinfo *)	file:
+gso_segs	r8168.h	/^#define gso_segs /;"	d
+gso_size	r8168.h	/^#define gso_size /;"	d
+hostReqV	r8168_dash.h	/^        u8 hostReqV;$/;"	m	struct:_OSOOBHdr	typeref:typename:u8
+hw_ram_code_ver	r8168.h	/^        u16 hw_ram_code_ver;$/;"	m	struct:rtl8168_private	typeref:typename:u16
+hwoptimize	r8168_n.c	/^static ulong hwoptimize = 0;$/;"	v	typeref:typename:ulong	file:
+hwoptimize	r8168_n.c	/^static ulong hwoptimize = HW_PATCH_SOC_LAN;$/;"	v	typeref:typename:ulong	file:
+id	r8168_realwow.h	/^        u32 id; \/\/ = id$/;"	m	struct:_KCPContent	typeref:typename:u32
+if_mii	r8168_n.c	/^#define if_mii /;"	d	file:
+if_mii	r8168_n.c	/^static inline struct mii_ioctl_data *if_mii(struct ifreq *rq)$/;"	f	typeref:struct:mii_ioctl_data *	file:
+ifru_addr	r8168_dash.h	/^        struct sockaddr ifru_addr;$/;"	m	struct:rtl_dash_ip_mac	typeref:struct:sockaddr
+ifru_hwaddr	r8168_dash.h	/^        struct sockaddr ifru_hwaddr;$/;"	m	struct:rtl_dash_ip_mac	typeref:struct:sockaddr
+ifru_netmask	r8168_dash.h	/^        struct sockaddr ifru_netmask;$/;"	m	struct:rtl_dash_ip_mac	typeref:struct:sockaddr
+ilr	r8168.h	/^        u8  ilr;$/;"	m	struct:pci_resource	typeref:typename:u8
+index	r8168_dash.h	/^        __u16	index;$/;"	m	struct:settings_ext_snmp	typeref:typename:__u16
+index	r8168_dash.h	/^        __u8	index;$/;"	m	struct:wakeup_pattern	typeref:typename:__u8
+install	Makefile	/^install:$/;"	t
+intr_mask	r8168.h	/^        u16 intr_mask;$/;"	m	struct:rtl8168_private	typeref:typename:u16
+io_base_h	r8168.h	/^        u16 io_base_h;$/;"	m	struct:pci_resource	typeref:typename:u16
+io_base_l	r8168.h	/^        u16 io_base_l;$/;"	m	struct:pci_resource	typeref:typename:u16
+irqreturn_t	r8168.h	/^#define irqreturn_t /;"	d
+issue_offset_99_event	r8168.h	/^        u8 issue_offset_99_event;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+jumbo_frame_sz	r8168_n.c	/^        u32 jumbo_frame_sz;$/;"	m	struct:__anonbdf4efac0108	typeref:typename:u32	file:
+k_ethtool_drvinfo	r8168.h	/^struct k_ethtool_drvinfo {$/;"	s
+keep_intr_cnt	r8168.h	/^        u32 keep_intr_cnt;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+kver_ge	Makefile	/^	kver_ge = $(shell \\$/;"	m
+len	r8168.h	/^        u32     len;$/;"	m	struct:ring_info	typeref:typename:u32
+len	r8168.h	/^        u32 len;            \/* number of strings in the string set *\/$/;"	m	struct:ethtool_gstrings	typeref:typename:u32
+len	r8168.h	/^        u32 len; \/* bytes *\/$/;"	m	struct:_kc_ethtool_regs	typeref:typename:u32
+len	r8168.h	/^        u32 len;$/;"	m	struct:ethtool_eeprom	typeref:typename:u32
+len	r8168.h	/^        u32 len;$/;"	m	struct:ethtool_test	typeref:typename:u32
+len	r8168_dash.h	/^        __u32	len;$/;"	m	struct:rtl_dash_ioctl_struct	typeref:typename:__u32
+len	r8168_dash.h	/^        u32 len;$/;"	m	struct:_OSOOBHdr	typeref:typename:u32
+len	r8168_realwow.h	/^        __u32	len;$/;"	m	struct:rtl_realwow_ioctl_struct	typeref:typename:__u32
+len	rtltool.h	/^        __u32	len;$/;"	m	struct:rtltool_cmd	typeref:typename:__u32
+length	r8168_dash.h	/^        __u8	length;$/;"	m	struct:wakeup_pattern	typeref:typename:__u8
+length	r8168_dash.h	/^        u16 length;$/;"	m	struct:_RX_DASH_FROM_FW_DESC	typeref:typename:u16
+length	r8168_dash.h	/^        u16 length;$/;"	m	struct:_TX_DASH_SEND_FW_DESC	typeref:typename:u16
+link_ok	r8168.h	/^        unsigned int (*link_ok)(struct net_device *);$/;"	m	struct:rtl8168_private	typeref:typename:unsigned int (*)(struct net_device *)
+link_timer	r8168.h	/^        struct timer_list link_timer;$/;"	m	struct:rtl8168_private	typeref:struct:timer_list
+lock	r8168.h	/^        spinlock_t lock;        \/* spin lock flag *\/$/;"	m	struct:rtl8168_private	typeref:typename:spinlock_t
+mSec	r8168_realwow.h	/^        u32 mSec; \/\/ = msec$/;"	m	struct:_KCPContent	typeref:typename:u32
+magic	r8168.h	/^        u32 magic;$/;"	m	struct:ethtool_eeprom	typeref:typename:u32
+map_phy_ocp_addr	r8168_n.c	/^static inline u16 map_phy_ocp_addr(u16 PageNum, u8 RegNum)$/;"	f	typeref:typename:u16	file:
+mapped_cmac_ioaddr	r8168.h	/^        void __iomem *mapped_cmac_ioaddr; \/* mapped cmac memory map physical address *\/$/;"	m	struct:rtl8168_private	typeref:typename:void __iomem *
+mask	r8168_dash.h	/^        __u8	mask[16];$/;"	m	struct:wakeup_pattern	typeref:typename:__u8[16]
+mask	r8168_n.c	/^                u8  mask;$/;"	m	struct:rtl8168_set_hw_wol::__anonbdf4efac0308	typeref:typename:u8	file:
+max_jumbo_frame_size	r8168.h	/^        int max_jumbo_frame_size;$/;"	m	struct:rtl8168_private	typeref:typename:int
+mcfg	r8168.h	/^        u32 mcfg;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+mcfg	r8168.h	/^enum mcfg {$/;"	g
+mcfg	r8168_n.c	/^        u8 mcfg;$/;"	m	struct:__anonbdf4efac0108	typeref:typename:u8	file:
+mdio_direct_read_phy_ocp	r8168_n.c	/^static u32 mdio_direct_read_phy_ocp(struct rtl8168_private *tp,$/;"	f	typeref:typename:u32	file:
+mdio_direct_write_phy_ocp	r8168_n.c	/^static void mdio_direct_write_phy_ocp(struct rtl8168_private *tp,$/;"	f	typeref:typename:void	file:
+mdio_real_direct_read_phy_ocp	r8168_n.c	/^static u32 mdio_real_direct_read_phy_ocp(struct rtl8168_private *tp,$/;"	f	typeref:typename:u32	file:
+mdio_real_direct_write_phy_ocp	r8168_n.c	/^static void mdio_real_direct_write_phy_ocp(struct rtl8168_private *tp,$/;"	f	typeref:typename:void	file:
+mdio_real_read	r8168_n.c	/^u32 mdio_real_read(struct rtl8168_private *tp,$/;"	f	typeref:typename:u32
+mdio_real_write	r8168_n.c	/^static void mdio_real_write(struct rtl8168_private *tp,$/;"	f	typeref:typename:void	file:
+mem_base_h	r8168.h	/^        u16 mem_base_h;$/;"	m	struct:pci_resource	typeref:typename:u16
+mem_base_l	r8168.h	/^        u16 mem_base_l;$/;"	m	struct:pci_resource	typeref:typename:u16
+mii_adv_to_ethtool_adv_t	r8168_n.c	/^static inline u32 mii_adv_to_ethtool_adv_t(u32 adv)$/;"	f	typeref:typename:u32	file:
+mii_lpa_to_ethtool_lpa_t	r8168_n.c	/^static inline u32 mii_lpa_to_ethtool_lpa_t(u32 lpa)$/;"	f	typeref:typename:u32	file:
+mii_stat1000_to_ethtool_lpa_t	r8168_n.c	/^static inline u32 mii_stat1000_to_ethtool_lpa_t(u32 lpa)$/;"	f	typeref:typename:u32	file:
+mmio_addr	r8168.h	/^        void __iomem *mmio_addr;    \/* memory map physical address *\/$/;"	m	struct:rtl8168_private	typeref:typename:void __iomem *
+mode_access	rtltool.h	/^enum mode_access {$/;"	g
+module_param	r8168.h	/^#define module_param(/;"	d
+modules	Makefile	/^modules:$/;"	t
+msdn_giant_send_check	r8168_n.c	/^static int msdn_giant_send_check(struct sk_buff *skb)$/;"	f	typeref:typename:int	file:
+msg_enable	r8168.h	/^        u32 msg_enable;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+msg_enable	r8168_n.c	/^        u32 msg_enable;$/;"	m	struct:__anonbdf4efac0208	typeref:typename:u32	file:
+msleep_interruptible	r8168_n.c	/^#define msleep_interruptible /;"	d	file:
+multicast_filter_limit	r8168_n.c	/^static const int multicast_filter_limit = 32;$/;"	v	typeref:typename:const int	file:
+nId	r8168_realwow.h	/^        u32 nId; \/\/ = id$/;"	m	struct:_KCPInfo	typeref:typename:u32
+n_stats	r8168.h	/^        u32 n_stats;$/;"	m	struct:ethtool_stats	typeref:typename:u32
+n_stats	r8168.h	/^        u32 n_stats;$/;"	m	struct:k_ethtool_drvinfo	typeref:typename:u32
+name	r8168_dash.h	/^        __u8	name[36];$/;"	m	struct:wakeup_pattern	typeref:typename:__u8[36]
+name	r8168_n.c	/^        char name[12];$/;"	m	struct:rtl8168_proc_file	typeref:typename:char[12]	file:
+name	r8168_n.c	/^        const char *name;$/;"	m	struct:__anonbdf4efac0108	typeref:typename:const char *	file:
+napi	r8168.h	/^        struct napi_struct napi;$/;"	m	struct:rtl8168_private	typeref:struct:napi_struct
+napi	r8168.h	/^#define napi /;"	d
+napi_budget	r8168.h	/^typedef int *napi_budget;$/;"	t	typeref:typename:int *
+napi_budget	r8168.h	/^typedef int napi_budget;$/;"	t	typeref:typename:int
+napi_ptr	r8168.h	/^typedef struct napi_struct *napi_ptr;$/;"	t	typeref:struct:napi_struct *
+napi_ptr	r8168.h	/^typedef struct net_device *napi_ptr;$/;"	t	typeref:struct:net_device *
+netdev_features_t	r8168.h	/^#define netdev_features_t /;"	d
+netdev_for_each_mc_addr	r8168.h	/^#define netdev_for_each_mc_addr(/;"	d
+netdev_mc_count	r8168.h	/^#define netdev_mc_count(/;"	d
+netdev_mc_empty	r8168.h	/^#define netdev_mc_empty(/;"	d
+netdev_priv	r8168.h	/^static inline void *netdev_priv(struct net_device *dev)$/;"	f	typeref:typename:void *
+netif_alert	r8168.h	/^#define netif_alert(/;"	d
+netif_crit	r8168.h	/^#define netif_crit(/;"	d
+netif_emerg	r8168.h	/^#define netif_emerg(/;"	d
+netif_err	r8168.h	/^#define netif_err(/;"	d
+netif_info	r8168.h	/^#define netif_info(/;"	d
+netif_msg_init	r8168_n.c	/^#define netif_msg_init /;"	d	file:
+netif_msg_init	r8168_n.c	/^static inline u32 netif_msg_init(int debug_value, int default_msg_enable_bits)$/;"	f	typeref:typename:u32	file:
+netif_notice	r8168.h	/^#define netif_notice(/;"	d
+netif_printk	r8168.h	/^#define netif_printk(/;"	d
+netif_warn	r8168.h	/^#define netif_warn(/;"	d
+nway_reset	r8168_n.c	/^        int  (*nway_reset)(struct net_device *);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:int (*)(struct net_device *)	file:
+obj-m	Makefile	/^	obj-m := r8168.o$/;"	m
+offset	r8168.h	/^        u32 offset;$/;"	m	struct:ethtool_eeprom	typeref:typename:u32
+offset	r8168_asf.h	/^        unsigned int offset;$/;"	m	struct:asf_ioctl_struct	typeref:typename:unsigned int
+offset	r8168_dash.h	/^        __u32	offset;$/;"	m	struct:rtl_dash_ioctl_struct	typeref:typename:__u32
+offset	r8168_realwow.h	/^        __u32	offset;$/;"	m	struct:rtl_realwow_ioctl_struct	typeref:typename:__u32
+offset	rtltool.h	/^        __u32	offset;$/;"	m	struct:rtltool_cmd	typeref:typename:__u32
+oid_for_get	r8168_dash.h	/^        __u8	oid_for_get[24];$/;"	m	struct:settings_ext_snmp	typeref:typename:__u8[24]
+oid_get_len	r8168_dash.h	/^        __u16	oid_get_len;$/;"	m	struct:settings_ext_snmp	typeref:typename:__u16
+oobhdr	r8168_dash.h	/^        OSOOBHdr oobhdr;$/;"	m	struct:_RX_DASH_BUFFER_TYPE_2	typeref:typename:OSOOBHdr
+opt	r8168_n.c	/^                u32 opt;$/;"	m	struct:rtl8168_set_hw_wol::__anonbdf4efac0308	typeref:typename:u32	file:
+opts1	r8168.h	/^        u32 opts1;$/;"	m	struct:RxDesc	typeref:typename:u32
+opts1	r8168.h	/^        u32 opts1;$/;"	m	struct:TxDesc	typeref:typename:u32
+opts2	r8168.h	/^        u32 opts2;$/;"	m	struct:RxDesc	typeref:typename:u32
+opts2	r8168.h	/^        u32 opts2;$/;"	m	struct:TxDesc	typeref:typename:u32
+org_mac_addr	r8168.h	/^        u8 org_mac_addr[NODE_ADDRESS_SIZE];$/;"	m	struct:rtl8168_private	typeref:typename:u8[]
+org_pci_offset_180	r8168.h	/^        u8 org_pci_offset_180;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+org_pci_offset_80	r8168.h	/^        u8 org_pci_offset_80;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+org_pci_offset_81	r8168.h	/^        u8 org_pci_offset_81;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+org_pci_offset_99	r8168.h	/^        u8 org_pci_offset_99;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+pattern	r8168_dash.h	/^        __u8	pattern[128];$/;"	m	struct:wakeup_pattern	typeref:typename:__u8[128]
+pattern	r8168_realwow.h	/^        u8 pattern[MAX_RealWoW_Payload];$/;"	m	struct:_RealWoWAckPktInfo	typeref:typename:u8[]
+pattern	r8168_realwow.h	/^        u8 pattern[MAX_RealWoW_Payload];$/;"	m	struct:_RealWoWWPInfo	typeref:typename:u8[]
+patterntSize	r8168_realwow.h	/^        u16 patterntSize;$/;"	m	struct:_RealWoWAckPktInfo	typeref:typename:u16
+patterntSize	r8168_realwow.h	/^        u16 patterntSize;$/;"	m	struct:_RealWoWWPInfo	typeref:typename:u16
+pci_cfg_is_read	r8168.h	/^        unsigned int pci_cfg_is_read;$/;"	m	struct:rtl8168_private	typeref:typename:unsigned int
+pci_cfg_space	r8168.h	/^        struct pci_resource pci_cfg_space;$/;"	m	struct:rtl8168_private	typeref:struct:pci_resource
+pci_choose_state	r8168_n.c	/^pci_power_t pci_choose_state(struct pci_dev *dev, pm_message_t state)$/;"	f	typeref:typename:pci_power_t
+pci_dev	r8168.h	/^        struct pci_dev *pci_dev;    \/* Index of PCI device *\/$/;"	m	struct:rtl8168_private	typeref:struct:pci_dev *
+pci_dma_mapping_error	r8168.h	/^#define pci_dma_mapping_error /;"	d
+pci_dma_sync_single_for_cpu	r8168.h	/^#define pci_dma_sync_single_for_cpu /;"	d
+pci_dma_sync_single_for_device	r8168.h	/^#define pci_dma_sync_single_for_device /;"	d
+pci_name	r8168.h	/^#define pci_name(/;"	d
+pci_power_t	r8168_n.c	/^typedef int __bitwise pci_power_t;$/;"	t	typeref:typename:int __bitwise	file:
+pci_resource	r8168.h	/^struct pci_resource {$/;"	s
+pci_set_consistent_dma_mask	r8168.h	/^#define pci_set_consistent_dma_mask(/;"	d
+pci_sn_h	r8168.h	/^        u32 pci_sn_h;$/;"	m	struct:pci_resource	typeref:typename:u32
+pci_sn_l	r8168.h	/^        u32 pci_sn_l;$/;"	m	struct:pci_resource	typeref:typename:u32
+phy_1000_ctrl_reg	r8168.h	/^        int phy_1000_ctrl_reg;$/;"	m	struct:rtl8168_private	typeref:typename:int
+phy_auto_nego_reg	r8168.h	/^        int phy_auto_nego_reg;$/;"	m	struct:rtl8168_private	typeref:typename:int
+phy_reg_anlpar	r8168.h	/^        u16 phy_reg_anlpar;$/;"	m	struct:rtl8168_private	typeref:typename:u16
+phy_reset_enable	r8168.h	/^        void (*phy_reset_enable)(struct net_device *);$/;"	m	struct:rtl8168_private	typeref:typename:void (*)(struct net_device *)
+phy_reset_pending	r8168.h	/^        unsigned int (*phy_reset_pending)(struct net_device *);$/;"	m	struct:rtl8168_private	typeref:typename:unsigned int (*)(struct net_device *)
+phys_id	r8168_n.c	/^        int  (*phys_id)(struct net_device *, u32);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:int (*)(struct net_device *,u32)	file:
+pkt_rate_high	r8168.h	/^        u32 pkt_rate_high;$/;"	m	struct:_kc_ethtool_coalesce	typeref:typename:u32
+pkt_rate_low	r8168.h	/^        u32 pkt_rate_low;$/;"	m	struct:_kc_ethtool_coalesce	typeref:typename:u32
+pm_message_t	r8168_n.c	/^typedef u32 __bitwise pm_message_t;$/;"	t	typeref:typename:u32 __bitwise	file:
+pm_runtime_active	r8168.h	/^static inline bool pm_runtime_active(struct device *dev)$/;"	f	typeref:typename:bool
+pm_runtime_mark_last_busy	r8168.h	/^#define pm_runtime_mark_last_busy(/;"	d
+pm_runtime_put_autosuspend	r8168.h	/^#define pm_runtime_put_autosuspend(/;"	d
+pm_runtime_put_sync_autosuspend	r8168.h	/^#define pm_runtime_put_sync_autosuspend(/;"	d
+pm_runtime_suspended	r8168.h	/^static inline bool pm_runtime_suspended(struct device *dev)$/;"	f	typeref:typename:bool
+prefixLen	r8168_dash.h	/^        __u32	prefixLen;$/;"	m	struct:settings_ipv6	typeref:typename:__u32
+print_vars	Makefile	/^print_vars:$/;"	t
+proc_dir	r8168.h	/^        struct proc_dir_entry *proc_dir;$/;"	m	struct:rtl8168_private	typeref:struct:proc_dir_entry *
+proc_get_driver_variable	r8168_n.c	/^static int proc_get_driver_variable(char *page, char **start,$/;"	f	typeref:typename:int	file:
+proc_get_driver_variable	r8168_n.c	/^static int proc_get_driver_variable(struct seq_file *m, void *v)$/;"	f	typeref:typename:int	file:
+proc_get_eth_phy	r8168_n.c	/^static int proc_get_eth_phy(char *page, char **start,$/;"	f	typeref:typename:int	file:
+proc_get_eth_phy	r8168_n.c	/^static int proc_get_eth_phy(struct seq_file *m, void *v)$/;"	f	typeref:typename:int	file:
+proc_get_extended_registers	r8168_n.c	/^static int proc_get_extended_registers(char *page, char **start,$/;"	f	typeref:typename:int	file:
+proc_get_extended_registers	r8168_n.c	/^static int proc_get_extended_registers(struct seq_file *m, void *v)$/;"	f	typeref:typename:int	file:
+proc_get_pci_registers	r8168_n.c	/^static int proc_get_pci_registers(char *page, char **start,$/;"	f	typeref:typename:int	file:
+proc_get_pci_registers	r8168_n.c	/^static int proc_get_pci_registers(struct seq_file *m, void *v)$/;"	f	typeref:typename:int	file:
+proc_get_pcie_phy	r8168_n.c	/^static int proc_get_pcie_phy(char *page, char **start,$/;"	f	typeref:typename:int	file:
+proc_get_pcie_phy	r8168_n.c	/^static int proc_get_pcie_phy(struct seq_file *m, void *v)$/;"	f	typeref:typename:int	file:
+proc_get_registers	r8168_n.c	/^static int proc_get_registers(char *page, char **start,$/;"	f	typeref:typename:int	file:
+proc_get_registers	r8168_n.c	/^static int proc_get_registers(struct seq_file *m, void *v)$/;"	f	typeref:typename:int	file:
+proc_get_tally_counter	r8168_n.c	/^static int proc_get_tally_counter(char *page, char **start,$/;"	f	typeref:typename:int	file:
+proc_get_tally_counter	r8168_n.c	/^static int proc_get_tally_counter(struct seq_file *m, void *v)$/;"	f	typeref:typename:int	file:
+proc_init_num	r8168_n.c	/^static int proc_init_num = 0;$/;"	v	typeref:typename:int	file:
+queue_delayed_work	r8168.h	/^#define queue_delayed_work(/;"	d
+r8168-objs	Makefile	/^	r8168-objs := r8168_n.o r8168_asf.o rtl_eeprom.o rtltool.o$/;"	m
+r8168_csum_workaround	r8168_n.c	/^static void r8168_csum_workaround(struct rtl8168_private *tp,$/;"	f	typeref:typename:void	file:
+random_mac	r8168.h	/^        u8 random_mac;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+rate_sample_interval	r8168.h	/^        u32 rate_sample_interval;$/;"	m	struct:_kc_ethtool_coalesce	typeref:typename:u32
+real_ocp_read	r8168_n.c	/^static u32 real_ocp_read(struct rtl8168_private *tp, u16 addr, u8 len)$/;"	f	typeref:typename:u32	file:
+real_ocp_write	r8168_n.c	/^static int real_ocp_write(struct rtl8168_private *tp, u16 addr, u8 len, u32 value)$/;"	f	typeref:typename:int	file:
+reg	r8168_n.c	/^                u16 reg;$/;"	m	struct:rtl8168_set_hw_wol::__anonbdf4efac0308	typeref:typename:u16	file:
+regdump_len	r8168.h	/^        u32 regdump_len;$/;"	m	struct:k_ethtool_drvinfo	typeref:typename:u32
+reinit_completion	r8168.h	/^#define reinit_completion(/;"	d
+res	r8168_dash.h	/^        u8 res;$/;"	m	struct:_OSOOBHdr	typeref:typename:u8
+reserved	r8168.h	/^        u32 reserved;$/;"	m	struct:ethtool_test	typeref:typename:u32
+reserved	r8168_dash.h	/^        __u32	reserved;$/;"	m	struct:settings_ipv6	typeref:typename:__u32
+reserved	r8168_dash.h	/^        __u32	reserved[2];$/;"	m	struct:wakeup_pattern	typeref:typename:__u32[2]
+reserved0	r8168_dash.h	/^        __u8	reserved0[26];$/;"	m	struct:settings_ext_snmp	typeref:typename:__u8[26]
+reserved1	r8168.h	/^        char reserved1[32];$/;"	m	struct:k_ethtool_drvinfo	typeref:typename:char[32]
+reserved1	r8168_dash.h	/^        __u8	reserved1[27];$/;"	m	struct:settings_ext_snmp	typeref:typename:__u8[27]
+reserved2	r8168.h	/^        char reserved2[16];$/;"	m	struct:k_ethtool_drvinfo	typeref:typename:char[16]
+resv	r8168_dash.h	/^        u32 resv;$/;"	m	struct:_RX_DASH_FROM_FW_DESC	typeref:typename:u32
+resv	r8168_dash.h	/^        u32 resv;$/;"	m	struct:_TX_DASH_SEND_FW_DESC	typeref:typename:u32
+resv_0x1c_h	r8168.h	/^        u16 resv_0x1c_h;$/;"	m	struct:pci_resource	typeref:typename:u16
+resv_0x1c_l	r8168.h	/^        u16 resv_0x1c_l;$/;"	m	struct:pci_resource	typeref:typename:u16
+resv_0x20_h	r8168.h	/^        u16 resv_0x20_h;$/;"	m	struct:pci_resource	typeref:typename:u16
+resv_0x20_l	r8168.h	/^        u16 resv_0x20_l;$/;"	m	struct:pci_resource	typeref:typename:u16
+resv_0x24_h	r8168.h	/^        u16 resv_0x24_h;$/;"	m	struct:pci_resource	typeref:typename:u16
+resv_0x24_l	r8168.h	/^        u16 resv_0x24_l;$/;"	m	struct:pci_resource	typeref:typename:u16
+resv_0x2c_h	r8168.h	/^        u16 resv_0x2c_h;$/;"	m	struct:pci_resource	typeref:typename:u16
+resv_0x2c_l	r8168.h	/^        u16 resv_0x2c_l;$/;"	m	struct:pci_resource	typeref:typename:u16
+ring_info	r8168.h	/^struct ring_info {$/;"	s
+rtk_enable_diag	r8168.h	/^        u8 rtk_enable_diag;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+rtl8168_alloc_rx_skb	r8168_n.c	/^rtl8168_alloc_rx_skb(struct rtl8168_private *tp,$/;"	f	typeref:typename:int	file:
+rtl8168_asf_capability_masks	r8168_asf.c	/^void rtl8168_asf_capability_masks(struct rtl8168_private *tp, int arg, int offset, unsigned int /;"	f	typeref:typename:void
+rtl8168_asf_community_string	r8168_asf.c	/^void rtl8168_asf_community_string(struct rtl8168_private *tp, int arg, char *string)$/;"	f	typeref:typename:void
+rtl8168_asf_community_string_len	r8168_asf.c	/^void rtl8168_asf_community_string_len(struct rtl8168_private *tp, int arg, unsigned int *data)$/;"	f	typeref:typename:void
+rtl8168_asf_config_regs	r8168_asf.c	/^void rtl8168_asf_config_regs(struct rtl8168_private *tp, int arg, int offset, unsigned int *data/;"	f	typeref:typename:void
+rtl8168_asf_console_mac	r8168_asf.c	/^void rtl8168_asf_console_mac(struct rtl8168_private *tp, int arg, unsigned int *data)$/;"	f	typeref:typename:void
+rtl8168_asf_hbperiod	r8168_asf.c	/^void rtl8168_asf_hbperiod(struct rtl8168_private *tp, int arg, unsigned int *data)$/;"	f	typeref:typename:void
+rtl8168_asf_ioctl	r8168_asf.c	/^int rtl8168_asf_ioctl(struct net_device *dev,$/;"	f	typeref:typename:int
+rtl8168_asf_ip_address	r8168_asf.c	/^void rtl8168_asf_ip_address(struct rtl8168_private *tp, int arg, int offset, unsigned int *data)$/;"	f	typeref:typename:void
+rtl8168_asf_key_access	r8168_asf.c	/^void rtl8168_asf_key_access(struct rtl8168_private *tp, int arg, int offset, unsigned int *data)$/;"	f	typeref:typename:void
+rtl8168_asf_rw_hexadecimal	r8168_asf.c	/^void rtl8168_asf_rw_hexadecimal(struct rtl8168_private *tp, int arg, int offset, int len, unsign/;"	f	typeref:typename:void
+rtl8168_asf_rw_iana	r8168_asf.c	/^void rtl8168_asf_rw_iana(struct rtl8168_private *tp, int arg, unsigned int *data)$/;"	f	typeref:typename:void
+rtl8168_asf_rw_systemid	r8168_asf.c	/^void rtl8168_asf_rw_systemid(struct rtl8168_private *tp, int arg, unsigned int *data)$/;"	f	typeref:typename:void
+rtl8168_asf_rw_uuid	r8168_asf.c	/^void rtl8168_asf_rw_uuid(struct rtl8168_private *tp, int arg, unsigned int *data)$/;"	f	typeref:typename:void
+rtl8168_asf_time_period	r8168_asf.c	/^void rtl8168_asf_time_period(struct rtl8168_private *tp, int arg, int offset, unsigned int *data/;"	f	typeref:typename:void
+rtl8168_asf_wd16rst	r8168_asf.c	/^void rtl8168_asf_wd16rst(struct rtl8168_private *tp, int arg, unsigned int *data)$/;"	f	typeref:typename:void
+rtl8168_calc_efuse_dummy_bit	r8168_n.c	/^static u8 rtl8168_calc_efuse_dummy_bit(u16 reg)$/;"	f	typeref:typename:u8	file:
+rtl8168_cancel_schedule_work	r8168_n.c	/^#define rtl8168_cancel_schedule_work(/;"	d	file:
+rtl8168_cancel_schedule_work	r8168_n.c	/^static void rtl8168_cancel_schedule_work(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_change_mtu	r8168_n.c	/^rtl8168_change_mtu(struct net_device *dev,$/;"	f	typeref:typename:int	file:
+rtl8168_check_dash	r8168_n.c	/^static int rtl8168_check_dash(struct rtl8168_private *tp)$/;"	f	typeref:typename:int	file:
+rtl8168_check_hw_phy_mcu_code_ver	r8168_n.c	/^rtl8168_check_hw_phy_mcu_code_ver(struct net_device *dev)$/;"	f	typeref:typename:int	file:
+rtl8168_check_link_status	r8168_n.c	/^rtl8168_check_link_status(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_cleanup_module	r8168_n.c	/^rtl8168_cleanup_module(void)$/;"	f	typeref:typename:void __exit	file:
+rtl8168_clear_and_set_mcu_ocp_bit	r8168_n.c	/^rtl8168_clear_and_set_mcu_ocp_bit($/;"	f	typeref:typename:void	file:
+rtl8168_clear_and_set_other_fun_pci_bit	r8168_n.c	/^rtl8168_clear_and_set_other_fun_pci_bit(struct rtl8168_private *tp,$/;"	f	typeref:typename:void	file:
+rtl8168_clear_eth_phy_bit	r8168_n.c	/^void rtl8168_clear_eth_phy_bit(struct rtl8168_private *tp, u8 addr, u16 mask)$/;"	f	typeref:typename:void
+rtl8168_clear_phy_mcu_patch_request	r8168_n.c	/^rtl8168_clear_phy_mcu_patch_request(struct rtl8168_private *tp)$/;"	f	typeref:typename:int	file:
+rtl8168_clear_ups_resume_bit	r8168_n.c	/^rtl8168_clear_ups_resume_bit(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_close	r8168_n.c	/^static int rtl8168_close(struct net_device *dev)$/;"	f	typeref:typename:int	file:
+rtl8168_counters	r8168_n.c	/^struct rtl8168_counters {$/;"	s	file:
+rtl8168_csi_fun0_read_byte	r8168_n.c	/^rtl8168_csi_fun0_read_byte(struct rtl8168_private *tp,$/;"	f	typeref:typename:u8	file:
+rtl8168_csi_fun0_write_byte	r8168_n.c	/^rtl8168_csi_fun0_write_byte(struct rtl8168_private *tp,$/;"	f	typeref:typename:void	file:
+rtl8168_csi_other_fun_read	r8168_n.c	/^rtl8168_csi_other_fun_read(struct rtl8168_private *tp,$/;"	f	typeref:typename:u32	file:
+rtl8168_csi_other_fun_write	r8168_n.c	/^rtl8168_csi_other_fun_write(struct rtl8168_private *tp,$/;"	f	typeref:typename:void	file:
+rtl8168_csi_read	r8168_n.c	/^rtl8168_csi_read(struct rtl8168_private *tp,$/;"	f	typeref:typename:u32	file:
+rtl8168_csi_write	r8168_n.c	/^rtl8168_csi_write(struct rtl8168_private *tp,$/;"	f	typeref:typename:void	file:
+rtl8168_dash2_disable_rx	r8168_n.c	/^void rtl8168_dash2_disable_rx(struct rtl8168_private *tp)$/;"	f	typeref:typename:void
+rtl8168_dash2_disable_tx	r8168_n.c	/^void rtl8168_dash2_disable_tx(struct rtl8168_private *tp)$/;"	f	typeref:typename:void
+rtl8168_dash2_disable_txrx	r8168_n.c	/^static void rtl8168_dash2_disable_txrx(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_dash2_enable_rx	r8168_n.c	/^void rtl8168_dash2_enable_rx(struct rtl8168_private *tp)$/;"	f	typeref:typename:void
+rtl8168_dash2_enable_tx	r8168_n.c	/^void rtl8168_dash2_enable_tx(struct rtl8168_private *tp)$/;"	f	typeref:typename:void
+rtl8168_decode_efuse_cmd	r8168_n.c	/^static u32 rtl8168_decode_efuse_cmd(struct rtl8168_private *tp, u32 DwCmd)$/;"	f	typeref:typename:u32	file:
+rtl8168_delete_esd_timer	r8168_n.c	/^static inline void rtl8168_delete_esd_timer(struct net_device *dev, struct timer_list *timer)$/;"	f	typeref:typename:void	file:
+rtl8168_delete_link_timer	r8168_n.c	/^static inline void rtl8168_delete_link_timer(struct net_device *dev, struct timer_list *timer)$/;"	f	typeref:typename:void	file:
+rtl8168_desc_addr_fill	r8168_n.c	/^rtl8168_desc_addr_fill(struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+rtl8168_disable_EEE	r8168_n.c	/^static int rtl8168_disable_EEE(struct rtl8168_private *tp)$/;"	f	typeref:typename:int	file:
+rtl8168_disable_cfg9346_write	r8168_n.c	/^rtl8168_disable_cfg9346_write(struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+rtl8168_disable_dash2_interrupt	r8168_n.c	/^rtl8168_disable_dash2_interrupt(struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+rtl8168_disable_hw_interrupt	r8168_n.c	/^rtl8168_disable_hw_interrupt(struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+rtl8168_disable_magic_packet	r8168_n.c	/^rtl8168_disable_magic_packet(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_disable_msi	r8168_n.c	/^static void rtl8168_disable_msi(struct pci_dev *pdev, struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+rtl8168_disable_now_is_oob	r8168_n.c	/^rtl8168_disable_now_is_oob(struct rtl8168_private *tp)$/;"	f	typeref:typename:void
+rtl8168_disable_ocp_phy_power_saving	r8168_n.c	/^rtl8168_disable_ocp_phy_power_saving(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_disable_pci_offset_180	r8168_n.c	/^rtl8168_disable_pci_offset_180(struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+rtl8168_disable_pci_offset_99	r8168_n.c	/^rtl8168_disable_pci_offset_99(struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+rtl8168_disable_phy_disable_mode	r8168_n.c	/^rtl8168_disable_phy_disable_mode(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_disable_rxdvgate	r8168_n.c	/^rtl8168_disable_rxdvgate(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_do_ioctl	r8168_n.c	/^rtl8168_do_ioctl(struct net_device *dev,$/;"	f	typeref:typename:int	file:
+rtl8168_down	r8168_n.c	/^static void rtl8168_down(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_driver_start	r8168_n.c	/^static void rtl8168_driver_start(struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+rtl8168_driver_stop	r8168_n.c	/^static void rtl8168_driver_stop(struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+rtl8168_dsm	r8168_n.c	/^rtl8168_dsm(struct net_device *dev, int dev_state)$/;"	f	typeref:typename:void	file:
+rtl8168_eeprom_cleanup	rtl_eeprom.c	/^void rtl8168_eeprom_cleanup(struct rtl8168_private *tp)$/;"	f	typeref:typename:void
+rtl8168_eeprom_cmd_done	rtl_eeprom.c	/^int rtl8168_eeprom_cmd_done(struct rtl8168_private *tp)$/;"	f	typeref:typename:int
+rtl8168_eeprom_read_sc	rtl_eeprom.c	/^u16 rtl8168_eeprom_read_sc(struct rtl8168_private *tp, u16 reg)$/;"	f	typeref:typename:u16
+rtl8168_eeprom_type	rtl_eeprom.c	/^void rtl8168_eeprom_type(struct rtl8168_private *tp)$/;"	f	typeref:typename:void
+rtl8168_eeprom_write_sc	rtl_eeprom.c	/^void rtl8168_eeprom_write_sc(struct rtl8168_private *tp, u16 reg, u16 data)$/;"	f	typeref:typename:void
+rtl8168_efuse_read	r8168_n.c	/^static u8 rtl8168_efuse_read(struct rtl8168_private *tp, u16 reg)$/;"	f	typeref:typename:u8	file:
+rtl8168_enable_EEE	r8168_n.c	/^static int rtl8168_enable_EEE(struct rtl8168_private *tp)$/;"	f	typeref:typename:int	file:
+rtl8168_enable_cfg9346_write	r8168_n.c	/^rtl8168_enable_cfg9346_write(struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+rtl8168_enable_dash2_interrupt	r8168_n.c	/^rtl8168_enable_dash2_interrupt(struct rtl8168_private *tp)$/;"	f	typeref:typename:void
+rtl8168_enable_hw_interrupt	r8168_n.c	/^rtl8168_enable_hw_interrupt(struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+rtl8168_enable_magic_packet	r8168_n.c	/^rtl8168_enable_magic_packet(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_enable_now_is_oob	r8168_n.c	/^rtl8168_enable_now_is_oob(struct rtl8168_private *tp)$/;"	f	typeref:typename:void
+rtl8168_enable_ocp_phy_power_saving	r8168_n.c	/^rtl8168_enable_ocp_phy_power_saving(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_enable_pci_offset_180	r8168_n.c	/^rtl8168_enable_pci_offset_180(struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+rtl8168_enable_pci_offset_99	r8168_n.c	/^rtl8168_enable_pci_offset_99(struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+rtl8168_enable_phy_disable_mode	r8168_n.c	/^rtl8168_enable_phy_disable_mode(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_enable_rxdvgate	r8168_n.c	/^rtl8168_enable_rxdvgate(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_ephy_read	r8168_n.c	/^u16 rtl8168_ephy_read(struct rtl8168_private *tp, int RegAddr)$/;"	f	typeref:typename:u16
+rtl8168_ephy_write	r8168_n.c	/^void rtl8168_ephy_write(struct rtl8168_private *tp, int RegAddr, int value)$/;"	f	typeref:typename:void
+rtl8168_eri_read	r8168_n.c	/^u32 rtl8168_eri_read(struct rtl8168_private *tp, int addr, int len, int type)$/;"	f	typeref:typename:u32
+rtl8168_eri_read_with_oob_base_address	r8168_n.c	/^u32 rtl8168_eri_read_with_oob_base_address(struct rtl8168_private *tp, int addr, int len, int ty/;"	f	typeref:typename:u32
+rtl8168_eri_write	r8168_n.c	/^int rtl8168_eri_write(struct rtl8168_private *tp, int addr, int len, u32 value, int type)$/;"	f	typeref:typename:int
+rtl8168_eri_write_with_oob_base_address	r8168_n.c	/^int rtl8168_eri_write_with_oob_base_address(struct rtl8168_private *tp, int addr, int len, u32 v/;"	f	typeref:typename:int
+rtl8168_esd_timer	r8168_n.c	/^rtl8168_esd_timer(unsigned long __opaque)$/;"	f	typeref:typename:void	file:
+rtl8168_ethtool_ops	r8168_n.c	/^static const struct ethtool_ops rtl8168_ethtool_ops = {$/;"	v	typeref:typename:const struct ethtool_ops	file:
+rtl8168_exit_oob	r8168_n.c	/^rtl8168_exit_oob(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_fix_features	r8168_n.c	/^static netdev_features_t rtl8168_fix_features(struct net_device *dev,$/;"	f	typeref:typename:netdev_features_t	file:
+rtl8168_fragmented_frame	r8168_n.c	/^rtl8168_fragmented_frame(u32 status)$/;"	f	typeref:typename:int	file:
+rtl8168_free_rx_skb	r8168_n.c	/^rtl8168_free_rx_skb(struct rtl8168_private *tp,$/;"	f	typeref:typename:void	file:
+rtl8168_get_bios_setting	r8168_n.c	/^rtl8168_get_bios_setting(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_get_drvinfo	r8168_n.c	/^rtl8168_get_drvinfo(struct net_device *dev,$/;"	f	typeref:typename:void	file:
+rtl8168_get_ethtool_stats	r8168_n.c	/^rtl8168_get_ethtool_stats(struct net_device *dev,$/;"	f	typeref:typename:void	file:
+rtl8168_get_hw_wol	r8168_n.c	/^rtl8168_get_hw_wol(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_get_mac_address	r8168_n.c	/^rtl8168_get_mac_address(struct net_device *dev)$/;"	f	typeref:typename:int	file:
+rtl8168_get_mac_version	r8168_n.c	/^static void rtl8168_get_mac_version(struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+rtl8168_get_msglevel	r8168_n.c	/^rtl8168_get_msglevel(struct net_device *dev)$/;"	f	typeref:typename:u32	file:
+rtl8168_get_regs	r8168_n.c	/^static void rtl8168_get_regs(struct net_device *dev, struct ethtool_regs *regs,$/;"	f	typeref:typename:void	file:
+rtl8168_get_regs_len	r8168_n.c	/^rtl8168_get_regs_len(struct net_device *dev)$/;"	f	typeref:typename:int	file:
+rtl8168_get_rx_csum	r8168_n.c	/^rtl8168_get_rx_csum(struct net_device *dev)$/;"	f	typeref:typename:u32	file:
+rtl8168_get_settings	r8168_n.c	/^rtl8168_get_settings(struct net_device *dev,$/;"	f	typeref:typename:int	file:
+rtl8168_get_sset_count	r8168_n.c	/^static int rtl8168_get_sset_count(struct net_device *dev, int sset)$/;"	f	typeref:typename:int	file:
+rtl8168_get_stats	r8168_n.c	/^net_device_stats *rtl8168_get_stats(struct net_device *dev)$/;"	f	typeref:struct:net_device_stats *	file:
+rtl8168_get_stats_count	r8168_n.c	/^static int rtl8168_get_stats_count(struct net_device *dev)$/;"	f	typeref:typename:int	file:
+rtl8168_get_strings	r8168_n.c	/^rtl8168_get_strings(struct net_device *dev,$/;"	f	typeref:typename:void	file:
+rtl8168_get_tx_csum	r8168_n.c	/^rtl8168_get_tx_csum(struct net_device *dev)$/;"	f	typeref:typename:u32	file:
+rtl8168_get_txd_opts1	r8168_n.c	/^rtl8168_get_txd_opts1(u32 opts1, u32 len, unsigned int entry)$/;"	f	typeref:typename:u32	file:
+rtl8168_get_wol	r8168_n.c	/^rtl8168_get_wol(struct net_device *dev,$/;"	f	typeref:typename:void	file:
+rtl8168_gset_xmii	r8168_n.c	/^static void rtl8168_gset_xmii(struct net_device *dev,$/;"	f	typeref:typename:void	file:
+rtl8168_gstrings	r8168_n.c	/^static const char rtl8168_gstrings[][ETH_GSTRING_LEN] = {$/;"	v	typeref:typename:const char[][]	file:
+rtl8168_hw_clear_timer_int	r8168_n.c	/^rtl8168_hw_clear_timer_int(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_hw_config	r8168_n.c	/^rtl8168_hw_config(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_hw_d3_para	r8168_n.c	/^rtl8168_hw_d3_para(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_hw_disable_mac_mcu_bps	r8168_n.c	/^rtl8168_hw_disable_mac_mcu_bps(struct net_device *dev)$/;"	f	typeref:typename:void
+rtl8168_hw_ephy_config	r8168_n.c	/^rtl8168_hw_ephy_config(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_hw_init	r8168_n.c	/^rtl8168_hw_init(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_hw_mac_mcu_config	r8168_n.c	/^rtl8168_hw_mac_mcu_config(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_hw_phy_config	r8168_n.c	/^rtl8168_hw_phy_config(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_hw_reset	r8168_n.c	/^rtl8168_hw_reset(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_hw_set_features	r8168_n.c	/^static int rtl8168_hw_set_features(struct net_device *dev,$/;"	f	typeref:typename:int	file:
+rtl8168_hw_set_rx_packet_filter	r8168_n.c	/^rtl8168_hw_set_rx_packet_filter(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_hw_start	r8168_n.c	/^rtl8168_hw_start(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_init_board	r8168_n.c	/^rtl8168_init_board(struct pci_dev *pdev,$/;"	f	typeref:typename:int __devinit	file:
+rtl8168_init_hw_phy_mcu	r8168_n.c	/^rtl8168_init_hw_phy_mcu(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_init_module	r8168_n.c	/^rtl8168_init_module(void)$/;"	f	typeref:typename:int __init	file:
+rtl8168_init_one	r8168_n.c	/^rtl8168_init_one(struct pci_dev *pdev,$/;"	f	typeref:typename:int __devinit	file:
+rtl8168_init_pci_offset_180	r8168_n.c	/^rtl8168_init_pci_offset_180(struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+rtl8168_init_pci_offset_99	r8168_n.c	/^rtl8168_init_pci_offset_99(struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+rtl8168_init_ring	r8168_n.c	/^rtl8168_init_ring(struct net_device *dev)$/;"	f	typeref:typename:int	file:
+rtl8168_init_ring_indexes	r8168_n.c	/^void rtl8168_init_ring_indexes(struct rtl8168_private *tp)$/;"	f	typeref:typename:void
+rtl8168_init_software_variable	r8168_n.c	/^rtl8168_init_software_variable(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_interrupt	r8168_n.c	/^static irqreturn_t rtl8168_interrupt(int irq, void *dev_instance, struct pt_regs *regs)$/;"	f	typeref:typename:irqreturn_t	file:
+rtl8168_irq_mask_and_ack	r8168_n.c	/^rtl8168_irq_mask_and_ack(struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+rtl8168_is_gpio_low	r8168_n.c	/^rtl8168_is_gpio_low(struct net_device *dev)$/;"	f	typeref:typename:u8	file:
+rtl8168_is_in_phy_disable_mode	r8168_n.c	/^rtl8168_is_in_phy_disable_mode(struct net_device *dev)$/;"	f	typeref:typename:u8	file:
+rtl8168_is_phy_disable_mode_enabled	r8168_n.c	/^rtl8168_is_phy_disable_mode_enabled(struct net_device *dev)$/;"	f	typeref:typename:u8	file:
+rtl8168_is_ups_resume	r8168_n.c	/^rtl8168_is_ups_resume(struct net_device *dev)$/;"	f	typeref:typename:int	file:
+rtl8168_issue_offset_99_event	r8168_n.c	/^rtl8168_issue_offset_99_event(struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+rtl8168_link_option	r8168_n.c	/^rtl8168_link_option(u8 *aut,$/;"	f	typeref:typename:void	file:
+rtl8168_link_timer	r8168_n.c	/^rtl8168_link_timer(unsigned long __opaque)$/;"	f	typeref:typename:void	file:
+rtl8168_lower_clock	rtl_eeprom.c	/^void rtl8168_lower_clock(struct rtl8168_private *tp, u8 *x)$/;"	f	typeref:typename:void
+rtl8168_mac_loopback_test	r8168_n.c	/^static void rtl8168_mac_loopback_test(struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+rtl8168_mac_ocp_read	r8168_n.c	/^u16 rtl8168_mac_ocp_read(struct rtl8168_private *tp, u16 reg_addr)$/;"	f	typeref:typename:u16
+rtl8168_mac_ocp_write	r8168_n.c	/^void rtl8168_mac_ocp_write(struct rtl8168_private *tp, u16 reg_addr, u16 value)$/;"	f	typeref:typename:void
+rtl8168_make_unusable_by_asic	r8168_n.c	/^rtl8168_make_unusable_by_asic(struct RxDesc *desc)$/;"	f	typeref:typename:void	file:
+rtl8168_map_to_asic	r8168_n.c	/^rtl8168_map_to_asic(struct RxDesc *desc,$/;"	f	typeref:typename:void	file:
+rtl8168_mark_as_last_descriptor	r8168_n.c	/^rtl8168_mark_as_last_descriptor(struct RxDesc *desc)$/;"	f	typeref:typename:void	file:
+rtl8168_mark_to_asic	r8168_n.c	/^rtl8168_mark_to_asic(struct RxDesc *desc,$/;"	f	typeref:typename:void	file:
+rtl8168_mdio_prot_direct_read_phy_ocp	r8168_n.c	/^u32 rtl8168_mdio_prot_direct_read_phy_ocp(struct rtl8168_private *tp,$/;"	f	typeref:typename:u32
+rtl8168_mdio_prot_direct_write_phy_ocp	r8168_n.c	/^void rtl8168_mdio_prot_direct_write_phy_ocp(struct rtl8168_private *tp,$/;"	f	typeref:typename:void
+rtl8168_mdio_prot_read	r8168_n.c	/^u32 rtl8168_mdio_prot_read(struct rtl8168_private *tp,$/;"	f	typeref:typename:u32
+rtl8168_mdio_prot_write	r8168_n.c	/^void rtl8168_mdio_prot_write(struct rtl8168_private *tp,$/;"	f	typeref:typename:void
+rtl8168_mdio_read	r8168_n.c	/^u32 rtl8168_mdio_read(struct rtl8168_private *tp,$/;"	f	typeref:typename:u32
+rtl8168_mdio_read_phy_ocp	r8168_n.c	/^static u32 rtl8168_mdio_read_phy_ocp(struct rtl8168_private *tp,$/;"	f	typeref:typename:u32	file:
+rtl8168_mdio_real_read_phy_ocp	r8168_n.c	/^static u32 rtl8168_mdio_real_read_phy_ocp(struct rtl8168_private *tp,$/;"	f	typeref:typename:u32	file:
+rtl8168_mdio_real_write_phy_ocp	r8168_n.c	/^static void rtl8168_mdio_real_write_phy_ocp(struct rtl8168_private *tp,$/;"	f	typeref:typename:void	file:
+rtl8168_mdio_write	r8168_n.c	/^void rtl8168_mdio_write(struct rtl8168_private *tp,$/;"	f	typeref:typename:void
+rtl8168_mdio_write_phy_ocp	r8168_n.c	/^static void rtl8168_mdio_write_phy_ocp(struct rtl8168_private *tp,$/;"	f	typeref:typename:void	file:
+rtl8168_netdev_ops	r8168_n.c	/^static const struct net_device_ops rtl8168_netdev_ops = {$/;"	v	typeref:typename:const struct net_device_ops	file:
+rtl8168_netpoll	r8168_n.c	/^rtl8168_netpoll(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_nic_reset	r8168_n.c	/^rtl8168_nic_reset(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_ocp_read	r8168_n.c	/^u32 rtl8168_ocp_read(struct rtl8168_private *tp, u16 addr, u8 len)$/;"	f	typeref:typename:u32
+rtl8168_ocp_read_with_oob_base_address	r8168_n.c	/^u32 rtl8168_ocp_read_with_oob_base_address(struct rtl8168_private *tp, u16 addr, u8 len, const u/;"	f	typeref:typename:u32
+rtl8168_ocp_write	r8168_n.c	/^void rtl8168_ocp_write(struct rtl8168_private *tp, u16 addr, u8 len, u32 value)$/;"	f	typeref:typename:void
+rtl8168_ocp_write_with_oob_base_address	r8168_n.c	/^u32 rtl8168_ocp_write_with_oob_base_address(struct rtl8168_private *tp, u16 addr, u8 len, u32 va/;"	f	typeref:typename:u32
+rtl8168_oob_mutex_lock	r8168_n.c	/^void rtl8168_oob_mutex_lock(struct rtl8168_private *tp)$/;"	f	typeref:typename:void
+rtl8168_oob_mutex_unlock	r8168_n.c	/^void rtl8168_oob_mutex_unlock(struct rtl8168_private *tp)$/;"	f	typeref:typename:void
+rtl8168_oob_notify	r8168_n.c	/^void rtl8168_oob_notify(struct rtl8168_private *tp, u8 cmd)$/;"	f	typeref:typename:void
+rtl8168_open	r8168_n.c	/^static int rtl8168_open(struct net_device *dev)$/;"	f	typeref:typename:int	file:
+rtl8168_other_fun_dev_pci_setting	r8168_n.c	/^rtl8168_other_fun_dev_pci_setting(struct rtl8168_private *tp,$/;"	f	typeref:typename:void	file:
+rtl8168_pci_driver	r8168_n.c	/^static struct pci_driver rtl8168_pci_driver = {$/;"	v	typeref:struct:pci_driver	file:
+rtl8168_pci_tbl	r8168_n.c	/^static struct pci_device_id rtl8168_pci_tbl[] = {$/;"	v	typeref:struct:pci_device_id[]	file:
+rtl8168_phy_power_down	r8168_n.c	/^rtl8168_phy_power_down(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_phy_power_up	r8168_n.c	/^rtl8168_phy_power_up(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_phy_ram_code_check	r8168_n.c	/^rtl8168_phy_ram_code_check(struct net_device *dev)$/;"	f	typeref:typename:int	file:
+rtl8168_phy_restart_nway	r8168_n.c	/^rtl8168_phy_restart_nway(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_phy_setup_force_mode	r8168_n.c	/^rtl8168_phy_setup_force_mode(struct net_device *dev, u32 speed, u8 duplex)$/;"	f	typeref:typename:void	file:
+rtl8168_poll	r8168_n.c	/^static int rtl8168_poll(napi_ptr napi, napi_budget budget)$/;"	f	typeref:typename:int	file:
+rtl8168_powerdown_pll	r8168_n.c	/^rtl8168_powerdown_pll(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_powerup_pll	r8168_n.c	/^static void rtl8168_powerup_pll(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_print_mac_version	r8168_n.c	/^rtl8168_print_mac_version(struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+rtl8168_private	r8168.h	/^struct rtl8168_private {$/;"	s
+rtl8168_proc	r8168_n.c	/^static struct proc_dir_entry *rtl8168_proc;$/;"	v	typeref:struct:proc_dir_entry *	file:
+rtl8168_proc_file	r8168_n.c	/^struct rtl8168_proc_file {$/;"	s	file:
+rtl8168_proc_files	r8168_n.c	/^static const struct rtl8168_proc_file rtl8168_proc_files[] = {$/;"	v	typeref:typename:const struct rtl8168_proc_file[]	file:
+rtl8168_proc_fops	r8168_n.c	/^static const struct file_operations rtl8168_proc_fops = {$/;"	v	typeref:typename:const struct file_operations	file:
+rtl8168_proc_fops	r8168_n.c	/^static const struct proc_ops rtl8168_proc_fops = {$/;"	v	typeref:typename:const struct proc_ops	file:
+rtl8168_proc_init	r8168_n.c	/^static void rtl8168_proc_init(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_proc_module_init	r8168_n.c	/^static void rtl8168_proc_module_init(void)$/;"	f	typeref:typename:void	file:
+rtl8168_proc_open	r8168_n.c	/^static int rtl8168_proc_open(struct inode *inode, struct file *file)$/;"	f	typeref:typename:int	file:
+rtl8168_proc_remove	r8168_n.c	/^static void rtl8168_proc_remove(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_raise_clock	rtl_eeprom.c	/^void rtl8168_raise_clock(struct rtl8168_private *tp, u8 *x)$/;"	f	typeref:typename:void
+rtl8168_rar_set	r8168_n.c	/^rtl8168_rar_set(struct rtl8168_private *tp,$/;"	f	typeref:typename:void
+rtl8168_release_board	r8168_n.c	/^rtl8168_release_board(struct pci_dev *pdev,$/;"	f	typeref:typename:void	file:
+rtl8168_remove_one	r8168_n.c	/^rtl8168_remove_one(struct pci_dev *pdev)$/;"	f	typeref:typename:void __devexit	file:
+rtl8168_request_esd_timer	r8168_n.c	/^static inline void rtl8168_request_esd_timer(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_request_link_timer	r8168_n.c	/^static inline void rtl8168_request_link_timer(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_reset_task	r8168_n.c	/^static void rtl8168_reset_task(void *_data)$/;"	f	typeref:typename:void	file:
+rtl8168_resume	r8168_n.c	/^rtl8168_resume(struct pci_dev *pdev)$/;"	f	typeref:typename:int	file:
+rtl8168_rx_clear	r8168_n.c	/^rtl8168_rx_clear(struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+rtl8168_rx_config	r8168.h	/^        unsigned int rtl8168_rx_config;$/;"	m	struct:rtl8168_private	typeref:typename:unsigned int
+rtl8168_rx_csum	r8168_n.c	/^rtl8168_rx_csum(struct rtl8168_private *tp,$/;"	f	typeref:typename:void	file:
+rtl8168_rx_desc_init	r8168_n.c	/^rtl8168_rx_desc_init(struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+rtl8168_rx_desc_offset0_init	r8168_n.c	/^rtl8168_rx_desc_offset0_init(struct rtl8168_private *tp, int own)$/;"	f	typeref:typename:void	file:
+rtl8168_rx_fill	r8168_n.c	/^rtl8168_rx_fill(struct rtl8168_private *tp,$/;"	f	typeref:typename:u32	file:
+rtl8168_rx_hwaccel_skb	r8168.h	/^#define rtl8168_rx_hwaccel_skb /;"	d
+rtl8168_rx_interrupt	r8168_n.c	/^rtl8168_rx_interrupt(struct net_device *dev,$/;"	f	typeref:typename:int	file:
+rtl8168_rx_quota	r8168.h	/^#define rtl8168_rx_quota(/;"	d
+rtl8168_rx_skb	r8168_n.c	/^rtl8168_rx_skb(struct rtl8168_private *tp,$/;"	f	typeref:typename:void	file:
+rtl8168_rx_vlan_skb	r8168_n.c	/^rtl8168_rx_vlan_skb(struct rtl8168_private *tp,$/;"	f	typeref:typename:int	file:
+rtl8168_schedule_work	r8168_n.c	/^static void rtl8168_schedule_work(struct net_device *dev, void (*task)(void *))$/;"	f	typeref:typename:void	file:
+rtl8168_schedule_work	r8168_n.c	/^static void rtl8168_schedule_work(struct net_device *dev, work_func_t task)$/;"	f	typeref:typename:void	file:
+rtl8168_set_bios_setting	r8168_n.c	/^rtl8168_set_bios_setting(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_set_dash_other_fun_dev_aspm_clkreq	r8168_n.c	/^rtl8168_set_dash_other_fun_dev_aspm_clkreq(struct rtl8168_private *tp,$/;"	f	typeref:typename:void	file:
+rtl8168_set_dash_other_fun_dev_pci_cmd_register	r8168_n.c	/^rtl8168_set_dash_other_fun_dev_pci_cmd_register(struct rtl8168_private *tp,$/;"	f	typeref:typename:void	file:
+rtl8168_set_dash_other_fun_dev_state_change	r8168_n.c	/^rtl8168_set_dash_other_fun_dev_state_change(struct rtl8168_private *tp,$/;"	f	typeref:typename:void	file:
+rtl8168_set_eeprom_sel_low	rtl_eeprom.c	/^void rtl8168_set_eeprom_sel_low(struct rtl8168_private *tp)$/;"	f	typeref:typename:void
+rtl8168_set_eth_phy_bit	r8168_n.c	/^void rtl8168_set_eth_phy_bit(struct rtl8168_private *tp,  u8  addr, u16  mask)$/;"	f	typeref:typename:void
+rtl8168_set_features	r8168_n.c	/^static int rtl8168_set_features(struct net_device *dev,$/;"	f	typeref:typename:int	file:
+rtl8168_set_hw_wol	r8168_n.c	/^rtl8168_set_hw_wol(struct net_device *dev, u32 wolopts)$/;"	f	typeref:typename:void	file:
+rtl8168_set_mac_address	r8168_n.c	/^rtl8168_set_mac_address(struct net_device *dev,$/;"	f	typeref:typename:int	file:
+rtl8168_set_mac_mcu_8168ep_1	r8168_n.c	/^rtl8168_set_mac_mcu_8168ep_1(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_set_mac_mcu_8168ep_2	r8168_n.c	/^rtl8168_set_mac_mcu_8168ep_2(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_set_mac_mcu_8168fp_1	r8168_n.c	/^rtl8168_set_mac_mcu_8168fp_1(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_set_mac_mcu_8168fp_2	r8168_n.c	/^rtl8168_set_mac_mcu_8168fp_2(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_set_mac_mcu_8168fp_3	r8168_n.c	/^rtl8168_set_mac_mcu_8168fp_3(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_set_mac_mcu_8168fp_4	r8168_n.c	/^rtl8168_set_mac_mcu_8168fp_4(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_set_mac_mcu_8168g_1	r8168_n.c	/^rtl8168_set_mac_mcu_8168g_1(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_set_mac_mcu_8168gu_1	r8168_n.c	/^rtl8168_set_mac_mcu_8168gu_1(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_set_mac_mcu_8168gu_2	r8168_n.c	/^rtl8168_set_mac_mcu_8168gu_2(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_set_mac_mcu_8168h_1	r8168_n.c	/^rtl8168_set_mac_mcu_8168h_1(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_set_mac_mcu_8411b_1	r8168_n.c	/^rtl8168_set_mac_mcu_8411b_1(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_set_mcu_ocp_bit	r8168_n.c	/^rtl8168_set_mcu_ocp_bit($/;"	f	typeref:typename:void	file:
+rtl8168_set_msglevel	r8168_n.c	/^rtl8168_set_msglevel(struct net_device *dev,$/;"	f	typeref:typename:void	file:
+rtl8168_set_pci_99_180_exit_driver_para	r8168_n.c	/^rtl8168_set_pci_99_180_exit_driver_para(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_set_phy_mcu_8168e_1	r8168_n.c	/^rtl8168_set_phy_mcu_8168e_1(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_set_phy_mcu_8168e_2	r8168_n.c	/^rtl8168_set_phy_mcu_8168e_2(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_set_phy_mcu_8168ep_2	r8168_n.c	/^rtl8168_set_phy_mcu_8168ep_2(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_set_phy_mcu_8168evl_1	r8168_n.c	/^rtl8168_set_phy_mcu_8168evl_1(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_set_phy_mcu_8168evl_2	r8168_n.c	/^rtl8168_set_phy_mcu_8168evl_2(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_set_phy_mcu_8168f_1	r8168_n.c	/^rtl8168_set_phy_mcu_8168f_1(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_set_phy_mcu_8168f_2	r8168_n.c	/^rtl8168_set_phy_mcu_8168f_2(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_set_phy_mcu_8168g_1	r8168_n.c	/^rtl8168_set_phy_mcu_8168g_1(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_set_phy_mcu_8168gu_2	r8168_n.c	/^rtl8168_set_phy_mcu_8168gu_2(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_set_phy_mcu_8168h_1	r8168_n.c	/^rtl8168_set_phy_mcu_8168h_1(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_set_phy_mcu_8168h_2	r8168_n.c	/^rtl8168_set_phy_mcu_8168h_2(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_set_phy_mcu_8411_1	r8168_n.c	/^rtl8168_set_phy_mcu_8411_1(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_set_phy_mcu_8411b_1	r8168_n.c	/^rtl8168_set_phy_mcu_8411b_1(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_set_phy_mcu_patch_request	r8168_n.c	/^rtl8168_set_phy_mcu_patch_request(struct rtl8168_private *tp)$/;"	f	typeref:typename:int	file:
+rtl8168_set_phy_ram_code_check_fail_flag	r8168_n.c	/^rtl8168_set_phy_ram_code_check_fail_flag(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_set_rx_csum	r8168_n.c	/^rtl8168_set_rx_csum(struct net_device *dev,$/;"	f	typeref:typename:int	file:
+rtl8168_set_rx_mode	r8168_n.c	/^rtl8168_set_rx_mode(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_set_rxbufsize	r8168_n.c	/^rtl8168_set_rxbufsize(struct rtl8168_private *tp,$/;"	f	typeref:typename:void	file:
+rtl8168_set_settings	r8168_n.c	/^rtl8168_set_settings(struct net_device *dev,$/;"	f	typeref:typename:int	file:
+rtl8168_set_speed	r8168_n.c	/^rtl8168_set_speed(struct net_device *dev,$/;"	f	typeref:typename:int	file:
+rtl8168_set_speed_xmii	r8168_n.c	/^rtl8168_set_speed_xmii(struct net_device *dev,$/;"	f	typeref:typename:int	file:
+rtl8168_set_tx_csum	r8168_n.c	/^rtl8168_set_tx_csum(struct net_device *dev,$/;"	f	typeref:typename:int	file:
+rtl8168_set_wol	r8168_n.c	/^rtl8168_set_wol(struct net_device *dev,$/;"	f	typeref:typename:int	file:
+rtl8168_shift_in_bits	rtl_eeprom.c	/^u16 rtl8168_shift_in_bits(struct rtl8168_private *tp)$/;"	f	typeref:typename:u16
+rtl8168_shift_out_bits	rtl_eeprom.c	/^void rtl8168_shift_out_bits(struct rtl8168_private *tp, int data, int count)$/;"	f	typeref:typename:void
+rtl8168_shutdown	r8168_n.c	/^static void rtl8168_shutdown(struct pci_dev *pdev)$/;"	f	typeref:typename:void	file:
+rtl8168_sleep_rx_enable	r8168_n.c	/^static void rtl8168_sleep_rx_enable(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_stand_by	rtl_eeprom.c	/^void rtl8168_stand_by(struct rtl8168_private *tp)$/;"	f	typeref:typename:void
+rtl8168_start_xmit	r8168_n.c	/^rtl8168_start_xmit(struct sk_buff *skb,$/;"	f	typeref:typename:int	file:
+rtl8168_suspend	r8168_n.c	/^rtl8168_suspend(struct pci_dev *pdev, u32 state)$/;"	f	typeref:typename:int	file:
+rtl8168_sw_padding_short_pkt	r8168_n.c	/^rtl8168_sw_padding_short_pkt(struct rtl8168_private *tp,$/;"	f	typeref:typename:int	file:
+rtl8168_switch_to_hw_interrupt	r8168_n.c	/^rtl8168_switch_to_hw_interrupt(struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+rtl8168_switch_to_sgmii_mode	r8168_n.c	/^rtl8168_switch_to_sgmii_mode($/;"	f	typeref:typename:void	file:
+rtl8168_switch_to_timer_interrupt	r8168_n.c	/^rtl8168_switch_to_timer_interrupt(struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+rtl8168_tally_counter_addr_fill	r8168_n.c	/^rtl8168_tally_counter_addr_fill(struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+rtl8168_tally_counter_clear	r8168_n.c	/^rtl8168_tally_counter_clear(struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+rtl8168_tool_ioctl	rtltool.c	/^int rtl8168_tool_ioctl(struct rtl8168_private *tp, struct ifreq *ifr)$/;"	f	typeref:typename:int
+rtl8168_try_msi	r8168_n.c	/^static unsigned rtl8168_try_msi(struct pci_dev *pdev, struct rtl8168_private *tp)$/;"	f	typeref:typename:unsigned	file:
+rtl8168_try_rx_copy	r8168_n.c	/^rtl8168_try_rx_copy(struct rtl8168_private *tp,$/;"	f	typeref:typename:int	file:
+rtl8168_tx_clear	r8168_n.c	/^rtl8168_tx_clear(struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+rtl8168_tx_clear_range	r8168_n.c	/^static void rtl8168_tx_clear_range(struct rtl8168_private *tp, u32 start,$/;"	f	typeref:typename:void	file:
+rtl8168_tx_csum	r8168_n.c	/^rtl8168_tx_csum(struct sk_buff *skb,$/;"	f	typeref:typename:u32	file:
+rtl8168_tx_desc_init	r8168_n.c	/^rtl8168_tx_desc_init(struct rtl8168_private *tp)$/;"	f	typeref:typename:void	file:
+rtl8168_tx_interrupt	r8168_n.c	/^rtl8168_tx_interrupt(struct net_device *dev,$/;"	f	typeref:typename:void	file:
+rtl8168_tx_slots_avail	r8168_n.c	/^static bool rtl8168_tx_slots_avail(struct rtl8168_private *tp,$/;"	f	typeref:typename:bool	file:
+rtl8168_tx_timeout	r8168_n.c	/^rtl8168_tx_timeout(struct net_device *dev, unsigned int txqueue)$/;"	f	typeref:typename:void	file:
+rtl8168_tx_vlan_tag	r8168_n.c	/^rtl8168_tx_vlan_tag(struct rtl8168_private *tp,$/;"	f	typeref:typename:u32	file:
+rtl8168_unmap_tx_skb	r8168_n.c	/^rtl8168_unmap_tx_skb(struct pci_dev *pdev,$/;"	f	typeref:typename:void	file:
+rtl8168_vlan_rx_kill_vid	r8168_n.c	/^rtl8168_vlan_rx_kill_vid(struct net_device *dev,$/;"	f	typeref:typename:void	file:
+rtl8168_vlan_rx_register	r8168_n.c	/^rtl8168_vlan_rx_register(struct net_device *dev,$/;"	f	typeref:typename:void	file:
+rtl8168_wait_for_quiescence	r8168_n.c	/^rtl8168_wait_for_quiescence(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_wait_ll_share_fifo_ready	r8168_n.c	/^rtl8168_wait_ll_share_fifo_ready(struct net_device *dev)$/;"	f	typeref:typename:void
+rtl8168_wait_phy_ups_resume	r8168_n.c	/^rtl8168_wait_phy_ups_resume(struct net_device *dev, u16 PhyState)$/;"	f	typeref:typename:void	file:
+rtl8168_wait_txrx_fifo_empty	r8168_n.c	/^rtl8168_wait_txrx_fifo_empty(struct net_device *dev)$/;"	f	typeref:typename:void
+rtl8168_write_hw_phy_mcu_code_ver	r8168_n.c	/^rtl8168_write_hw_phy_mcu_code_ver(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_xmii_link_ok	r8168_n.c	/^rtl8168_xmii_link_ok(struct net_device *dev)$/;"	f	typeref:typename:unsigned int	file:
+rtl8168_xmii_reset_enable	r8168_n.c	/^rtl8168_xmii_reset_enable(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl8168_xmii_reset_pending	r8168_n.c	/^rtl8168_xmii_reset_pending(struct net_device *dev)$/;"	f	typeref:typename:unsigned int	file:
+rtl8168_xmit_frags	r8168_n.c	/^rtl8168_xmit_frags(struct rtl8168_private *tp,$/;"	f	typeref:typename:int	file:
+rtl8168dp_10mbps_gphy_para	r8168_n.c	/^rtl8168dp_10mbps_gphy_para(struct net_device *dev)$/;"	f	typeref:typename:void	file:
+rtl_chip_info	r8168_n.c	/^} rtl_chip_info[] = {$/;"	v	typeref:typename:const struct __anonbdf4efac0108[]
+rtl_cmd	rtltool.h	/^enum rtl_cmd {$/;"	g
+rtl_dash_cmd	r8168_dash.h	/^enum rtl_dash_cmd {$/;"	g
+rtl_dash_ioctl_struct	r8168_dash.h	/^struct rtl_dash_ioctl_struct {$/;"	s
+rtl_dash_ip_mac	r8168_dash.h	/^struct rtl_dash_ip_mac {$/;"	s
+rtl_ethtool_get_eee	r8168_n.c	/^rtl_ethtool_get_eee(struct net_device *net, struct ethtool_eee *eee)$/;"	f	typeref:typename:int	file:
+rtl_ethtool_set_eee	r8168_n.c	/^rtl_ethtool_set_eee(struct net_device *net, struct ethtool_eee *eee)$/;"	f	typeref:typename:int	file:
+rtl_get_eeprom	r8168_n.c	/^static int rtl_get_eeprom(struct net_device *dev, struct ethtool_eeprom *eeprom, u8 *buf)$/;"	f	typeref:typename:int	file:
+rtl_get_eeprom_len	r8168_n.c	/^static int rtl_get_eeprom_len(struct net_device *dev)$/;"	f	typeref:typename:int	file:
+rtl_nway_reset	r8168_n.c	/^static int rtl_nway_reset(struct net_device *dev)$/;"	f	typeref:typename:int	file:
+rtl_realwow_cmd	r8168_realwow.h	/^enum rtl_realwow_cmd {$/;"	g
+rtl_realwow_ioctl_struct	r8168_realwow.h	/^struct rtl_realwow_ioctl_struct {$/;"	s
+rtltool_cmd	rtltool.h	/^struct rtltool_cmd {$/;"	s
+rx_broadcast	r8168_n.c	/^        u64 rx_broadcast;$/;"	m	struct:rtl8168_counters	typeref:typename:u64	file:
+rx_buf_sz	r8168.h	/^        unsigned rx_buf_sz;$/;"	m	struct:rtl8168_private	typeref:typename:unsigned
+rx_coalesce_usecs	r8168.h	/^        u32 rx_coalesce_usecs;$/;"	m	struct:_kc_ethtool_coalesce	typeref:typename:u32
+rx_coalesce_usecs_high	r8168.h	/^        u32 rx_coalesce_usecs_high;$/;"	m	struct:_kc_ethtool_coalesce	typeref:typename:u32
+rx_coalesce_usecs_irq	r8168.h	/^        u32 rx_coalesce_usecs_irq;$/;"	m	struct:_kc_ethtool_coalesce	typeref:typename:u32
+rx_coalesce_usecs_low	r8168.h	/^        u32 rx_coalesce_usecs_low;$/;"	m	struct:_kc_ethtool_coalesce	typeref:typename:u32
+rx_copybreak	r8168_n.c	/^static int rx_copybreak = 0;$/;"	v	typeref:typename:int	file:
+rx_errors	r8168_n.c	/^        u32 rx_errors;$/;"	m	struct:rtl8168_counters	typeref:typename:u32	file:
+rx_jumbo_max_pending	r8168.h	/^        u32 rx_jumbo_max_pending;$/;"	m	struct:_kc_ethtool_ringparam	typeref:typename:u32
+rx_jumbo_pending	r8168.h	/^        u32 rx_jumbo_pending;$/;"	m	struct:_kc_ethtool_ringparam	typeref:typename:u32
+rx_max_coalesced_frames	r8168.h	/^        u32 rx_max_coalesced_frames;$/;"	m	struct:_kc_ethtool_coalesce	typeref:typename:u32
+rx_max_coalesced_frames_high	r8168.h	/^        u32 rx_max_coalesced_frames_high;$/;"	m	struct:_kc_ethtool_coalesce	typeref:typename:u32
+rx_max_coalesced_frames_irq	r8168.h	/^        u32 rx_max_coalesced_frames_irq;$/;"	m	struct:_kc_ethtool_coalesce	typeref:typename:u32
+rx_max_coalesced_frames_low	r8168.h	/^        u32 rx_max_coalesced_frames_low;$/;"	m	struct:_kc_ethtool_coalesce	typeref:typename:u32
+rx_max_pending	r8168.h	/^        u32 rx_max_pending;$/;"	m	struct:_kc_ethtool_ringparam	typeref:typename:u32
+rx_mini_max_pending	r8168.h	/^        u32 rx_mini_max_pending;$/;"	m	struct:_kc_ethtool_ringparam	typeref:typename:u32
+rx_mini_pending	r8168.h	/^        u32 rx_mini_pending;$/;"	m	struct:_kc_ethtool_ringparam	typeref:typename:u32
+rx_missed	r8168_n.c	/^        u16 rx_missed;$/;"	m	struct:rtl8168_counters	typeref:typename:u16	file:
+rx_multicast	r8168_n.c	/^        u32 rx_multicast;$/;"	m	struct:rtl8168_counters	typeref:typename:u32	file:
+rx_packets	r8168_n.c	/^        u64 rx_packets;$/;"	m	struct:rtl8168_counters	typeref:typename:u64	file:
+rx_pause	r8168.h	/^        u32 rx_pause;$/;"	m	struct:_kc_ethtool_pauseparam	typeref:typename:u32
+rx_pending	r8168.h	/^        u32 rx_pending;$/;"	m	struct:_kc_ethtool_ringparam	typeref:typename:u32
+rx_unicast	r8168_n.c	/^        u64 rx_unicast;$/;"	m	struct:rtl8168_counters	typeref:typename:u64	file:
+s0_magic_packet	r8168_n.c	/^static int s0_magic_packet = 0;$/;"	v	typeref:typename:int	file:
+s0_magic_packet	r8168_n.c	/^static int s0_magic_packet = 1;$/;"	v	typeref:typename:int	file:
+s5_keep_curr_mac	r8168_n.c	/^static int s5_keep_curr_mac = 0;$/;"	v	typeref:typename:int	file:
+s5_keep_curr_mac	r8168_n.c	/^static int s5_keep_curr_mac = 1;$/;"	v	typeref:typename:int	file:
+s5wol	r8168_n.c	/^static int s5wol = 0;$/;"	v	typeref:typename:int	file:
+s5wol	r8168_n.c	/^static int s5wol = 1;$/;"	v	typeref:typename:int	file:
+schedule_timeout_uninterruptible	r8168_n.c	/^signed long __sched schedule_timeout_uninterruptible(signed long timeout)$/;"	f	typeref:typename:signed long __sched
+schedule_work	r8168.h	/^#define schedule_work /;"	d
+self_test	r8168_n.c	/^        void (*self_test)(struct net_device *, struct ethtool_test *, u64 *);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:void (*)(struct net_device *,struct ethtool_test *,u64 *)	file:
+self_test_count	r8168_n.c	/^        int  (*self_test_count)(struct net_device *);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:int (*)(struct net_device *)	file:
+set_coalesce	r8168_n.c	/^        int  (*set_coalesce)(struct net_device *, struct ethtool_coalesce *);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:int (*)(struct net_device *,struct ethtool_coalesce *)	file:
+set_eeprom	r8168_n.c	/^        int  (*set_eeprom)(struct net_device *, struct ethtool_eeprom *, u8 *);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:int (*)(struct net_device *,struct ethtool_eeprom *,u8 *)	file:
+set_msglevel	r8168_n.c	/^        void (*set_msglevel)(struct net_device *, u32);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:void (*)(struct net_device *,u32)	file:
+set_offset70F	r8168_n.c	/^set_offset70F(struct rtl8168_private *tp, u8 setting)$/;"	f	typeref:typename:void	file:
+set_offset711	r8168_n.c	/^set_offset711(struct rtl8168_private *tp, u8 setting)$/;"	f	typeref:typename:void	file:
+set_offset79	r8168_n.c	/^set_offset79(struct rtl8168_private *tp, u8 setting)$/;"	f	typeref:typename:void	file:
+set_pauseparam	r8168_n.c	/^        int  (*set_pauseparam)(struct net_device *,$/;"	m	struct:_kc_ethtool_ops	typeref:typename:int (*)(struct net_device *,struct ethtool_pauseparam *)	file:
+set_ringparam	r8168_n.c	/^        int  (*set_ringparam)(struct net_device *, struct ethtool_ringparam *);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:int (*)(struct net_device *,struct ethtool_ringparam *)	file:
+set_rx_csum	r8168_n.c	/^        int  (*set_rx_csum)(struct net_device *, u32);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:int (*)(struct net_device *,u32)	file:
+set_settings	r8168_n.c	/^        int  (*set_settings)(struct net_device *, struct ethtool_cmd *);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:int (*)(struct net_device *,struct ethtool_cmd *)	file:
+set_sg	r8168_n.c	/^        int  (*set_sg)(struct net_device *, u32);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:int (*)(struct net_device *,u32)	file:
+set_speed	r8168.h	/^        int (*set_speed)(struct net_device *, u8 autoneg, u32 speed, u8 duplex, u32 adv);$/;"	m	struct:rtl8168_private	typeref:typename:int (*)(struct net_device *,u8 autoneg,u32 speed,u8 duplex,u32 adv)
+set_tso	r8168_n.c	/^        int  (*set_tso)(struct net_device *, u32);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:int (*)(struct net_device *,u32)	file:
+set_tx_csum	r8168_n.c	/^        int  (*set_tx_csum)(struct net_device *, u32);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:int (*)(struct net_device *,u32)	file:
+set_wol	r8168_n.c	/^        int  (*set_wol)(struct net_device *, struct ethtool_wolinfo *);$/;"	m	struct:_kc_ethtool_ops	typeref:typename:int (*)(struct net_device *,struct ethtool_wolinfo *)	file:
+settings_ext_snmp	r8168_dash.h	/^struct settings_ext_snmp {$/;"	s
+settings_ipv4	r8168_dash.h	/^struct settings_ipv4 {$/;"	s
+settings_ipv6	r8168_dash.h	/^struct settings_ipv6 {$/;"	s
+setup_timer	r8168.h	/^#define setup_timer(/;"	d
+show	r8168_n.c	/^        int (*show)(char *, char **, off_t, int, int *, void *);$/;"	m	struct:rtl8168_proc_file	typeref:typename:int (*)(char *,char **,off_t,int,int *,void *)	file:
+show	r8168_n.c	/^        int (*show)(struct seq_file *, void *);$/;"	m	struct:rtl8168_proc_file	typeref:typename:int (*)(struct seq_file *,void *)	file:
+size	r8168_realwow.h	/^        u32 size; \/\/ =size$/;"	m	struct:_KCPContent	typeref:typename:u32
+skb	r8168.h	/^        struct sk_buff  *skb;$/;"	m	struct:ring_info	typeref:struct:sk_buff *
+skb_fill_page_desc	r8168.h	/^#define skb_fill_page_desc /;"	d
+skb_transport_offset	r8168.h	/^#define skb_transport_offset(/;"	d
+speed	r8168.h	/^        u32 speed;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+speed_mode	r8168_n.c	/^static unsigned int speed_mode = SPEED_1000;$/;"	v	typeref:typename:unsigned int	file:
+start	r8168_dash.h	/^        __u8	start;$/;"	m	struct:wakeup_pattern	typeref:typename:__u8
+stats	r8168.h	/^        struct net_device_stats stats;  \/* statistics of net device *\/$/;"	m	struct:rtl8168_private	typeref:struct:net_device_stats
+stats_block_coalesce_usecs	r8168.h	/^        u32 stats_block_coalesce_usecs;$/;"	m	struct:_kc_ethtool_coalesce	typeref:typename:u32
+statusHighByte	r8168_dash.h	/^        u8 statusHighByte;$/;"	m	struct:_RX_DASH_FROM_FW_DESC	typeref:typename:u8
+statusHighByte	r8168_dash.h	/^        u8 statusHighByte;$/;"	m	struct:_TX_DASH_SEND_FW_DESC	typeref:typename:u8
+statusLowByte	r8168_dash.h	/^        u8 statusLowByte;$/;"	m	struct:_RX_DASH_FROM_FW_DESC	typeref:typename:u8
+statusLowByte	r8168_dash.h	/^        u8 statusLowByte;$/;"	m	struct:_TX_DASH_SEND_FW_DESC	typeref:typename:u8
+string	r8168_asf.h	/^                char string[MAX_STR_LEN];$/;"	m	union:asf_ioctl_struct::__anon0e2a355d010a	typeref:typename:char[]
+string_set	r8168.h	/^        u32 string_set;     \/* string set id e.c. ETH_SS_TEST, etc*\/$/;"	m	struct:ethtool_gstrings	typeref:typename:u32
+supported	r8168_dash.h	/^        __u8	supported;$/;"	m	struct:settings_ext_snmp	typeref:typename:__u8
+sw_ram_code_ver	r8168.h	/^        u16 sw_ram_code_ver;$/;"	m	struct:rtl8168_private	typeref:typename:u16
+synchronize_irq	r8168.h	/^#define synchronize_irq(/;"	d
+tally_paddr	r8168.h	/^        dma_addr_t tally_paddr;$/;"	m	struct:rtl8168_private	typeref:typename:dma_addr_t
+tally_vaddr	r8168.h	/^        struct rtl8168_counters *tally_vaddr;$/;"	m	struct:rtl8168_private	typeref:struct:rtl8168_counters *
+task	r8168.h	/^        struct delayed_work task;$/;"	m	struct:rtl8168_private	typeref:struct:delayed_work
+task	r8168.h	/^        struct work_struct task;$/;"	m	struct:rtl8168_private	typeref:struct:work_struct
+testinfo_len	r8168.h	/^        u32 testinfo_len;$/;"	m	struct:k_ethtool_drvinfo	typeref:typename:u32
+timer_count	r8168_n.c	/^static int timer_count = 0x2600;$/;"	v	typeref:typename:int	file:
+timer_intr_mask	r8168.h	/^        u16 timer_intr_mask;$/;"	m	struct:rtl8168_private	typeref:typename:u16
+true	r8168.h	/^#define true /;"	d
+tx_aborted	r8168_n.c	/^        u16 tx_aborted;$/;"	m	struct:rtl8168_counters	typeref:typename:u16	file:
+tx_coalesce_usecs	r8168.h	/^        u32 tx_coalesce_usecs;$/;"	m	struct:_kc_ethtool_coalesce	typeref:typename:u32
+tx_coalesce_usecs_high	r8168.h	/^        u32 tx_coalesce_usecs_high;$/;"	m	struct:_kc_ethtool_coalesce	typeref:typename:u32
+tx_coalesce_usecs_irq	r8168.h	/^        u32 tx_coalesce_usecs_irq;$/;"	m	struct:_kc_ethtool_coalesce	typeref:typename:u32
+tx_coalesce_usecs_low	r8168.h	/^        u32 tx_coalesce_usecs_low;$/;"	m	struct:_kc_ethtool_coalesce	typeref:typename:u32
+tx_errors	r8168_n.c	/^        u64 tx_errors;$/;"	m	struct:rtl8168_counters	typeref:typename:u64	file:
+tx_ip_csum_cmd	r8168.h	/^        u32 tx_ip_csum_cmd;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+tx_ipv6_csum_cmd	r8168.h	/^        u32 tx_ipv6_csum_cmd;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+tx_max_coalesced_frames	r8168.h	/^        u32 tx_max_coalesced_frames;$/;"	m	struct:_kc_ethtool_coalesce	typeref:typename:u32
+tx_max_coalesced_frames_high	r8168.h	/^        u32 tx_max_coalesced_frames_high;$/;"	m	struct:_kc_ethtool_coalesce	typeref:typename:u32
+tx_max_coalesced_frames_irq	r8168.h	/^        u32 tx_max_coalesced_frames_irq;$/;"	m	struct:_kc_ethtool_coalesce	typeref:typename:u32
+tx_max_coalesced_frames_low	r8168.h	/^        u32 tx_max_coalesced_frames_low;$/;"	m	struct:_kc_ethtool_coalesce	typeref:typename:u32
+tx_max_pending	r8168.h	/^        u32 tx_max_pending;$/;"	m	struct:_kc_ethtool_ringparam	typeref:typename:u32
+tx_multi_collision	r8168_n.c	/^        u32 tx_multi_collision;$/;"	m	struct:rtl8168_counters	typeref:typename:u32	file:
+tx_one_collision	r8168_n.c	/^        u32 tx_one_collision;$/;"	m	struct:rtl8168_counters	typeref:typename:u32	file:
+tx_packets	r8168_n.c	/^        u64 tx_packets;$/;"	m	struct:rtl8168_counters	typeref:typename:u64	file:
+tx_pause	r8168.h	/^        u32 tx_pause;$/;"	m	struct:_kc_ethtool_pauseparam	typeref:typename:u32
+tx_pending	r8168.h	/^        u32 tx_pending;$/;"	m	struct:_kc_ethtool_ringparam	typeref:typename:u32
+tx_skb	r8168.h	/^        struct ring_info tx_skb[NUM_TX_DESC];   \/* Tx data buffers *\/$/;"	m	struct:rtl8168_private	typeref:struct:ring_info[]
+tx_tcp_csum_cmd	r8168.h	/^        u32 tx_tcp_csum_cmd;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+tx_udp_csum_cmd	r8168.h	/^        u32 tx_udp_csum_cmd;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+tx_underun	r8168_n.c	/^        u16 tx_underun;$/;"	m	struct:rtl8168_counters	typeref:typename:u16	file:
+type	r8168_dash.h	/^        u8 type;$/;"	m	struct:_OSOOBHdr	typeref:typename:u8
+u	r8168_asf.h	/^        } u;$/;"	m	struct:asf_ioctl_struct	typeref:union:asf_ioctl_struct::__anon0e2a355d010a
+use_adaptive_rx_coalesce	r8168.h	/^        u32 use_adaptive_rx_coalesce;$/;"	m	struct:_kc_ethtool_coalesce	typeref:typename:u32
+use_adaptive_tx_coalesce	r8168.h	/^        u32 use_adaptive_tx_coalesce;$/;"	m	struct:_kc_ethtool_coalesce	typeref:typename:u32
+use_dac	r8168_n.c	/^static int use_dac = 1;$/;"	v	typeref:typename:int	file:
+use_timer_interrrupt	r8168.h	/^        u8 use_timer_interrrupt;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+valid	r8168_dash.h	/^        __u8	valid;$/;"	m	struct:wakeup_pattern	typeref:typename:__u8
+value	r8168_dash.h	/^        __u8	value[256];$/;"	m	struct:settings_ext_snmp	typeref:typename:__u8[256]
+value_len	r8168_dash.h	/^        __u16	value_len;$/;"	m	struct:settings_ext_snmp	typeref:typename:__u16
+version	r8168.h	/^        char version[32];$/;"	m	struct:k_ethtool_drvinfo	typeref:typename:char[32]
+version	r8168.h	/^        u32 version; \/* driver-specific, indicates different chips\/revs *\/$/;"	m	struct:_kc_ethtool_regs	typeref:typename:u32
+vlan_tx_tag_get	r8168.h	/^#define vlan_tx_tag_get /;"	d
+vlan_tx_tag_present	r8168.h	/^#define vlan_tx_tag_present /;"	d
+vlgrp	r8168.h	/^        struct vlan_group *vlgrp;$/;"	m	struct:rtl8168_private	typeref:struct:vlan_group *
+wakeup_pattern	r8168_dash.h	/^struct wakeup_pattern {$/;"	s
+wol_capability	r8168.h	/^enum wol_capability {$/;"	g
+wol_enabled	r8168.h	/^        u8  wol_enabled;$/;"	m	struct:rtl8168_private	typeref:typename:u8
+wol_opts	r8168.h	/^        u32 wol_opts;$/;"	m	struct:rtl8168_private	typeref:typename:u32
+work_struct	r8168.h	/^#define work_struct /;"	d
