@@ -7,3 +7,4 @@ driver/net/e1000e-3.8.4
 *.gz
 *.xz
 *.zip
+*.out

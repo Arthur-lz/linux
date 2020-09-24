@@ -335,6 +335,7 @@ do { \
 #define DASH_SUFFIX ""
 #endif
 
+// 模块版本是8.048.03；模块名称是r8168
 #define RTL8168_VERSION "8.048.03" NAPI_SUFFIX FIBER_SUFFIX REALWOW_SUFFIX DASH_SUFFIX
 #define MODULENAME "r8168"
 #define PFX MODULENAME ": "
@@ -1115,10 +1116,10 @@ enum RTL8168_register_content {
         RxOK        = 0x0001,
 
         /* RxStatusDesc */
-        RxRWT = (1 << 22),
-        RxRES = (1 << 21),
-        RxRUNT = (1 << 20),
-        RxCRC = (1 << 19),
+        RxRWT = (1 << 22), // 0x400000
+        RxRES = (1 << 21), // 0x200000
+        RxRUNT = (1 << 20), // 0x100000
+        RxCRC = (1 << 19), // 0x80000
 
         /* ChipCmdBits */
         StopReq  = 0x80,

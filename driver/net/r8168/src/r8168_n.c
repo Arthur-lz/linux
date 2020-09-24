@@ -316,7 +316,7 @@ static const struct {
 #ifndef PCI_VENDOR_ID_DLINK
 #define PCI_VENDOR_ID_DLINK 0x1186
 #endif
-
+// PCI_VENDOR_ID_REALTEK, vendor 是厂商， 所以它表示：realtek的pci厂商id
 static struct pci_device_id rtl8168_pci_tbl[] = {
         { PCI_DEVICE(PCI_VENDOR_ID_REALTEK, 0x8168), },
         { PCI_DEVICE(PCI_VENDOR_ID_REALTEK, 0x8161), },
@@ -325,7 +325,7 @@ static struct pci_device_id rtl8168_pci_tbl[] = {
         { PCI_VENDOR_ID_DLINK, 0x4300, 0x1186, 0x4b10,},
         {0,},
 };
-
+// module_device_table, 设备表
 MODULE_DEVICE_TABLE(pci, rtl8168_pci_tbl);
 
 static int rx_copybreak = 0;
@@ -337,8 +337,8 @@ static struct {
 } debug = { -1 };
 
 static unsigned int speed_mode = SPEED_1000;
-static unsigned int duplex_mode = DUPLEX_FULL;
-static unsigned int autoneg_mode = AUTONEG_ENABLE;
+static unsigned int duplex_mode = DUPLEX_FULL; // 双工模式
+static unsigned int autoneg_mode = AUTONEG_ENABLE; // 自动协商模式 
 static unsigned int advertising_mode =  ADVERTISED_10baseT_Half |
                                         ADVERTISED_10baseT_Full |
                                         ADVERTISED_100baseT_Half |
@@ -375,10 +375,10 @@ static int s0_magic_packet = 1;
 #else
 static int s0_magic_packet = 0;
 #endif
-
+// 声明模块作者、描述
 MODULE_AUTHOR("Realtek and the Linux r8168 crew <netdev@vger.kernel.org>");
 MODULE_DESCRIPTION("RealTek RTL-8168 Gigabit Ethernet driver");
-
+// 模块参数
 module_param(speed_mode, uint, 0);
 MODULE_PARM_DESC(speed_mode, "force phy operation. Deprecated by ethtool (8).");
 
@@ -27714,7 +27714,7 @@ rtl8168_rx_desc_offset0_init(struct rtl8168_private *tp, int own)
                 ownbit = DescOwn;
 
         for (i = 0; i < NUM_RX_DESC; i++) {
-                if (i == (NUM_RX_DESC - 1))
+                if (i == (NUM_RX_DESC - 1)) // NUM_RX_DESC=1024
                         tp->RxDescArray[i].opts1 = cpu_to_le32((ownbit | RingEnd) | (unsigned long)tp->rx_buf_sz);
                 else
                         tp->RxDescArray[i].opts1 = cpu_to_le32(ownbit | (unsigned long)tp->rx_buf_sz);
@@ -28906,7 +28906,7 @@ static void rtl8168_sleep_rx_enable(struct net_device *dev)
         struct rtl8168_private *tp = netdev_priv(dev);
 
         if ((tp->mcfg == CFG_METHOD_1) || (tp->mcfg == CFG_METHOD_2)) {
-                RTL_W8(tp, ChipCmd, CmdReset);
+                RTL_W8(tp, ChipCmd, CmdReset); // 将CmdReset写入mmio寄存器ChipCmd偏移处, 这两个参数全是8168寄存器固定值
                 rtl8168_rx_desc_offset0_init(tp, 0);
                 RTL_W8(tp, ChipCmd, CmdRxEnb);
         } else if (tp->mcfg == CFG_METHOD_14 || tp->mcfg == CFG_METHOD_15) {
