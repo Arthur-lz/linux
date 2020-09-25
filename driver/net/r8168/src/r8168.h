@@ -270,16 +270,16 @@ do { \
 #else
 #define RTL_SET_VLAN
 #endif
-
-#define RTL_NET_DEVICE_OPS(ops) dev->open=rtl8168_open; \
-                    dev->hard_start_xmit=rtl8168_start_xmit; \
-                    dev->get_stats=rtl8168_get_stats; \
-                    dev->stop=rtl8168_close; \
-                    dev->tx_timeout=rtl8168_tx_timeout; \
+// 这里初始化rtl_net_device_ops操作函数
+#define RTL_NET_DEVICE_OPS(ops) dev->open=rtl8168_open; \ // 打开网络接口
+                    dev->hard_start_xmit=rtl8168_start_xmit; \ // 启动数据包的发送
+                    dev->get_stats=rtl8168_get_stats; \ // 获取网络设备状态信息
+                    dev->stop=rtl8168_close; \ // 停止网络接口设备
+                    dev->tx_timeout=rtl8168_tx_timeout; \ // 将数据包发送超时时会自动调用此函数，其用来恢复数据包发送或重新启动硬件来恢复网络设备到正常状态
                     dev->set_multicast_list=rtl8168_set_rx_mode; \
                     dev->change_mtu=rtl8168_change_mtu; \
-                    dev->set_mac_address=rtl8168_set_mac_address; \
-                    dev->do_ioctl=rtl8168_do_ioctl; \
+                    dev->set_mac_address=rtl8168_set_mac_address; \ // 设置设备的mac地址
+                    dev->do_ioctl=rtl8168_do_ioctl; \ // 处理设备特定的I/O控制
                     RTL_NET_POLL_CONTROLLER; \
                     RTL_SET_VLAN;
 #else

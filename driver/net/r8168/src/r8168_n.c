@@ -1603,6 +1603,7 @@ static void rtl8168_proc_module_init(void)
 {
         //create /proc/net/r8168
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,32)
+	// 这里就干了一件事，在/proc/net/下创建r8168
         rtl8168_proc = proc_mkdir(MODULENAME, init_net.proc_net);
 #else
         rtl8168_proc = proc_mkdir(MODULENAME, proc_net);
@@ -28240,6 +28241,7 @@ static bool rtl8168_tx_slots_avail(struct rtl8168_private *tp,
         return slots_avail > nr_frags;
 }
 
+// 数据包发送
 static int
 rtl8168_start_xmit(struct sk_buff *skb,
                    struct net_device *dev)
@@ -28720,7 +28722,7 @@ static irqreturn_t rtl8168_interrupt(int irq, void *dev_instance)
                 }
 
                 handled = 1;
-
+		// 关中断
                 rtl8168_disable_hw_interrupt(tp);
 
                 switch (tp->mcfg) {
@@ -29194,7 +29196,7 @@ static struct pci_driver rtl8168_pci_driver = {
         .resume     = rtl8168_resume,
 #endif
 };
-
+// 模块初始化
 static int __init
 rtl8168_init_module(void)
 {
@@ -29202,12 +29204,14 @@ rtl8168_init_module(void)
         rtl8168_proc_module_init();
 #endif
 #if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,0)
+	// 注册pci设备
         return pci_register_driver(&rtl8168_pci_driver);
 #else
         return pci_module_init(&rtl8168_pci_driver);
 #endif
 }
 
+// 模块注销
 static void __exit
 rtl8168_cleanup_module(void)
 {
