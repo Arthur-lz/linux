@@ -7,12 +7,8 @@ sudo rm -rf tmpfs
 sudo rm -rf ramdisk*
 sudo mkdir rootfs
 sudo cp ../busybox-1.27.1/_install_x86_64/*  rootfs/ -raf
-#sudo mkdir -p rootfs/proc/
-#sudo mkdir -p rootfs/sys/
-#sudo mkdir -p rootfs/tmp/
 sudo mkdir -p rootfs/root/
 sudo mkdir -p rootfs/var/
-#sudo mkdir -p rootfs/mnt/
 # etc 
 sudo mkdir -p rootfs/etc/init.d/
 sudo touch rootfs/etc/init.d/rcS
@@ -38,7 +34,9 @@ sudo echo "::sysinit:/etc/init.d/rcS"\n\
 "::respawn:-/bin/sh"\n\
 "::askfirst:-/bin/sh"\n\
 "::ctrlaltdel:/bin/umount -a -r" > rootfs/etc/inittab
-
+# 因为我使用的是动态编译的busybox，所以根文件系统中需要加入编译busybox所需要的动态库
+# 一个是ld-linux-x86-64.so.2, 它需要放在lib64/目录下
+# 另一个是libc.so.6，它需要放在usr/lib/目录下
 sudo mkdir -p rootfs/lib64
 sudo cp /usr/lib64/ld-linux-x86-64.so.2 rootfs/lib64/
 sudo rm rootfs/lib64/*.a
