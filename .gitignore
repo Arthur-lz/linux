@@ -8,6 +8,7 @@ src/linux-4.19.24
 src/busybox-1.31.1
 src/busybox-1.32.0
 src/linux-4.1.18
+driver/net/r8168LZX
 driver/net/e1000e-3.8.4
 *.gz
 *.xz

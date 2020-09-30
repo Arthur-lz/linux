@@ -8,3 +8,42 @@
 * busybox 做x86_64根文件系统make时问题记录
 1. 以静态方式make时, 会出现找不到crypt,m等静态库问题
 2. 以动态方式make时，在qemu加载时会出现无法加载linuxrc即busybox问题
+0. 使用4.19.27版本的内核可以顺利make，不过调试时出现无法进入源码问题，以及断点设置后无法跟踪运行到断点位置问题
+   使用gdb, cgdb, gdb-mulitarch三个gdb，调试的结果相同。
+   不过有一点可以肯定，使用anjuta是可以使用其他gdb来调试的，如gdb-multiarch, cgdb等
+---
+
+## cc1: 错误：代码模式 kernel 在 PIC 模式下不受支持
+* 使用gcc10和gcc9, gcc8均会出现同样错误; 
+
+---
+---
+## 入职前准备
+> 因这家公司不让带电脑，所以，必须自己在公司电脑上重新安装开发环境，以及其他需要的资源，所以需要列一份清单
+### 软件清单
+* i3
+* fish
+* ohmyfish
+> curl -L https://get.oh-my.fish > install
+> fish install --path=~/.local/share/omf --config=~/.config/omf
+* alacritty
+* compton
+* feh
+* vim
+* nodejs
+* plug in vim setup
+* 中文输入法, fcitx
+* git
+* ranger
+* flameshot
+* libreoffice
+* pcmanfm
+* w3m
+* curl
+* cgdb
+* gdb-multiarch
+* anjuta
+### 系统配置
+* i3的配置
+* vim配置
+* anjuta配置
