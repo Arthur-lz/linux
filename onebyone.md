@@ -115,4 +115,33 @@ void *memmove(void *dest, void *source, sizt_t n)
 |c=z;|b=x;|a=1;|
 |d=2;|c=z;|d=2;|
 ---
+### __user
+使用时一般是这样的char __user *x; // 提醒x是一个指向用户空间的变量，但如果你是使用kmalloc为x分配的空间，那么x实际上使用的还是内核空间的地址。也就是说，__user只是用于提醒，并不代表x一定是用户空间的地址。
+
+* 这里假设有如下定义
+void fun(const char __user *a);// a是由应用层传入的用户空间数据，那么内核态中执行函数fun内的代码时，如果要操作变量a，则一般需要如下这样，
+```c
+void fun(const char __user *a, int count){
+	if(IS_ERR(a))
+		return;
+	if(count <= 0)
+		return;
+
+	char * d = kzalloc(sizeof(char)*count, GFP_KERNEL);
+	if(d){
+		if(!copy_from_user(d, a, count)){
+			printk(KERN_DEBUG "%s, input:%s\n", __func__, d);
+			// 修改d中数据
+			d[0] = 't';
+			// 将新数据写回用户空间的变量a
+			if(!copy_to_user((char *)a, d, count))
+				printk(KERN_DEBUG "new d:%s\n", d);
+			
+		}
+		kfree(d);
+	}
+}
+
+```
+---
 
