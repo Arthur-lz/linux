@@ -144,4 +144,24 @@ void fun(const char __user *a, int count){
 
 ```
 ---
+### EXPORT_SYMBOL(x)
+* 导出模块中的函数、变量，这样可以在其他模块或内核中使用
 
+* 举例如下，
+```c
+// 在模块D1中定义函数funx
+char funx(const char * a, const size_t b){
+...
+}
+EXPORT_SYMBOL(funx);
+
+// 在模块D2中调用funx
+extern char funx(const char *a, const size_t b);
+
+void somefunc(const char *a, const size_t b){
+
+	char r = funx(a, b);
+	
+}
+```
+* 可以使用cat /proc/kallsyms 来查看内核所有可用的symbol
