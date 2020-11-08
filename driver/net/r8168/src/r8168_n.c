@@ -28378,13 +28378,13 @@ rtl8168_start_xmit(struct sk_buff *skb,
         tp->tx_skb[entry].len = len;
         txd->addr = cpu_to_le64(mapping);
         txd->opts2 = cpu_to_le32(opts2);
-        wmb();
+        wmb(); //wmb()防止cpu写内存操作乱序执行
         txd->opts1 = cpu_to_le32(opts1);
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3,5,0)
         dev->trans_start = jiffies;
 #else
-        skb_tx_timestamp(skb);
+        skb_tx_timestamp(skb);// 
 #endif //LINUX_VERSION_CODE < KERNEL_VERSION(3,5,0)
 
         tp->cur_tx += frags + 1;
