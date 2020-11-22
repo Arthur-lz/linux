@@ -206,4 +206,23 @@ void somefunc(const char *a, const size_t b){
 }
 ```
 * 可以使用cat /proc/kallsyms 来查看内核所有可用的symbol
->>>>>>> f51522e3cc3b7a91e7c80066029c39d6f65b4a86
+
+### 内核支持的系统调用，可以通过查看内核源码目录中的arch/x86/syscalls/syscall_64.tbl来查看
+* 在用户应用程序中可以直接使用syscall号来调用系统调用，如
+```c
+ret = (int)syscall(350, &pid, &uid);
+```
+
+### kmalloc/ kzalloc等是从kmalloc_caches[]系统内核全局数组中分配的内存
+* init/main.c----->start_kernel
+* init/main.c--->mm_init
+* mm/slab.c----->kmem_cache_init
+* mm/slab_common.c--->create_kmalloc_caches
+* mm/slab_common.c--->new_kmalloc_cache
+* mm/slab_common.c---> create_kmalloc_cache 
+* include/linux/slab.h---> kmem_cache_zalloc
+* mm/slab.c----->kmem_cache_alloc
+* mm/slao.c---->slab_alloc
+* 相关的全局数组还有kmalloc_info, 以3.10.0内核源码来看，kmalloc_caches中最大的是64M, 最小的是8个字节.
+* cat /proc/slabinfo
+* 创建的所有cache都会挂在LIST_HEAD(slab_caches); 这个全局链表上.在cat /proc/slabinfo可以查看
