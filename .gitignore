@@ -10,6 +10,7 @@ src/busybox-1.32.0
 src/linux-4.1.18
 driver/net/r8168LZX
 driver/net/e1000e-3.8.4
+src/runninglinuxkernel_4.0
 *.gz
 *.xz
 *.zip

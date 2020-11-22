@@ -1,39 +1,6 @@
-/*
-################################################################################
-#
-# r8168 is the Linux device driver released for Realtek Gigabit Ethernet
-# controllers with PCI-Express interface.
-#
-# Copyright(c) 2020 Realtek Semiconductor Corp. All rights reserved.
-#
-# This program is free software; you can redistribute it and/or modify it
-# under the terms of the GNU General Public License as published by the Free
-# Software Foundation; either version 2 of the License, or (at your option)
-# any later version.
-#
-# This program is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-# more details.
-#
-# You should have received a copy of the GNU General Public License along with
-# this program; if not, see <http://www.gnu.org/licenses/>.
-#
-# Author:
-# Realtek NIC software team <nicfae@realtek.com>
-# No. 2, Innovation Road II, Hsinchu Science Park, Hsinchu 300, Taiwan
-# 作者是台湾人
-################################################################################
-*/
-
-/************************************************************************************
- *  This product is covered by one or more of the following patents:
- *  US6,570,884, US6,115,776, and US6,327,625.
- ***********************************************************************************/
-
 #include <linux/ethtool.h> // ethtool是网卡上为用户提供的一些辅助性工具，如统计信息
 #include "r8168_dash.h"
-#include "r8168_realwow.h"//realwow: 真的哇
+#include "r8168_realwow.h"//
 #include "r8168_fiber.h" // fiber: 纤维
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,22)
@@ -438,6 +405,7 @@ This is free software, and you are welcome to redistribute it under certain cond
 #define RTK_MAGIC_DEBUG_VALUE 0x0badbeef
 
 /* write/read MMIO register */
+// MMIO：内存映射I/O
 #define RTL_W8(tp, reg, val8)	writeb((val8), tp->mmio_addr + (reg))
 #define RTL_W16(tp, reg, val16)	writew((val16), tp->mmio_addr + (reg))
 #define RTL_W32(tp, reg, val32)	writel((val32), tp->mmio_addr + (reg))
