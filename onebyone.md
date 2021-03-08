@@ -226,3 +226,30 @@ ret = (int)syscall(350, &pid, &uid);
 * 相关的全局数组还有kmalloc_info, 以3.10.0内核源码来看，kmalloc_caches中最大的是64M, 最小的是8个字节.
 * cat /proc/slabinfo
 * 创建的所有cache都会挂在LIST_HEAD(slab_caches); 这个全局链表上.在cat /proc/slabinfo可以查看
+
+### initramfs.img的作用
+* 1.打包initramfs.img
+```shell
+dracut -f -v --hostonly -k '/lib/modules/version/' x.img
+```
+* 2.将initramfs.img解包
+1)首先file initramfs.img看一下.img文件是否有early_cpio头，如果有则说明不是linux内核原生内核，是centos默认的内核，如果有，则这样解开.img
+  (1)mkdir test, 将.img拷贝到test目录
+  (2)在  test目录下建立两个文件夹，early_cpio, rootfs
+  (3)进入early_cpio, 执行cpio -idmv < ../initramfs.img
+  (4)进入rootfs, 执行/usr/lib/dracut/skipcpio  ../initramfs.img | zcat | cpio  -id
+	       执行成功的话，在rootfs目录下就可以看到根文件系统
+
+* 3.将.img解包后的文件再打包成.img
+解包完成之后，我们可以修改initramfs rootfs的内容，完成一些定制，定制完成后，就需要压缩成内核可以识别的文件。我们将第一步解包后的两个文件夹再打包起来。
+```shell
+cd /tmp/early_cpio
+find . -print0 | cpio --null -o -H newc --quiet >../early_cpio.img
+
+cd /tmp/rootfs_cpio
+find . | cpio -o -H newc | gzip > ../rootfs_cpio.img
+
+cd /tmp
+cat early_cpio.img rootfs_cpio.img > newInitramfs.img
+```
+这样newInitramfs.img就是新的.img
