@@ -47,11 +47,11 @@ void init_wakeup(void)
 
 	init_waitqueue_entry(&data2, result2);
 	data2.task_list.next = &data2.task_list;
-	prepare_to_wait_exclusive(&head, &data2, 2);
+	prepare_to_wait_exclusive(&head, &data2, 2);// 将新进程加入等待队列，并改变当前进程状态为2
 
 	init_waitqueue_entry(&data3, result3);
 	data3.task_list.next = &data3.task_list;
-	prepare_to_wait_exclusive(&head, &data3, 1);
+	prepare_to_wait_exclusive(&head, &data3, 1);//将新进程加入等待队列，并将当前进程状态改为1
 
 	list_for_each_entry_safe(curr, next, &(head.task_list), task_list){
 		printk("@@@@@pid: %d, state: %d\n", 
