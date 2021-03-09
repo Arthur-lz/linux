@@ -61,7 +61,7 @@ void init_wakeup(void)
 
 	}
 	printk(">>>id:%d, state:%d\n", current->pid, current->state);
-	abort_exclusive_wait(&head, &data1, TASK_NORMAL, NULL);
+	abort_exclusive_wait(&head, &data1, TASK_NORMAL, NULL); // 将进程data1从等待队列删除，并将当前进程状态设置为0
 	printk(">>>after, id:%d, state:%d\n", current->pid, current->state);
 
 	list_for_each_entry_safe(curr, next, &(head.task_list), task_list){
