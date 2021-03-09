@@ -36,7 +36,7 @@ void init_wakeup(void)
 	printk("%s, kthread create, pid:%d\n", __func__, result1->pid);
 	printk("%s, kthread create, pid:%d\n", __func__, result2->pid);
 	printk("%s, kthread create, pid:%d\n", __func__, result3->pid);
-	wake_up_process(result1);
+	//wake_up_process(result1);
 	wake_up_process(result2);
 	wake_up_process(result3);
 
@@ -60,9 +60,15 @@ void init_wakeup(void)
 				);
 
 	}
-	printk(">>>id:%d, state:%d\n", current->pid, current->state);
+	printk(">>>id:%d, state:%d, DEL>>id:%d, state:%d\n", current->pid, current->state,
+			((struct task_struct*)(data1.private))->pid,
+			((struct task_struct*)(data1.private))->state
+			);
 	abort_exclusive_wait(&head, &data1, TASK_NORMAL, NULL); // 将进程data1从等待队列删除，并将当前进程状态设置为0
-	printk(">>>after, id:%d, state:%d\n", current->pid, current->state);
+	printk("after>>>id:%d, state:%d, DEL>>id:%d, state:%d\n", current->pid, current->state,
+			((struct task_struct*)(data1.private))->pid,
+			((struct task_struct*)(data1.private))->state
+			);
 
 	list_for_each_entry_safe(curr, next, &(head.task_list), task_list){
 		printk("#####pid: %d, state: %d\n", 

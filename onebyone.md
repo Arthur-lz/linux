@@ -280,3 +280,15 @@ sys_call_table。
 总的来说，系统调用是用户态切换到内核态采用的是同步方式。注：中断则为异步。
 
 ### 为什么make内核某个模块时，有的内核环境下会提示找不到crc32库的警告？
+
+### crash, vmcore
+yum查找不到debuginfo包是因为默认的debuginfo仓库是禁用的，打开即可：
+路径：/etc/yum.repos.d/CentOS-Debug.repo
+```shell
+[base-debuginfo]
+name=CentOS-7 - Debuginfo
+baseurl=http://debuginfo.centos.org/7/$basearch/
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-Debug-7
+enabled=1
+```
