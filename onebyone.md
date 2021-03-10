@@ -288,7 +288,10 @@ yum查找不到debuginfo包是因为默认的debuginfo仓库是禁用的，打�
 [base-debuginfo]
 name=CentOS-7 - Debuginfo
 baseurl=http://debuginfo.centos.org/7/$basearch/
-gpgcheck=1
+gpgcheck=0
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-Debug-7
 enabled=1
+protect=1
+priority=1
 ```
+* 改成上面这样子会飞快的下载，protect=1, gpgcheck=0,priority=1
