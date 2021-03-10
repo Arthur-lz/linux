@@ -36,7 +36,7 @@ void init_wakeup(void)
 
 	init_waitqueue_head(&head);
 	init_waitqueue_entry(&data1, result1); //
-	add_wait_queue(&head, &data1);
+	add_wait_queue(&head, &data1); // 将进程加到等待队列头；add_wait_queue_exclusive是将进程加到等待队列尾，且设置进程为高优先级
 	init_waitqueue_entry(&data2, result2);
 	add_wait_queue(&head, &data2);
 
