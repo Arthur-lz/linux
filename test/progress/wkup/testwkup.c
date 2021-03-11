@@ -16,10 +16,21 @@ static struct task_struct *oldpro;
 static char buf[] ="来自内核的访问\n";
 static char buf1[32];
  
+void son_fun(void)
+{
+	volatile size_t a = 0;
+	atomic_t b;
+	printk("%s, in the kthread function. pid:%d, ap:%p, ab:%p\n", __func__, current->pid, &a, &b);
+}
+
 int custom_fun(void *argc)
 {
-	printk("%s, in the kthread function. pid:%d\n", __func__, current->pid);
+//	size_t a = 0;
+//	printk("%s, in the kthread function. pid:%d, ap:%p\n", __func__, current->pid, &a);
 
+	int i;
+	for(i = 0;i < 3;i++)
+		son_fun();
 	printk("%s, current thread state:%ld, old thread state:%ld\n", __func__, current->state, oldpro->state);
 	//__wake_up(&head, TASK_ALL, 0, NULL);
 	__wake_up_sync(&head, TASK_ALL, 0);
@@ -30,9 +41,12 @@ void init_wakeup(void)
 {
 	char namefrm[] = "__wakeup.c%s";
 	ssize_t time_out;
-	struct task_struct *result;
+	struct task_struct *result, *result1;
+
 	wait_queue_t data;
+	int i;
 	result = kthread_create_on_node(custom_fun, NULL, -1, namefrm);
+	result1 = kthread_create_on_node(custom_fun, NULL, -1, namefrm);
 	printk("%s, kthread create, pid:%d\n", __func__, result->pid);
 
 	init_waitqueue_head(&head);
@@ -41,6 +55,7 @@ void init_wakeup(void)
 	oldpro = current;
 
 	wake_up_process(result);
+	wake_up_process(result1);
 	printk("%s, wake_up new kthread\n", __func__);
 
 	//time_out = schedule_timeout_uninterruptible(100*10);

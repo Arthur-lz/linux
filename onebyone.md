@@ -295,3 +295,8 @@ protect=1
 priority=1
 ```
 * 改成上面这样子会飞快的下载，protect=1, gpgcheck=0,priority=1
+
+### cat /sys/block/sda/queue/rotational
+其值为1，表示机械磁盘，为0表示SSD
+
+### smp_processor_id()获取当前活动cpu id
