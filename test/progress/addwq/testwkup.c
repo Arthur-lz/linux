@@ -65,7 +65,7 @@ int __init test_init(void)
     	mm_segment_t fs;
     	loff_t pos;
     	int ret;
-	printk("%s, init pid:%d\n", __func__, current->pid);
+	printk("%s, init pid:%d, active cpu id:%d\n", __func__, current->pid, smp_processor_id()); // smp_processor_id获取当前活动cpu id, 一般用于per_cpu变量, get_cpu(name, cpu)时使用
     
     	init_wakeup();
 	return 0;
