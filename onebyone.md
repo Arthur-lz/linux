@@ -300,3 +300,9 @@ priority=1
 其值为1，表示机械磁盘，为0表示SSD
 
 ### smp_processor_id()获取当前活动cpu id
+
+### TASK_SIZE
+TASK_SIZE, arch/x86/include/asm/processor.h
+#define TASK_SIZE               (test_thread_flag(TIF_ADDR32) ? IA32_PAGE_OFFSET : TASK_SIZE_MAX)
+
+#define TASK_SIZE_MAX   ((1UL << 47) - PAGE_SIZE) 

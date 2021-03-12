@@ -33,7 +33,14 @@ int custom_fun(void *argc)
 		son_fun();
 	printk("%s, current thread state:%ld, old thread state:%ld\n", __func__, current->state, oldpro->state);
 	//__wake_up(&head, TASK_ALL, 0, NULL);
-	__wake_up_sync(&head, TASK_ALL, 0);
+	if(argc)
+	{
+		printk("wake up main proc\n");
+		wake_up_process((struct task_struct*)argc);
+	}
+	else
+	;//	__wake_up_sync(&head, TASK_ALL, 0);
+	
 	printk("%s, after wkup oldpro, current thread state:%ld, old thread state:%ld\n", __func__, current->state, oldpro->state);
 }
 
@@ -46,7 +53,7 @@ void init_wakeup(void)
 	wait_queue_t data;
 	int i;
 	result = kthread_create_on_node(custom_fun, NULL, -1, namefrm);
-	result1 = kthread_create_on_node(custom_fun, NULL, -1, namefrm);
+	result1 = kthread_create_on_node(custom_fun, current, -1, namefrm);
 	printk("%s, kthread create, pid:%d\n", __func__, result->pid);
 
 	init_waitqueue_head(&head);
