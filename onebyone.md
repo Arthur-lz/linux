@@ -302,7 +302,13 @@ priority=1
 ### smp_processor_id()获取当前活动cpu id
 
 ### TASK_SIZE
+```c
 TASK_SIZE, arch/x86/include/asm/processor.h
 #define TASK_SIZE               (test_thread_flag(TIF_ADDR32) ? IA32_PAGE_OFFSET : TASK_SIZE_MAX)
 
 #define TASK_SIZE_MAX   ((1UL << 47) - PAGE_SIZE) 
+```
+### dracut
+dracut创建内核使用的初始映像，用于预加载访问根文件系统所需的块设备模块（如IDE、SCSI或RAID），挂载根文件系统进入真实系统。
+
+在引导时，内核将归档文件解压到RAM磁盘中，挂载并将其用作初始根文件系统。所有根设备的查找都发生在这个早期的用户空间中。
