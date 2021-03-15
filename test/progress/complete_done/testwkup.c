@@ -10,6 +10,7 @@
 #include <linux/kthread.h>
 #include <linux/delay.h>
 #include <linux/completion.h>
+#include <linux/thread_info.h>
 
 static wait_queue_head_t head;
 static struct task_struct *oldpro;
@@ -48,11 +49,14 @@ void init_wakeup(void)
 	char namefrm[] = "__wakeup.c%s";
 	ssize_t time_out;
 	struct task_struct *result, *result1;
+	struct thread_info *ti = current_thread_info();
 
 	wait_queue_t data;
 	result = kthread_create_on_node(custom_fun, NULL, -1, namefrm);
 	printk("%s, kthread create, pid:%d\n", __func__, result->pid);
 	wake_up_process(result);
+	if(ti)
+		printk("current cpu is: %d\n", ti->cpu);
 
 	init_completion(&g_compl);
 	init_waitqueue_entry(&data, result); // 一会要在新创建的子线程里唤醒当前的进程
