@@ -27,23 +27,18 @@ void son_fun(void)
 
 int custom_fun(void *argc)
 {
-//	size_t a = 0;
-//	printk("%s, in the kthread function. pid:%d, ap:%p\n", __func__, current->pid, &a);
-
-//	int i;
-//	for(i = 0;i < 3;i++)
-//		son_fun();
-//	printk("%s, current thread state:%ld, old thread state:%ld\n", __func__, current->state, oldpro->state);
-	//__wake_up(&head, TASK_ALL, 0, NULL);
 	if(argc)
 	{
 		printk("wake up main proc\n");
 		wake_up_process((struct task_struct*)argc);
 	}
 	else{
-		complete(&g_compl);//	一个一个的唤醒等待队列中的睡眠的进程，如果唤醒的时遇到高优先级进程，则在唤醒后，不再继续唤醒其他进程。
+		int ret;
+		//complete(&g_compl);//	一个一个的唤醒等待队列中的睡眠的进程，如果唤醒的时遇到高优先级进程，则在唤醒后，不再继续唤醒其他进程。
 		// complete_all，可以唤醒等待队列中的所有睡眠的进程，但也是一个一个的唤醒。
-		printk("complete, done:%d \n", g_compl.done);
+		ret = completion_done(&g_compl); // 返回1表示等待队列里没有进程在等待唤醒，为0表示有。
+		printk("complete, done:%d, c_done:%d \n", g_compl.done, ret);
+		complete(&g_compl);//	一个一个的唤醒等待队列中的睡眠的进程，如果唤醒的时遇到高优先级进程，则在唤醒后，不再继续唤醒其他进程。
 	}
 //	printk("%s, after wkup oldpro, current thread state:%ld, old thread state:%ld\n", __func__, current->state, oldpro->state);
 }
@@ -55,19 +50,16 @@ void init_wakeup(void)
 	struct task_struct *result, *result1;
 
 	wait_queue_t data;
-	int i;
 	result = kthread_create_on_node(custom_fun, NULL, -1, namefrm);
 	printk("%s, kthread create, pid:%d\n", __func__, result->pid);
+	wake_up_process(result);
 
 	init_completion(&g_compl);
-	init_waitqueue_entry(&data, current); // 一会要在新创建的子线程里唤醒当前的进程
+	init_waitqueue_entry(&data, result); // 一会要在新创建的子线程里唤醒当前的进程
 	add_wait_queue(&g_compl.wait, &data);
+	wait_for_completion(&g_compl);
 
-	wake_up_process(result);
 	printk("%s, wake_up new kthread\n", __func__);
-
-	time_out = schedule_timeout_uninterruptible(1000*10);
-	printk("%s, timeout: %d\n", __func__, time_out);
 }
 
 int __init test_init(void)
