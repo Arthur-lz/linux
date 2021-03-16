@@ -339,3 +339,7 @@ dracut创建内核使用的初始映像，用于预加载访问根文件系统�
 
 ### qgit
 * 界面管理git工具，好用。
+
+### ddd
+>>> gdb的图形界面，拥有gdb一切功能。
+>>> 也可以用ddd来查看内核转储文件，如/proc/kcore，或/var/crash/xxx/vmcore文件，ddd /usr/lib/debug/lib/modules/kernelversion/vmlinux /proc/kcore
