@@ -27,11 +27,16 @@ void son_fun(void)
 
 int custom_fun(void *argc)
 {
+	int *g = (int*)argc;
+	cpumask_var_t mask;
+	alloc_cpumask_var(&mask, GFP_KERNEL);
+	cpumask_set_cpu((*g), mask);
 	printk("in son thread proc\n");
-	if(argc)
+	if(argc&&oldpro)
 	{
-		printk("wake up main proc\n");
-		wake_up_process((struct task_struct*)argc);
+		int a= -1;
+		a = set_cpus_allowed_ptr(oldpro, mask);
+		printk("set cpu ret:%d\n", a);
 	}
 	else{
 		// complete_all，可以唤醒等待队列中的所有睡眠的进程，但也是一个一个的唤醒。
@@ -44,21 +49,23 @@ int custom_fun(void *argc)
 
 void init_wakeup(void)
 {
-	char namefrm[] = "__wakeup.c%s";
 	ssize_t time_out;
-	struct task_struct *result, *result1;
+	struct task_struct *result;
 
 	wait_queue_t data;
 	int i;
-	result = kthread_create_on_node(custom_fun, NULL, -1, namefrm);
-	printk("%s, kthread create, pid:%d\n", __func__, result->pid);
+	struct thread_info *ti = current_thread_info();
+	if(ti->cpu < 11)
+		i = ti->cpu + 1;
+	else
+		i = ti->cpu - 1;
+	result = kthread_create_on_node(custom_fun, &i, -1, "set_cpu_allowed_ptr");
+	printk("%s, kthread create, pid:%d, old proc cpu is:%d\n", __func__, result->pid, ti->cpu);
 
+	oldpro = current;
 	wake_up_process(result);
-	kthread_stop(result);
-	printk("%s, wake_up new kthread\n", __func__);
-
-	//time_out = schedule_timeout_uninterruptible(1000*10);
-	//printk("%s, timeout: %d\n", __func__, time_out);
+	time_out = schedule_timeout_uninterruptible(100);
+	printk("%s,old proc cpu is:%d\n", __func__, ti->cpu);
 }
 
 int __init test_init(void)
