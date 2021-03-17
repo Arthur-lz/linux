@@ -344,3 +344,14 @@ dracut创建内核使用的初始映像，用于预加载访问根文件系统�
 >>> gdb的图形界面，拥有gdb一切功能。
 >>> 也可以用ddd来查看内核转储文件，如/proc/kcore，或/var/crash/xxx/vmcore文件，ddd /usr/lib/debug/lib/modules/kernelversion/vmlinux /proc/kcore
 * vmlinux是带有调试信息的内核镜像
+
+### inode
+* 硬链接，用ln创建，如: ln f1.txt f2.txt; 硬链接表示两个文件的inode号相同，即f1.txt与f2.txt的inode->i_ino相同。
+* 软链接, 用ln -s创建，如: ln -s f1.txt f2.txt; 软链接表示f2.txt保存的数据是指向文件f1.txt的路径，两个文件的inode号不同。
+          如果f1.txt被删除，则再访问f2.txt系统会报错找不到这样的文件.
+	  ln 源文件 目标文件
+* 可以用stat查看inode信息
+* inode大小一般为128字节或256字节，inode总数在磁盘格式化时给定，一般是每1kb或2kb就设置一个inode;
+* 硬盘格式化时，操作系统自动将硬盘分成两人个区域，一个是数据区用来存放文件数据； 另一个是inode区，用来存放inode所包含的信息。
+* 硬盘最小存储单位叫扇区(sector)，每个扇区储存512字节。操作系统读取硬盘时，不会一个个扇区的读，效率太低，而是一次性连续读取多个扇区，限一次性读取一个块(block)。块的大小一般为4kb.
+  块是文件存取的最小单位。
