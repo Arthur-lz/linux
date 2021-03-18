@@ -430,3 +430,5 @@ E	  本地读操作     本地CPU从cache中取数据，状态不变
 	Ctrl+Shift+V 粘贴
 	还有Tab补全,按住Ctrl键进行块选择.
 	鼠标中键:粘贴(在gnome-terminal中使用"菜单键+P"也是可以粘贴的)
+
+### https://segmentfault.com/     一个不错的网站	
