@@ -434,6 +434,9 @@ E	  本地读操作     本地CPU从cache中取数据，状态不变
 ### https://segmentfault.com/     一个不错的网站	
 
 ### readpages，地址空间上的readpages函数用途是什么？预读？如下是预读的内核执行路径, 由下而上(如同Call trace一样)
+   查找3.10.0kernel源码，只有两处调用了mmaping->a_ops->readpages，而实际调用readpages函数的只有后者
+   一处是：fs/cachefiles/rdwr.c
+   另一处是：mm/readahead.c, 如下是后者的调用路径，从源码可判断，readpages目前看只是用来做文件预读的
 	address_space->readpages
 	read_pages     <mm/readahead.c>
 	__do_page_cache_readahead   <mm/readahead.c>
