@@ -60,12 +60,15 @@ void init_wakeup(void)
 	else
 		i = ti->cpu - 1;
 	result = kthread_create_on_node(custom_fun, &i, -1, "set_cpu_allowed_ptr");
-	printk("%s, kthread create, pid:%d, old proc cpu is:%d\n", __func__, result->pid, ti->cpu);
+	// 进程静态优先级取值范围是100~139
+	printk("%s, kthread create, pid:%d, old proc cpu is:%d, nice:%d, static_nice:%d\n", __func__, result->pid, ti->cpu, result->prio, result->static_prio);
+	set_user_nice(result, -20);
+	printk("%s, kthread create, pid:%d, old proc cpu is:%d, nice:%d, static_nice:%d\n", __func__, result->pid, ti->cpu, result->prio, result->static_prio);
 
 	oldpro = current;
 	wake_up_process(result);
 	time_out = schedule_timeout_uninterruptible(100);
-	printk("%s,old proc cpu is:%d\n", __func__, ti->cpu);
+	printk("%s,old proc cpu is:%d, current nice:%d\n", __func__, ti->cpu, task_nice(current));
 }
 
 int __init test_init(void)
