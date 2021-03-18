@@ -432,3 +432,13 @@ E	  本地读操作     本地CPU从cache中取数据，状态不变
 	鼠标中键:粘贴(在gnome-terminal中使用"菜单键+P"也是可以粘贴的)
 
 ### https://segmentfault.com/     一个不错的网站	
+
+### readpages，地址空间上的readpages函数用途是什么？预读？如下是预读的内核执行路径, 由下而上(如同Call trace一样)
+	address_space->readpages
+	read_pages     <mm/readahead.c>
+	__do_page_cache_readahead   <mm/readahead.c>
+	ondemand_readahead    <mm/readahead.c>
+	page_cache_async_readahead    <mm/readahead.c>
+	do_generic_file_read     <mm/filemap.c>
+	generic_file_aio_read    <mm/filemap.c>
+	xfs_file_buffered_aio_read   <fs/xfs/xfs_file.c>
