@@ -490,3 +490,5 @@ E	  本地读操作     本地CPU从cache中取数据，状态不变
   怀疑是环境问题，在安装了rpmdevtools后一切正常。
   其间，我测试了重新安装src.rpm, 重新下载后再安装测试问题依旧，最终确定是工具安装的不全，使用rpmbuild不能只安装一个rpm-build，必须安装rpmdevtools才可以，其中
 
+  rpmdevtools工具参考：https://www.nixops.me/articles/howto-create-and-sign-rpm-package.html
+
