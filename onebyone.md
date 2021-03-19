@@ -480,5 +480,13 @@ E	  本地读操作     本地CPU从cache中取数据，状态不变
 1.不要使用断言作为公共方法的参数检查，公共方法的参数永远都要执行
 2.断言语句不可以有任何边界效应，不要使用断言语句去修改变量和改变方法的返回值
 
+### rpmdevtools，深踩一坑
+* 第一步：下载并安装kernel-2.6.32-754.el6.src.rpm
+* 第二步：yum install rpm-build
+* 第三步：rpmbuild --target=x86_64 -bp SPEC/kernel.spec
+  这一处会执行失败，卡在"gpg: WARNING: some OpenPGP programs can't handle a DSA key with this digest size"这里
+  这是要“生成用于对模块签名的PGP密钥对”
 
+  怀疑是环境问题，在安装了rpmdevtools后一切正常。
+  其间，我测试了重新安装src.rpm, 重新下载后再安装测试问题依旧，最终确定是工具安装的不全，使用rpmbuild不能只安装一个rpm-build，必须安装rpmdevtools才可以，其中
 
