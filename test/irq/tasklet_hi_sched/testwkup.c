@@ -39,11 +39,11 @@ void init_tsklet(void)
 	printk("%s, \n", __func__);
 	tasklet_init(&tsklet, irq_tasklet_action, data);
 	tasklet_init(&tsklet1, irq_tasklet_action_hi, data);
-	tasklet_schedule(&tsklet); //将软中断tsklet加到tasklet_vec链表尾
+	tasklet_schedule(&tsklet); //先设置tasklet.state的bit[0]=1，之后将软中断tsklet加到tasklet_vec链表尾
 	// 虽然tsklet在代码里是先执行的，但因为tsklet1是在高优先级的tasklet向量链表tasklet_vec中
 	// （使用__tasklet_hi_schedule将tsklet1加到高优先级tasklet链表tasklet_hi_vec)，所以其在实际运行时会先于tsklet执行
 
-	if(!test_and_set_bit(TASKLET_STATE_SCHED, &tsklet1.state)){
+	if(!test_and_set_bit(TASKLET_STATE_SCHED, &tsklet1.state)){// 这一句必须要有，用于设置tasklet_struct.state的bit[0]=1, 表示已经被调度
 		__tasklet_hi_schedule(&tsklet1);// 将tsklet1加到tasklet_hi_vec链表尾
 
 		tasklet_kill(&tsklet1);
