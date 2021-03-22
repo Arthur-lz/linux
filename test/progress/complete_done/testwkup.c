@@ -62,6 +62,7 @@ void init_wakeup(void)
 	init_waitqueue_entry(&data, result); // 一会要在新创建的子线程里唤醒当前的进程
 	add_wait_queue(&g_compl.wait, &data);
 	wait_for_completion(&g_compl);
+//	wait_for_completion_killable(&g_compl);
 
 	printk("%s, wake_up new kthread\n", __func__);
 }

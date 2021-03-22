@@ -67,6 +67,7 @@ void init_wakeup(void)
 	printk("%s, wake_up new kthread\n", __func__);
 
 	time_out = schedule_timeout_uninterruptible(1000*10);
+	// wait_for_completion_timeout();此函数将当前进程置为不可中断状态，所以不可用Ctrl+C中断等待, 返回值是剩余的等待时间 
 	printk("%s, timeout: %d\n", __func__, time_out);
 }
 
