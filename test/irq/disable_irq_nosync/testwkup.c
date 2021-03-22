@@ -32,7 +32,8 @@ void init_tsklet(void)
 	 * */
 	int ret = request_irq(irq, irq_handler, IRQF_DISABLED, "NEW_DEV_A", NULL);
 	//disable_irq_nosync使中断的深度加1 
-	disable_irq_nosync(irq);
+	//disable_irq_nosync(irq);
+	disable_irq(irq);
 	// enable_irq使中断的深度减1，同时触发中断处理函数irq_handler执行
 	enable_irq(irq);
 	printk("%s\n", __func__);
