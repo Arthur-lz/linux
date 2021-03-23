@@ -13,7 +13,8 @@
 
 static struct tasklet_struct tsklet, tsklet1;
 static unsigned long data = 0;
-static int irq = 11;
+static int irq = 12;
+static int irqok = -1;
 
 static char buf[] ="来自内核的访问\n";
 static char buf1[32];
@@ -22,13 +23,13 @@ static char buf1[32];
 static irqreturn_t irq_handler(int data, void * dev)
 {
 	printk("%s \n", __func__);
-	return IRQ_WAKE_THREAD;
+	return IRQ_WAKE_THREAD; // irqreturn_t 中的IRQ_WAKE_THREAD表示中断处理函数需要唤醒中断处理线程
 }
 
 static irqreturn_t irq_thread_fn(int data, void * dev)
 {
 	printk("%s \n", __func__);
-	return IRQ_HANDLED;
+	return IRQ_HANDLED;// irqreturn_t 中的IRQ_HANDLED表示中断被设备处理了; IRQ_NONE表示中断不是此设备发出
 }
 struct chip_data{
 	int num;
@@ -45,7 +46,12 @@ void init_tsklet(void)
 	 * */
 	int r,t = 1;
 	struct chip_data cd;
-	int ret = request_threaded_irq(irq, irq_handler, irq_thread_fn, IRQF_DISABLED, "NEW_DEV_A", NULL);
+	// 如果设置的是IRQF_SHARED, 则设备必须是存在的，不可以是NULL.
+	int ret = request_threaded_irq(irq, irq_handler, irq_thread_fn, IRQF_DISABLED, "NEW_DEV_A", NULL); // 返回值为0，说明申请成功.
+	// 返回-16说明中断号已经被占用
+	if (ret < 0)	return;
+	irqok = 0;
+
 	int ret1 = irq_set_chip(irq, NULL);
 
 	//r = irq_set_chip_data(irq, &cd);
@@ -93,7 +99,9 @@ int __init test_init(void)
 }
 void __exit test_exit(void)
 {
-	free_irq(irq, NULL);// 释放中断
+	if(!irqok)
+		free_irq(irq, NULL);// 释放中断
+
     	printk("test exit\n");
 }
  
