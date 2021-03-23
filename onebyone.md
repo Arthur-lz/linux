@@ -525,3 +525,4 @@ cat /proc/sys/kernel/printk
 （4）第四个参数7 默认控制台优先级，即第一个参数的默认优先级。
 
 ### flatpak
+* 添加flathub仓库, flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
