@@ -492,3 +492,5 @@ E	  本地读操作     本地CPU从cache中取数据，状态不变
 
   rpmdevtools工具参考：https://www.nixops.me/articles/howto-create-and-sign-rpm-package.html
 
+### WARN
+* WARN(条件, format..), 当条件为真时，用printk输出format指定格式的信息.

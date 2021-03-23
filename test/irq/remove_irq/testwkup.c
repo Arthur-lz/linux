@@ -13,17 +13,26 @@
 
 static struct tasklet_struct tsklet, tsklet1;
 static unsigned long data = 0;
-static int irq = 3;
+static int irq = 10;
 
 static char buf[] ="来自内核的访问\n";
 static char buf1[32];
  
 
-static void irq_handler(int data, void * dev)
+static irqreturn_t irq_handler(int data, void * dev)
 {
 	printk("%s \n", __func__);
+	return IRQ_NONE;
 }
 
+
+static struct irqaction act = {
+	.irq = 10,
+	.handler = irq_handler,
+	.flags= IRQF_DISABLED,
+	.name = "NEW_DEV_A",
+	.dev_id = NULL
+};
 
 void init_tsklet(void)
 {
@@ -32,12 +41,19 @@ void init_tsklet(void)
 	 * 中断号是全局数组irq_desc中元素的下标，此数组的大小是16640, 书上这么写的；实际查代码是下面这样子的：
 	 * 3.10.0的内核中，中断号是保存在红黑树irq_desc_tree中, 其在内核源码kernel/irq/irqdesc.c 中定义
 	 * */
-	int ret = request_irq(irq, irq_handler, IRQF_DISABLED, "NEW_DEV_A", NULL);
+	int r,t = 1;
+	struct irqaction *a = &act;
+	int ret = request_irq(a->irq, a->handler,a->flags, a->name, a->dev_id);
+	int ret1 = irq_set_chip(irq, NULL);
+
+	//r = irq_set_chip_data(irq, &cd);
+	r = irq_set_irq_type(irq, t);
+	printk("%s, ret:%d, ret1:%d, r:%d \n", __func__, ret, ret1, r);
 	//disable_irq_nosync使中断的深度加1 
 	//disable_irq_nosync(irq);
-	disable_irq(irq);
+	//disable_irq(irq);
 	// enable_irq使中断的深度减1，同时触发中断处理函数irq_handler执行
-	enable_irq(irq);
+	//enable_irq(irq);
 	printk("%s\n", __func__);
 
 }
@@ -75,7 +91,7 @@ int __init test_init(void)
 }
 void __exit test_exit(void)
 {
-	free_irq(irq, NULL);// 释放中断
+	remove_irq(irq, &act);
     	printk("test exit\n");
 }
  
