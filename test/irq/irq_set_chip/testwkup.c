@@ -102,7 +102,7 @@ void __exit test_exit(void)
 	if(!irqok)
 		free_irq(irq, NULL);// 释放中断
 
-    	printk("test exit\n");
+    	printk(KERN_DEBUG "test exit\n");
 }
  
 module_init(test_init);
