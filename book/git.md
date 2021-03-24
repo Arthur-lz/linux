@@ -64,3 +64,17 @@
 		   git +命令 --help
 * 查看git的版本
 		   git --version
+
+
+
+### git的四个工作区域
+* Git本地有四个工作区域：工作目录（Working Directory）、暂存区(Stage/Index)、资源库(Repository或Git Directory)、git仓库(Remote Directory)
+
+* Workspace： 工作区，就是你平时存放项目代码的地方
+
+* Index / Stage： 暂存区，用于临时存放你的改动，事实上它只是一个文件，保存即将提交到文件列表信息
+
+* Repository： 仓库区（或版本库），就是安全存放数据的位置，这里面有你提交到所有版本的数据。其中HEAD指向最新放入仓库的版本
+
+* Remote： 远程仓库，托管代码的服务器，可以简单的认为是你项目组中的一台电脑用于远程数据交换
+
