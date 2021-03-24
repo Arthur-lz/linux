@@ -49,7 +49,8 @@ void init_tsklet(void)
 		tasklet_kill(&tsklet1);
 	}
 
-	tasklet_kill(&tsklet);
+	tasklet_kill(&tsklet);// tasklet_kill会阻塞当前线程执行，并等待中断执处理函数行完毕，其内部是一个循环来检查tasklet.state的值，当中断处理函数执行完毕后，循环结束
+	// 并对tasklet.state清零。
 }
 
 int __init test_init(void)
