@@ -526,3 +526,11 @@ cat /proc/sys/kernel/printk
 
 ### flatpak
 * 添加flathub仓库, flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+* 查看已经添加的软件仓库, flatpak remotes
+* 删除软件仓库，例如 flathub，用这条命令：$flatpak remote-delete flathub
+* 在flatpak沙盒中安装应用程序, flatpak install 仓库名 程序名, 如：flatpak install flathub 
+* 运行flatpak 中的程序, flatpak run 程序名
+* 查看已经安装在flatpak沙盒中的应用程序, flatpak list --app
+* 删除flatpak中安装的应用程序, flatpak uninstall 程序名
+* 查看可以在flatpak中安装的程序列表, flatpak remote-ls 
+* 更新所有flatpak中的应用程序, flatpak update
