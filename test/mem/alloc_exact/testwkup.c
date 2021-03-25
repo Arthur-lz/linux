@@ -13,6 +13,7 @@ static void __exit test_exit(void);
 void init_get_vm_area(void)
 {
 	page_g = alloc_pages_exact(alloc_page_num, GFP_KERNEL); //申请的大小是字节为单位， 精确的申请内存大小，只申请满足条件的最小连续页面
+	// alloc_pages_exact返回的是虚拟地址
 	if(!page_g){
 		printk("alloc pages err\n");
 		return;
