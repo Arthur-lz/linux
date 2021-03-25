@@ -534,3 +534,9 @@ cat /proc/sys/kernel/printk
 * 删除flatpak中安装的应用程序, flatpak uninstall 程序名
 * 查看可以在flatpak中安装的程序列表, flatpak remote-ls 
 * 更新所有flatpak中的应用程序, flatpak update
+
+### ls -d */ 只查看文件夹
+
+### 一个进程的整个用户空间(用mm_struct结构描述)通常有若干离散的虚拟区间(用结构vm_area_struct描述)
+
+
