@@ -21,7 +21,7 @@ void init_get_vm_area(void)
 	addr_start = mm_start + 1;
 	addr_end = mm_start + 10;
 
-	vma = find_vma_intersection(mm, addr_start, addr_end);
+	vma = find_vma_intersection(mm, addr_start, addr_end); //返回进程的第一个虚拟地址空间
 
 	if(vma){
 		printk("progress start:0x%lx, end:0x%lx\n", vma->vm_start, vma->vm_end);

@@ -16,12 +16,16 @@ static int irq = 3;
 static char buf[] ="来自内核的访问\n";
 static char buf1[32];
 
-struct vm_struct *vm = NULL;
+struct vm_struct *vm = NULL;// vm_struct 是内核虚拟区间描述符
  
 
 void init_get_vm_area(void)
 {
 	vm = __get_vm_area(8096*4, VM_ALLOC, 0xc0001000, 0xdd000000);	
+	/* __get_vm_area(size, flags, start, end), 查找一块从start开始，end结束的线性地址，并从该地址范围内创建size字节大小的内核虚拟区间.
+	 * flags= VM_ALLOC, 表示使用vmalloc()来分配页
+	 *
+	 * */
 	if(!vm){
 		printk("get vm area err\n", __func__);
 		return;

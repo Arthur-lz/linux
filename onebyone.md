@@ -539,4 +539,4 @@ cat /proc/sys/kernel/printk
 
 ### 一个进程的整个用户空间(用mm_struct结构描述)通常有若干离散的虚拟区间(用结构vm_area_struct描述)
 
-
+### 总线地址、物理地址、逻辑地址、虚拟地址

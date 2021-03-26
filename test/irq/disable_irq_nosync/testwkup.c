@@ -27,7 +27,7 @@ static void irq_handler(int data, void * dev)
 
 void init_tsklet(void)
 {
-	/* request_irq, 申请一个软中断，中断号是3, 中断类型是IRQF_DISABLED, 中断名称是NEW_DEV_A, 不对应具体设备
+	/* request_irq, 申请一个中断，中断号是3, 中断类型是IRQF_DISABLED, 中断名称是NEW_DEV_A, 不对应具体设备
 	 * 中断处理函数是irq_handler
 	 * 中断号是全局数组irq_desc中元素的下标，此数组的大小是16640, 书上这么写的；实际查代码是下面这样子的：
 	 * 3.10.0的内核中，中断号是保存在红黑树irq_desc_tree中, 其在内核源码kernel/irq/irqdesc.c 中定义
