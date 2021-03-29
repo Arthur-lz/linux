@@ -1,0 +1,1592 @@
+# tracer: function_graph
+#
+# CPU  DURATION                  FUNCTION CALLS
+# |     |   |                     |   |   |   |
+  7)               |  vfs_read() {
+  7)               |    rw_verify_area() {
+  7)               |      security_file_permission() {
+  7)               |        selinux_file_permission() {
+  7)               |          __inode_security_revalidate() {
+  7)   0.030 us    |            _cond_resched();
+  7)   0.333 us    |          }
+  7)   0.034 us    |          avc_policy_seqno();
+  7)   0.814 us    |        }
+  7)   0.021 us    |        __fsnotify_parent();
+  7)   0.058 us    |        fsnotify();
+  7)   1.503 us    |      }
+  7)   1.714 us    |    }
+  7)               |    do_sync_read() {
+  7)               |      xfs_file_aio_read [xfs]() {
+  7)               |        xfs_file_buffered_aio_read [xfs]() {
+  7)   0.021 us    |          generic_segment_checks();
+  7)               |          xfs_ilock [xfs]() {
+  7)               |            down_read() {
+  7)   0.018 us    |              _cond_resched();
+  7)   0.214 us    |            }
+  7)   0.432 us    |          }
+  7)               |          generic_file_aio_read() {
+  7)   0.019 us    |            generic_segment_checks();
+  7)   0.021 us    |            _cond_resched();
+  7)   0.197 us    |            __find_get_page();
+  7)   0.036 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.020 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.026 us    |                static_key_enabled();
+  7)   0.034 us    |                __virt_addr_valid();
+  7)   0.025 us    |                check_stack_object();
+  7)   0.697 us    |              }
+  7)   1.208 us    |            }
+  7)   0.024 us    |            put_page();
+  7)               |            touch_atime() {
+  7)               |              current_fs_time() {
+  7)   0.022 us    |                current_kernel_time();
+  7)   0.235 us    |              }
+  7)   0.493 us    |            }
+  7)   3.418 us    |          }
+  7)               |          serc_file_filter [xfs]() {
+  7)               |            d_path() {
+  7)   0.020 us    |              prepend.constprop.25();
+  7)               |              prepend_path() {
+  7)   0.040 us    |                prepend_name();
+  7)   0.026 us    |                prepend_name();
+  7)   0.031 us    |                prepend_name();
+  7)   0.702 us    |              }
+  7)   1.164 us    |            }
+  7)   1.808 us    |          }
+  7)               |          xfs_iunlock [xfs]() {
+  7)   0.019 us    |            up_read();
+  7)   0.242 us    |          }
+  7)   7.255 us    |        }
+  7)   7.527 us    |      }
+  7)   7.792 us    |    }
+  7)   0.018 us    |    __fsnotify_parent();
+  7)   0.022 us    |    fsnotify();
+  7) + 10.416 us   |  }
+  7)               |  vfs_read() {
+  7)               |    rw_verify_area() {
+  7)               |      security_file_permission() {
+  7)               |        selinux_file_permission() {
+  7)               |          __inode_security_revalidate() {
+  7)   0.022 us    |            _cond_resched();
+  7)   0.233 us    |          }
+  7)   0.019 us    |          avc_policy_seqno();
+  7)   0.642 us    |        }
+  7)   0.019 us    |        __fsnotify_parent();
+  7)   0.021 us    |        fsnotify();
+  7)   1.273 us    |      }
+  7)   1.476 us    |    }
+  7)               |    do_sync_read() {
+  7)               |      xfs_file_aio_read [xfs]() {
+  7)               |        xfs_file_buffered_aio_read [xfs]() {
+  7)   0.019 us    |          generic_segment_checks();
+  7)               |          xfs_ilock [xfs]() {
+  7)               |            down_read() {
+  7)   0.018 us    |              _cond_resched();
+  7)   0.221 us    |            }
+  7)   0.426 us    |          }
+  7)               |          generic_file_aio_read() {
+  7)   0.020 us    |            generic_segment_checks();
+  7)   0.021 us    |            _cond_resched();
+  7)   0.035 us    |            __find_get_page();
+  7)   0.019 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.019 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.018 us    |                __virt_addr_valid();
+  7)   0.026 us    |                check_stack_object();
+  7)   0.633 us    |              }
+  7)   1.296 us    |            }
+  7)   0.018 us    |            put_page();
+  7)               |            touch_atime() {
+  7)               |              current_fs_time() {
+  7)   0.018 us    |                current_kernel_time();
+  7)   0.220 us    |              }
+  7)   0.426 us    |            }
+  7)   3.183 us    |          }
+  7)               |          serc_file_filter [xfs]() {
+  7)               |            d_path() {
+  7)   0.021 us    |              prepend.constprop.25();
+  7)               |              prepend_path() {
+  7)   0.028 us    |                prepend_name();
+  7)   0.021 us    |                prepend_name();
+  7)   0.021 us    |                prepend_name();
+  7)   0.664 us    |              }
+  7)   1.068 us    |            }
+  7)   1.428 us    |          }
+  7)               |          xfs_iunlock [xfs]() {
+  7)   0.019 us    |            up_read();
+  7)   0.220 us    |          }
+  7)   6.233 us    |        }
+  7)   6.440 us    |      }
+  7)   6.876 us    |    }
+  7)   0.019 us    |    __fsnotify_parent();
+  7)   0.023 us    |    fsnotify();
+  7)   9.171 us    |  }
+  7)               |  vfs_read() {
+  7)               |    rw_verify_area() {
+  7)               |      security_file_permission() {
+  7)               |        selinux_file_permission() {
+  7)               |          __inode_security_revalidate() {
+  7)   0.020 us    |            _cond_resched();
+  7)   0.231 us    |          }
+  7)   0.020 us    |          avc_policy_seqno();
+  7)   0.648 us    |        }
+  7)   0.018 us    |        __fsnotify_parent();
+  7)   0.022 us    |        fsnotify();
+  7)   1.287 us    |      }
+  7)   1.485 us    |    }
+  7)               |    do_sync_read() {
+  7)               |      xfs_file_aio_read [xfs]() {
+  7)               |        xfs_file_buffered_aio_read [xfs]() {
+  7)   0.020 us    |          generic_segment_checks();
+  7)               |          xfs_ilock [xfs]() {
+  7)               |            down_read() {
+  7)   0.019 us    |              _cond_resched();
+  7)   0.224 us    |            }
+  7)   0.428 us    |          }
+  7)               |          generic_file_aio_read() {
+  7)   0.019 us    |            generic_segment_checks();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.033 us    |            __find_get_page();
+  7)               |            file_read_actor() {
+  7)   0.019 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.019 us    |                __virt_addr_valid();
+  7)   0.018 us    |                check_stack_object();
+  7)   0.631 us    |              }
+  7)   1.237 us    |            }
+  7)   0.020 us    |            put_page();
+  7)               |            touch_atime() {
+  7)               |              current_fs_time() {
+  7)   0.020 us    |                current_kernel_time();
+  7)   0.229 us    |              }
+  7)   0.429 us    |            }
+  7)   2.908 us    |          }
+  7)               |          serc_file_filter [xfs]() {
+  7)               |            d_path() {
+  7)   0.021 us    |              prepend.constprop.25();
+  7)               |              prepend_path() {
+  7)   0.030 us    |                prepend_name();
+  7)   0.019 us    |                prepend_name();
+  7)   0.018 us    |                prepend_name();
+  7)   0.654 us    |              }
+  7)   1.068 us    |            }
+  7)   1.316 us    |          }
+  7)               |          xfs_iunlock [xfs]() {
+  7)   0.020 us    |            up_read();
+  7)   0.221 us    |          }
+  7)   5.821 us    |        }
+  7)   6.023 us    |      }
+  7)   6.231 us    |    }
+  7)   0.019 us    |    __fsnotify_parent();
+  7)   0.034 us    |    fsnotify();
+  7)   8.546 us    |  }
+  7)               |  vfs_read() {
+  7)               |    rw_verify_area() {
+  7)               |      security_file_permission() {
+  7)               |        selinux_file_permission() {
+  7)               |          __inode_security_revalidate() {
+  7)   0.020 us    |            _cond_resched();
+  7)   0.233 us    |          }
+  7)   0.019 us    |          avc_policy_seqno();
+  7)   0.634 us    |        }
+  7)   0.036 us    |        __fsnotify_parent();
+  7)   0.022 us    |        fsnotify();
+  7)   1.286 us    |      }
+  7)   1.484 us    |    }
+  7)               |    do_sync_read() {
+  7)               |      xfs_file_aio_read [xfs]() {
+  7)               |        xfs_file_buffered_aio_read [xfs]() {
+  7)   0.019 us    |          generic_segment_checks();
+  7)               |          xfs_ilock [xfs]() {
+  7)               |            down_read() {
+  7)   0.018 us    |              _cond_resched();
+  7)   0.218 us    |            }
+  7)   0.417 us    |          }
+  7)               |          generic_file_aio_read() {
+  7)   0.020 us    |            generic_segment_checks();
+  7)   0.018 us    |            _cond_resched();
+  7)   0.219 us    |            __find_get_page();
+  7)   0.021 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.019 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.019 us    |                static_key_enabled();
+  7)   0.026 us    |                __virt_addr_valid();
+  7)   0.019 us    |                check_stack_object();
+  7)   0.633 us    |              }
+  7)   1.135 us    |            }
+  7)   0.019 us    |            put_page();
+  7)               |            touch_atime() {
+  7)               |              current_fs_time() {
+  7)   0.020 us    |                current_kernel_time();
+  7)   0.219 us    |              }
+  7)   0.422 us    |            }
+  7)   3.341 us    |          }
+  7)               |          serc_file_filter [xfs]() {
+  7)               |            d_path() {
+  7)   0.020 us    |              prepend.constprop.25();
+  7)               |              prepend_path() {
+  7)   0.037 us    |                prepend_name();
+  7)   0.035 us    |                prepend_name();
+  7)   0.030 us    |                prepend_name();
+  7)   0.683 us    |              }
+  7)   1.086 us    |            }
+  7)   1.648 us    |          }
+  7)               |          xfs_iunlock [xfs]() {
+  7)   0.019 us    |            up_read();
+  7)   0.235 us    |          }
+  7)   6.600 us    |        }
+  7)   6.802 us    |      }
+  7)   7.025 us    |    }
+  7)   0.021 us    |    __fsnotify_parent();
+  7)   0.022 us    |    fsnotify();
+  7)   9.328 us    |  }
+  7)               |  vfs_read() {
+  7)               |    rw_verify_area() {
+  7)               |      security_file_permission() {
+  7)               |        selinux_file_permission() {
+  7)               |          __inode_security_revalidate() {
+  7)   0.025 us    |            _cond_resched();
+  7)   0.246 us    |          }
+  7)   0.021 us    |          avc_policy_seqno();
+  7)   0.663 us    |        }
+  7)   0.021 us    |        __fsnotify_parent();
+  7)   0.040 us    |        fsnotify();
+  7)   1.346 us    |      }
+  7)   1.554 us    |    }
+  7)               |    do_sync_read() {
+  7)               |      xfs_file_aio_read [xfs]() {
+  7)               |        xfs_file_buffered_aio_read [xfs]() {
+  7)   0.021 us    |          generic_segment_checks();
+  7)               |          xfs_ilock [xfs]() {
+  7)               |            down_read() {
+  7)   0.020 us    |              _cond_resched();
+  7)   0.220 us    |            }
+  7)   0.427 us    |          }
+  7)               |          generic_file_aio_read() {
+  7)   0.020 us    |            generic_segment_checks();
+  7)   0.018 us    |            _cond_resched();
+  7)   0.050 us    |            __find_get_page();
+  7)   0.018 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.022 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.024 us    |                static_key_enabled();
+  7)   0.030 us    |                __virt_addr_valid();
+  7)   0.018 us    |                check_stack_object();
+  7)   0.672 us    |              }
+  7)   1.113 us    |            }
+  7)   0.019 us    |            put_page();
+  7)               |            touch_atime() {
+  7)               |              current_fs_time() {
+  7)   0.020 us    |                current_kernel_time();
+  7)   0.218 us    |              }
+  7)   0.421 us    |            }
+  7)   3.000 us    |          }
+  7)               |          serc_file_filter [xfs]() {
+  7)               |            d_path() {
+  7)   0.017 us    |              prepend.constprop.25();
+  7)               |              prepend_path() {
+  7)   0.047 us    |                prepend_name();
+  7)   0.027 us    |                prepend_name();
+  7)   0.026 us    |                prepend_name();
+  7)   0.702 us    |              }
+  7)   1.149 us    |            }
+  7)   1.705 us    |          }
+  7)               |          xfs_iunlock [xfs]() {
+  7)   0.018 us    |            up_read();
+  7)   0.371 us    |          }
+  7)   6.514 us    |        }
+  7)   6.825 us    |      }
+  7)   7.048 us    |    }
+  7)   0.019 us    |    __fsnotify_parent();
+  7)   0.022 us    |    fsnotify();
+  7)   9.447 us    |  }
+  7)               |  vfs_read() {
+  7)               |    rw_verify_area() {
+  7)               |      security_file_permission() {
+  7)               |        selinux_file_permission() {
+  7)               |          __inode_security_revalidate() {
+  7)   0.020 us    |            _cond_resched();
+  7)   0.240 us    |          }
+  7)   0.019 us    |          avc_policy_seqno();
+  7)   0.645 us    |        }
+  7)   0.020 us    |        __fsnotify_parent();
+  7)   0.023 us    |        fsnotify();
+  7)   1.265 us    |      }
+  7)   1.469 us    |    }
+  7)               |    do_sync_read() {
+  7)               |      xfs_file_aio_read [xfs]() {
+  7)               |        xfs_file_buffered_aio_read [xfs]() {
+  7)   0.019 us    |          generic_segment_checks();
+  7)               |          xfs_ilock [xfs]() {
+  7)               |            down_read() {
+  7)   0.018 us    |              _cond_resched();
+  7)   0.223 us    |            }
+  7)   0.430 us    |          }
+  7)               |          generic_file_aio_read() {
+  7)   0.019 us    |            generic_segment_checks();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.153 us    |            __find_get_page();
+  7)   0.025 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.019 us    |                static_key_enabled();
+  7)   0.022 us    |                __virt_addr_valid();
+  7)   0.018 us    |                check_stack_object();
+  7)   0.627 us    |              }
+  7)   1.146 us    |            }
+  7)   0.020 us    |            put_page();
+  7)               |            touch_atime() {
+  7)               |              current_fs_time() {
+  7)   0.019 us    |                current_kernel_time();
+  7)   0.216 us    |              }
+  7)   0.420 us    |            }
+  7)   3.122 us    |          }
+  7)               |          serc_file_filter [xfs]() {
+  7)               |            d_path() {
+  7)   0.020 us    |              prepend.constprop.25();
+  7)               |              prepend_path() {
+  7)   0.039 us    |                prepend_name();
+  7)   0.028 us    |                prepend_name();
+  7)   0.027 us    |                prepend_name();
+  7)   0.673 us    |              }
+  7)   1.079 us    |            }
+  7)   1.640 us    |          }
+  7)               |          xfs_iunlock [xfs]() {
+  7)   0.020 us    |            up_read();
+  7)   0.239 us    |          }
+  7)   6.424 us    |        }
+  7)   6.648 us    |      }
+  7)   6.873 us    |    }
+  7)   0.020 us    |    __fsnotify_parent();
+  7)   0.023 us    |    fsnotify();
+  7)   9.175 us    |  }
+  7)               |  vfs_read() {
+  7)               |    rw_verify_area() {
+  7)               |      security_file_permission() {
+  7)               |        selinux_file_permission() {
+  7)               |          __inode_security_revalidate() {
+  7)   0.028 us    |            _cond_resched();
+  7)   0.235 us    |          }
+  7)   0.020 us    |          avc_policy_seqno();
+  7)   0.777 us    |        }
+  7)   0.020 us    |        __fsnotify_parent();
+  7)   0.023 us    |        fsnotify();
+  7)   1.407 us    |      }
+  7)   1.613 us    |    }
+  7)               |    do_sync_read() {
+  7)               |      xfs_file_aio_read [xfs]() {
+  7)               |        xfs_file_buffered_aio_read [xfs]() {
+  7)   0.020 us    |          generic_segment_checks();
+  7)               |          xfs_ilock [xfs]() {
+  7)               |            down_read() {
+  7)   0.018 us    |              _cond_resched();
+  7)   0.218 us    |            }
+  7)   0.421 us    |          }
+  7)               |          generic_file_aio_read() {
+  7)   0.020 us    |            generic_segment_checks();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.171 us    |            __find_get_page();
+  7)   0.020 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.023 us    |                static_key_enabled();
+  7)   0.020 us    |                __virt_addr_valid();
+  7)   0.018 us    |                check_stack_object();
+  7)   0.657 us    |              }
+  7)   1.162 us    |            }
+  7)   0.020 us    |            put_page();
+  7)               |            touch_atime() {
+  7)               |              current_fs_time() {
+  7)   0.021 us    |                current_kernel_time();
+  7)   0.235 us    |              }
+  7)   0.438 us    |            }
+  7)   3.214 us    |          }
+  7)               |          serc_file_filter [xfs]() {
+  7)               |            d_path() {
+  7)   0.019 us    |              prepend.constprop.25();
+  7)               |              prepend_path() {
+  7)   0.041 us    |                prepend_name();
+  7)   0.028 us    |                prepend_name();
+  7)   0.027 us    |                prepend_name();
+  7)   0.685 us    |              }
+  7)   1.086 us    |            }
+  7)   1.549 us    |          }
+  7)               |          xfs_iunlock [xfs]() {
+  7)   0.019 us    |            up_read();
+  7)   0.217 us    |          }
+  7)   6.354 us    |        }
+  7)   6.573 us    |      }
+  7)   6.788 us    |    }
+  7)   0.019 us    |    __fsnotify_parent();
+  7)   0.022 us    |    fsnotify();
+  7)   9.233 us    |  }
+  7)               |  vfs_read() {
+  7)               |    rw_verify_area() {
+  7)               |      security_file_permission() {
+  7)               |        selinux_file_permission() {
+  7)               |          __inode_security_revalidate() {
+  7)   0.030 us    |            _cond_resched();
+  7)   0.250 us    |          }
+  7)   0.019 us    |          avc_policy_seqno();
+  7)   0.717 us    |        }
+  7)   0.020 us    |        __fsnotify_parent();
+  7)   0.022 us    |        fsnotify();
+  7)   1.371 us    |      }
+  7)   1.576 us    |    }
+  7)               |    do_sync_read() {
+  7)               |      xfs_file_aio_read [xfs]() {
+  7)               |        xfs_file_buffered_aio_read [xfs]() {
+  7)   0.018 us    |          generic_segment_checks();
+  7)               |          xfs_ilock [xfs]() {
+  7)               |            down_read() {
+  7)   0.020 us    |              _cond_resched();
+  7)   0.368 us    |            }
+  7)   0.566 us    |          }
+  7)               |          generic_file_aio_read() {
+  7)   0.019 us    |            generic_segment_checks();
+  7)   0.020 us    |            _cond_resched();
+  7)   0.157 us    |            __find_get_page();
+  7)   0.020 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.019 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.019 us    |                static_key_enabled();
+  7)   0.020 us    |                __virt_addr_valid();
+  7)   0.018 us    |                check_stack_object();
+  7)   0.653 us    |              }
+  7)   1.167 us    |            }
+  7)   0.020 us    |            put_page();
+  7)               |            touch_atime() {
+  7)               |              current_fs_time() {
+  7)   0.019 us    |                current_kernel_time();
+  7)   0.218 us    |              }
+  7)   0.418 us    |            }
+  7)   3.146 us    |          }
+  7)               |          serc_file_filter [xfs]() {
+  7)               |            d_path() {
+  7)   0.022 us    |              prepend.constprop.25();
+  7)               |              prepend_path() {
+  7)   0.060 us    |                prepend_name();
+  7)   0.027 us    |                prepend_name();
+  7)   0.025 us    |                prepend_name();
+  7)   0.687 us    |              }
+  7)   1.088 us    |            }
+  7)   1.584 us    |          }
+  7)               |          xfs_iunlock [xfs]() {
+  7)   0.019 us    |            up_read();
+  7)   0.216 us    |          }
+  7)   6.463 us    |        }
+  7)   6.671 us    |      }
+  7)   6.877 us    |    }
+  7)   0.021 us    |    __fsnotify_parent();
+  7)   0.023 us    |    fsnotify();
+  7)   9.285 us    |  }
+  7)               |  vfs_read() {
+  7)               |    rw_verify_area() {
+  7)               |      security_file_permission() {
+  7)               |        selinux_file_permission() {
+  7)               |          __inode_security_revalidate() {
+  7)   0.028 us    |            _cond_resched();
+  7)   0.247 us    |          }
+  7)   0.019 us    |          avc_policy_seqno();
+  7)   0.658 us    |        }
+  7)   0.020 us    |        __fsnotify_parent();
+  7)   0.022 us    |        fsnotify();
+  7)   1.305 us    |      }
+  7)   1.508 us    |    }
+  7)               |    do_sync_read() {
+  7)               |      xfs_file_aio_read [xfs]() {
+  7)               |        xfs_file_buffered_aio_read [xfs]() {
+  7)   0.018 us    |          generic_segment_checks();
+  7)               |          xfs_ilock [xfs]() {
+  7)               |            down_read() {
+  7)   0.019 us    |              _cond_resched();
+  7)   0.224 us    |            }
+  7)   0.420 us    |          }
+  7)               |          generic_file_aio_read() {
+  7)   0.020 us    |            generic_segment_checks();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.149 us    |            __find_get_page();
+  7)   0.018 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.021 us    |                __virt_addr_valid();
+  7)   0.019 us    |                check_stack_object();
+  7)   0.787 us    |              }
+  7)   1.318 us    |            }
+  7)   0.019 us    |            put_page();
+  7)               |            touch_atime() {
+  7)               |              current_fs_time() {
+  7)   0.021 us    |                current_kernel_time();
+  7)   0.217 us    |              }
+  7)   0.416 us    |            }
+  7)   3.285 us    |          }
+  7)               |          serc_file_filter [xfs]() {
+  7)               |            d_path() {
+  7)   0.019 us    |              prepend.constprop.25();
+  7)               |              prepend_path() {
+  7)   0.032 us    |                prepend_name();
+  7)   0.027 us    |                prepend_name();
+  7)   0.026 us    |                prepend_name();
+  7)   0.668 us    |              }
+  7)   1.079 us    |            }
+  7)   1.509 us    |          }
+  7)               |          xfs_iunlock [xfs]() {
+  7)   0.019 us    |            up_read();
+  7)   0.217 us    |          }
+  7)   6.390 us    |        }
+  7)   6.603 us    |      }
+  7)   6.823 us    |    }
+  7)   0.020 us    |    __fsnotify_parent();
+  7)   0.022 us    |    fsnotify();
+  7)   9.155 us    |  }
+  7)               |  vfs_read() {
+  7)               |    rw_verify_area() {
+  7)               |      security_file_permission() {
+  7)               |        selinux_file_permission() {
+  7)               |          __inode_security_revalidate() {
+  7)   0.029 us    |            _cond_resched();
+  7)   0.241 us    |          }
+  7)   0.020 us    |          avc_policy_seqno();
+  7)   0.646 us    |        }
+  7)   0.020 us    |        __fsnotify_parent();
+  7)   0.022 us    |        fsnotify();
+  7)   1.282 us    |      }
+  7)   1.485 us    |    }
+  7)               |    do_sync_read() {
+  7)               |      xfs_file_aio_read [xfs]() {
+  7)               |        xfs_file_buffered_aio_read [xfs]() {
+  7)   0.021 us    |          generic_segment_checks();
+  7)               |          xfs_ilock [xfs]() {
+  7)               |            down_read() {
+  7)   0.018 us    |              _cond_resched();
+  7)   0.219 us    |            }
+  7)   0.416 us    |          }
+  7)               |          generic_file_aio_read() {
+  7)   0.019 us    |            generic_segment_checks();
+  7)   0.018 us    |            _cond_resched();
+  7)   0.228 us    |            __find_get_page();
+  7)   0.021 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.017 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.023 us    |                __virt_addr_valid();
+  7)   0.029 us    |                check_stack_object();
+  7)   0.649 us    |              }
+  7)   1.159 us    |            }
+  7)   0.019 us    |            put_page();
+  7)               |            touch_atime() {
+  7)               |              current_fs_time() {
+  7)   0.021 us    |                current_kernel_time();
+  7)   0.225 us    |              }
+  7)   0.437 us    |            }
+  7)   3.236 us    |          }
+  7)               |          serc_file_filter [xfs]() {
+  7)               |            d_path() {
+  7)   0.018 us    |              prepend.constprop.25();
+  7)               |              prepend_path() {
+  7)   0.044 us    |                prepend_name();
+  7)   0.028 us    |                prepend_name();
+  7)   0.026 us    |                prepend_name();
+  7)   0.699 us    |              }
+  7)   1.232 us    |            }
+  7)   1.665 us    |          }
+  7)               |          xfs_iunlock [xfs]() {
+  7)   0.019 us    |            up_read();
+  7)   0.220 us    |          }
+  7)   6.493 us    |        }
+  7)   6.704 us    |      }
+  7)   6.912 us    |    }
+  7)   0.020 us    |    __fsnotify_parent();
+  7)   0.023 us    |    fsnotify();
+  7)   9.206 us    |  }
+  7)               |  vfs_read() {
+  7)               |    rw_verify_area() {
+  7)               |      security_file_permission() {
+  7)               |        selinux_file_permission() {
+  7)               |          __inode_security_revalidate() {
+  7)   0.032 us    |            _cond_resched();
+  7)   0.255 us    |          }
+  7)   0.019 us    |          avc_policy_seqno();
+  7)   0.675 us    |        }
+  7)   0.019 us    |        __fsnotify_parent();
+  7)   0.023 us    |        fsnotify();
+  7)   1.330 us    |      }
+  7)   1.541 us    |    }
+  7)               |    do_sync_read() {
+  7)               |      xfs_file_aio_read [xfs]() {
+  7)               |        xfs_file_buffered_aio_read [xfs]() {
+  7)   0.021 us    |          generic_segment_checks();
+  7)               |          xfs_ilock [xfs]() {
+  7)               |            down_read() {
+  7)   0.018 us    |              _cond_resched();
+  7)   0.218 us    |            }
+  7)   0.419 us    |          }
+  7)               |          generic_file_aio_read() {
+  7)   0.019 us    |            generic_segment_checks();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.107 us    |            __find_get_page();
+  7)   0.024 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.020 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.021 us    |                __virt_addr_valid();
+  7)   0.019 us    |                check_stack_object();
+  7)   0.627 us    |              }
+  7)               |              do_page_fault() {
+  7)               |                __do_page_fault() {
+  7)   0.022 us    |                  down_read_trylock();
+  7)   0.018 us    |                  _cond_resched();
+  7)   0.043 us    |                  find_vma();
+  7)               |                  handle_mm_fault() {
+  7)   0.030 us    |                    __mem_cgroup_count_vm_event();
+  7)               |                    anon_vma_prepare() {
+  7)   0.019 us    |                      _cond_resched();
+  7)   0.222 us    |                    }
+  7)               |                    alloc_pages_vma() {
+  7)               |                      get_vma_policy() {
+  7)   0.027 us    |                        __get_vma_policy();
+  7)   0.018 us    |                        get_task_policy.part.26();
+  7)   0.430 us    |                      }
+  7)   0.019 us    |                      policy_nodemask();
+  7)   0.021 us    |                      policy_zonelist();
+  7)               |                      __alloc_pages_nodemask() {
+  7)   0.019 us    |                        _cond_resched();
+  7)   0.023 us    |                        next_zones_zonelist();
+  7)               |                        get_page_from_freelist() {
+  7)   0.026 us    |                          next_zones_zonelist();
+  7)   0.026 us    |                          __zone_watermark_ok();
+  7)   0.019 us    |                          __mod_zone_page_state();
+  7)               |                          zone_statistics() {
+  7)   0.018 us    |                            __inc_zone_state();
+  7)   0.018 us    |                            __inc_zone_state();
+  7)   0.417 us    |                          }
+  7)   1.560 us    |                        }
+  7)   2.225 us    |                      }
+  7)   3.443 us    |                    }
+  7)               |                    mem_cgroup_newpage_charge() {
+  7)               |                      mem_cgroup_charge_common() {
+  7)   0.026 us    |                        __mem_cgroup_try_charge();
+  7)               |                        __mem_cgroup_commit_charge() {
+  7)   0.028 us    |                          lookup_page_cgroup();
+  7)   0.019 us    |                          mem_cgroup_charge_statistics.isra.20();
+  7)   0.021 us    |                          memcg_check_events();
+  7)   0.641 us    |                        }
+  7)   1.057 us    |                      }
+  7)   1.253 us    |                    }
+  7)   0.036 us    |                    _raw_spin_lock();
+  7)   0.018 us    |                    add_mm_counter_fast();
+  7)               |                    page_add_new_anon_rmap() {
+  7)               |                      __inc_zone_page_state() {
+  7)   0.019 us    |                        __inc_zone_state();
+  7)   0.214 us    |                      }
+  7)               |                      lru_cache_add() {
+  7)   0.021 us    |                        __lru_cache_add();
+  7)   0.227 us    |                      }
+  7)   0.857 us    |                    }
+  7)   7.277 us    |                  }
+  7)   0.019 us    |                  up_read();
+  7)   8.441 us    |                }
+  7)   8.641 us    |              }
+  7) + 10.170 us   |            }
+  7)   0.017 us    |            put_page();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.039 us    |            __find_get_page();
+  7)   0.018 us    |            put_page();
+  7)               |            touch_atime() {
+  7)               |              current_fs_time() {
+  7)   0.019 us    |                current_kernel_time();
+  7)   0.217 us    |              }
+  7)   0.418 us    |            }
+  7) + 12.793 us   |          }
+  7)               |          serc_file_filter [xfs]() {
+  7)               |            d_path() {
+  7)   0.019 us    |              prepend.constprop.25();
+  7)               |              prepend_path() {
+  7)   0.040 us    |                prepend_name();
+  7)   0.039 us    |                prepend_name();
+  7)   0.031 us    |                prepend_name();
+  7)   0.026 us    |                prepend_name();
+  7)   0.025 us    |                prepend_name();
+  7)   1.138 us    |              }
+  7)   1.571 us    |            }
+  7)   2.204 us    |          }
+  7)               |          xfs_iunlock [xfs]() {
+  7)   0.021 us    |            up_read();
+  7)   0.229 us    |          }
+  7) + 16.622 us   |        }
+  7) + 16.839 us   |      }
+  7) + 17.087 us   |    }
+  7)   0.019 us    |    __fsnotify_parent();
+  7)   0.021 us    |    fsnotify();
+  7) + 19.483 us   |  }
+  7)               |  vfs_read() {
+  7)               |    rw_verify_area() {
+  7)               |      security_file_permission() {
+  7)               |        selinux_file_permission() {
+  7)               |          __inode_security_revalidate() {
+  7)   0.033 us    |            _cond_resched();
+  7)   0.420 us    |          }
+  7)   0.020 us    |          avc_policy_seqno();
+  7)   0.819 us    |        }
+  7)   0.021 us    |        __fsnotify_parent();
+  7)   0.022 us    |        fsnotify();
+  7)   1.457 us    |      }
+  7)   1.659 us    |    }
+  7)               |    do_sync_read() {
+  7)               |      xfs_file_aio_read [xfs]() {
+  7)               |        xfs_file_buffered_aio_read [xfs]() {
+  7)   0.020 us    |          generic_segment_checks();
+  7)               |          xfs_ilock [xfs]() {
+  7)               |            down_read() {
+  7)   0.018 us    |              _cond_resched();
+  7)   0.215 us    |            }
+  7)   0.414 us    |          }
+  7)               |          generic_file_aio_read() {
+  7)   0.021 us    |            generic_segment_checks();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.029 us    |            __find_get_page();
+  7)   0.018 us    |            put_page();
+  7)               |            touch_atime() {
+  7)               |              current_fs_time() {
+  7)   0.020 us    |                current_kernel_time();
+  7)   0.214 us    |              }
+  7)   0.416 us    |            }
+  7)   1.466 us    |          }
+  7)               |          serc_file_filter [xfs]() {
+  7)               |            d_path() {
+  7)   0.020 us    |              prepend.constprop.25();
+  7)               |              prepend_path() {
+  7)   0.048 us    |                prepend_name();
+  7)   0.044 us    |                prepend_name();
+  7)   0.029 us    |                prepend_name();
+  7)   0.026 us    |                prepend_name();
+  7)   0.026 us    |                prepend_name();
+  7)   1.121 us    |              }
+  7)   1.531 us    |            }
+  7)   2.023 us    |          }
+  7)               |          xfs_iunlock [xfs]() {
+  7)   0.021 us    |            up_read();
+  7)   0.230 us    |          }
+  7)   5.084 us    |        }
+  7)   5.296 us    |      }
+  7)   5.509 us    |    }
+  7)   7.584 us    |  }
+  7)               |  vfs_read() {
+  7)               |    rw_verify_area() {
+  7)               |      security_file_permission() {
+  7)               |        selinux_file_permission() {
+  7)               |          __inode_security_revalidate() {
+  7)   0.030 us    |            _cond_resched();
+  7)   0.255 us    |          }
+  7)   0.019 us    |          avc_policy_seqno();
+  7)   0.659 us    |        }
+  7)   0.020 us    |        __fsnotify_parent();
+  7)   0.025 us    |        fsnotify();
+  7)   1.290 us    |      }
+  7)   1.495 us    |    }
+  7)               |    proc_reg_read() {
+  7)               |      seq_read() {
+  7)               |        mutex_lock() {
+  7)   0.019 us    |          _cond_resched();
+  7)   0.229 us    |        }
+  7)               |        kvmalloc_node() {
+  7)               |          __kmalloc_node() {
+  7)   0.078 us    |            kmalloc_slab();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.510 us    |          }
+  7)   0.726 us    |        }
+  7)   0.018 us    |        single_start();
+  7)               |        cmdline_proc_show() {
+  7)               |          seq_printf() {
+  7)   0.730 us    |            seq_vprintf();
+  7)   0.944 us    |          }
+  7)   1.587 us    |        }
+  7)   0.020 us    |        single_next();
+  7)   0.019 us    |        single_stop();
+  7)               |        __check_object_size() {
+  7)   0.022 us    |          static_key_enabled();
+  7)   0.025 us    |          __virt_addr_valid();
+  7)   0.040 us    |          __check_heap_object();
+  7)   0.019 us    |          check_stack_object();
+  7)   0.978 us    |        }
+  7)   0.020 us    |        mutex_unlock();
+  7)   5.261 us    |      }
+  7)   0.019 us    |      unuse_pde();
+  7)   5.808 us    |    }
+  7)   0.020 us    |    __fsnotify_parent();
+  7)   0.022 us    |    fsnotify();
+  7)   8.128 us    |  }
+  7)               |  vfs_read() {
+  7)               |    rw_verify_area() {
+  7)               |      security_file_permission() {
+  7)               |        selinux_file_permission() {
+  7)               |          __inode_security_revalidate() {
+  7)   0.020 us    |            _cond_resched();
+  7)   0.222 us    |          }
+  7)   0.020 us    |          avc_policy_seqno();
+  7)   0.635 us    |        }
+  7)   0.020 us    |        __fsnotify_parent();
+  7)   0.021 us    |        fsnotify();
+  7)   1.255 us    |      }
+  7)   1.451 us    |    }
+  7)               |    proc_reg_read() {
+  7)               |      seq_read() {
+  7)               |        mutex_lock() {
+  7)   0.020 us    |          _cond_resched();
+  7)   0.226 us    |        }
+  7)   0.019 us    |        single_start();
+  7)   0.017 us    |        single_stop();
+  7)   0.018 us    |        mutex_unlock();
+  7)   1.096 us    |      }
+  7)   0.019 us    |      unuse_pde();
+  7)   1.520 us    |    }
+  7)   3.379 us    |  }
+  7)               |  vfs_read() {
+  7)               |    rw_verify_area() {
+  7)               |      security_file_permission() {
+  7)               |        selinux_file_permission() {
+  7)               |          __inode_security_revalidate() {
+  7)   0.030 us    |            _cond_resched();
+  7)   0.244 us    |          }
+  7)   0.019 us    |          avc_policy_seqno();
+  7)   0.646 us    |        }
+  7)   0.021 us    |        __fsnotify_parent();
+  7)   0.022 us    |        fsnotify();
+  7)   1.274 us    |      }
+  7)   1.473 us    |    }
+  7)               |    do_sync_read() {
+  7)               |      xfs_file_aio_read [xfs]() {
+  7)               |        xfs_file_buffered_aio_read [xfs]() {
+  7)   0.021 us    |          generic_segment_checks();
+  7)               |          xfs_ilock [xfs]() {
+  7)               |            down_read() {
+  7)   0.018 us    |              _cond_resched();
+  7)   0.217 us    |            }
+  7)   0.418 us    |          }
+  7)               |          generic_file_aio_read() {
+  7)   0.020 us    |            generic_segment_checks();
+  7)   0.020 us    |            _cond_resched();
+  7)   0.179 us    |            __find_get_page();
+  7)   0.019 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.019 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.022 us    |                __virt_addr_valid();
+  7)   0.019 us    |                check_stack_object();
+  7)   0.747 us    |              }
+  7)   1.338 us    |            }
+  7)   0.020 us    |            put_page();
+  7)               |            touch_atime() {
+  7)               |              current_fs_time() {
+  7)   0.020 us    |                current_kernel_time();
+  7)   0.218 us    |              }
+  7)   0.426 us    |            }
+  7)   3.372 us    |          }
+  7)               |          serc_file_filter [xfs]() {
+  7)               |            d_path() {
+  7)   0.019 us    |              prepend.constprop.25();
+  7)               |              prepend_path() {
+  7)   0.031 us    |                prepend_name();
+  7)   0.039 us    |                prepend_name();
+  7)   0.026 us    |                prepend_name();
+  7)   0.031 us    |                prepend_name();
+  7)   0.028 us    |                prepend_name();
+  7)   0.027 us    |                prepend_name();
+  7)   0.027 us    |                prepend_name();
+  7)   0.021 us    |                prepend_name();
+  7)   0.035 us    |                prepend_name();
+  7)   0.022 us    |                prepend_name();
+  7)   2.167 us    |              }
+  7)   2.577 us    |            }
+  7)   3.195 us    |          }
+  7)               |          xfs_iunlock [xfs]() {
+  7)   0.018 us    |            up_read();
+  7)   0.221 us    |          }
+  7)   8.169 us    |        }
+  7)   8.570 us    |      }
+  7)   8.785 us    |    }
+  7)   0.020 us    |    __fsnotify_parent();
+  7)   0.034 us    |    fsnotify();
+  7) + 11.090 us   |  }
+  7)               |  vfs_read() {
+  7)               |    rw_verify_area() {
+  7)               |      security_file_permission() {
+  7)               |        selinux_file_permission() {
+  7)               |          __inode_security_revalidate() {
+  7)   0.032 us    |            _cond_resched();
+  7)   0.242 us    |          }
+  7)   0.018 us    |          avc_policy_seqno();
+  7)   0.646 us    |        }
+  7)   0.020 us    |        __fsnotify_parent();
+  7)   0.030 us    |        fsnotify();
+  7)   1.279 us    |      }
+  7)   1.477 us    |    }
+  7)               |    do_sync_read() {
+  7)               |      xfs_file_aio_read [xfs]() {
+  7)               |        xfs_file_buffered_aio_read [xfs]() {
+  7)   0.020 us    |          generic_segment_checks();
+  7)               |          xfs_ilock [xfs]() {
+  7)               |            down_read() {
+  7)   0.018 us    |              _cond_resched();
+  7)   0.218 us    |            }
+  7)   0.416 us    |          }
+  7)               |          generic_file_aio_read() {
+  7)   0.019 us    |            generic_segment_checks();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.041 us    |            __find_get_page();
+  7)   0.020 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.023 us    |                static_key_enabled();
+  7)   0.019 us    |                __virt_addr_valid();
+  7)   0.018 us    |                check_stack_object();
+  7)   0.881 us    |              }
+  7)   1.575 us    |            }
+  7)   0.021 us    |            put_page();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.097 us    |            __find_get_page();
+  7)   0.019 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.019 us    |                static_key_enabled();
+  7)   0.019 us    |                __virt_addr_valid();
+  7)   0.018 us    |                check_stack_object();
+  7)   0.633 us    |              }
+  7)   1.353 us    |            }
+  7)   0.019 us    |            put_page();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.102 us    |            __find_get_page();
+  7)   0.019 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.020 us    |                __virt_addr_valid();
+  7)   0.020 us    |                check_stack_object();
+  7)   0.631 us    |              }
+  7)   1.390 us    |            }
+  7)   0.020 us    |            put_page();
+  7)   0.018 us    |            _cond_resched();
+  7)   0.107 us    |            __find_get_page();
+  7)   0.020 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.019 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.019 us    |                static_key_enabled();
+  7)   0.025 us    |                __virt_addr_valid();
+  7)   0.019 us    |                check_stack_object();
+  7)   0.635 us    |              }
+  7)   1.479 us    |            }
+  7)   0.020 us    |            put_page();
+  7)   0.020 us    |            _cond_resched();
+  7)   0.109 us    |            __find_get_page();
+  7)   0.020 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.017 us    |                static_key_enabled();
+  7)   0.019 us    |                __virt_addr_valid();
+  7)   0.024 us    |                check_stack_object();
+  7)   0.647 us    |              }
+  7)   1.372 us    |            }
+  7)   0.019 us    |            put_page();
+  7)   0.018 us    |            _cond_resched();
+  7)   0.099 us    |            __find_get_page();
+  7)   0.020 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.019 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.019 us    |                __virt_addr_valid();
+  7)   0.029 us    |                check_stack_object();
+  7)   0.635 us    |              }
+  7)   1.414 us    |            }
+  7)   0.020 us    |            put_page();
+  7)   0.018 us    |            _cond_resched();
+  7)   0.105 us    |            __find_get_page();
+  7)   0.020 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.019 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.019 us    |                static_key_enabled();
+  7)   0.019 us    |                __virt_addr_valid();
+  7)   0.026 us    |                check_stack_object();
+  7)   0.637 us    |              }
+  7)   1.398 us    |            }
+  7)   0.019 us    |            put_page();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.110 us    |            __find_get_page();
+  7)   0.018 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.021 us    |                __virt_addr_valid();
+  7)   0.018 us    |                check_stack_object();
+  7)   0.630 us    |              }
+  7)   1.503 us    |            }
+  7)   0.019 us    |            put_page();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.103 us    |            __find_get_page();
+  7)   0.018 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.020 us    |                __virt_addr_valid();
+  7)   0.018 us    |                check_stack_object();
+  7)   0.628 us    |              }
+  7)   1.321 us    |            }
+  7)   0.020 us    |            put_page();
+  7)   0.018 us    |            _cond_resched();
+  7)   0.105 us    |            __find_get_page();
+  7)   0.018 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.020 us    |                __virt_addr_valid();
+  7)   0.018 us    |                check_stack_object();
+  7)   0.634 us    |              }
+  7)   1.346 us    |            }
+  7)   0.019 us    |            put_page();
+  7)   0.018 us    |            _cond_resched();
+  7)   0.106 us    |            __find_get_page();
+  7)   0.018 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.019 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.021 us    |                __virt_addr_valid();
+  7)   0.018 us    |                check_stack_object();
+  7)   0.626 us    |              }
+  7)   1.355 us    |            }
+  7)   0.019 us    |            put_page();
+  7)   0.018 us    |            _cond_resched();
+  7)   0.099 us    |            __find_get_page();
+  7)   0.018 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.019 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.020 us    |                __virt_addr_valid();
+  7)   0.019 us    |                check_stack_object();
+  7)   0.631 us    |              }
+  7)   1.415 us    |            }
+  7)   0.019 us    |            put_page();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.096 us    |            __find_get_page();
+  7)   0.019 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.019 us    |                __virt_addr_valid();
+  7)   0.018 us    |                check_stack_object();
+  7)   0.635 us    |              }
+  7)   1.327 us    |            }
+  7)   0.018 us    |            put_page();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.100 us    |            __find_get_page();
+  7)   0.020 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.019 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.019 us    |                static_key_enabled();
+  7)   0.019 us    |                __virt_addr_valid();
+  7)   0.019 us    |                check_stack_object();
+  7)   0.636 us    |              }
+  7)   1.317 us    |            }
+  7)   0.019 us    |            put_page();
+  7)   0.020 us    |            _cond_resched();
+  7)   0.105 us    |            __find_get_page();
+  7)   0.020 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.019 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.019 us    |                __virt_addr_valid();
+  7)   0.019 us    |                check_stack_object();
+  7)   0.637 us    |              }
+  7)   1.362 us    |            }
+  7)   0.019 us    |            put_page();
+  7)   0.018 us    |            _cond_resched();
+  7)   0.103 us    |            __find_get_page();
+  7)   0.019 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.019 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.022 us    |                __virt_addr_valid();
+  7)   0.019 us    |                check_stack_object();
+  7)   0.637 us    |              }
+  7)   1.321 us    |            }
+  7)   0.018 us    |            put_page();
+  7)   0.017 us    |            _cond_resched();
+  7)   0.105 us    |            __find_get_page();
+  7)   0.017 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.019 us    |                static_key_enabled();
+  7)   0.020 us    |                __virt_addr_valid();
+  7)   0.019 us    |                check_stack_object();
+  7)   0.635 us    |              }
+  7)   1.311 us    |            }
+  7)   0.018 us    |            put_page();
+  7)   0.017 us    |            _cond_resched();
+  7)   0.101 us    |            __find_get_page();
+  7)   0.018 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.020 us    |                __virt_addr_valid();
+  7)   0.018 us    |                check_stack_object();
+  7)   0.632 us    |              }
+  7)   1.371 us    |            }
+  7)   0.020 us    |            put_page();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.106 us    |            __find_get_page();
+  7)   0.020 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.019 us    |                static_key_enabled();
+  7)   0.019 us    |                __virt_addr_valid();
+  7)   0.029 us    |                check_stack_object();
+  7)   0.632 us    |              }
+  7)   1.401 us    |            }
+  7)   0.020 us    |            put_page();
+  7)   0.017 us    |            _cond_resched();
+  7)   0.105 us    |            __find_get_page();
+  7)   0.019 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.017 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.017 us    |                __virt_addr_valid();
+  7)   0.028 us    |                check_stack_object();
+  7)   0.641 us    |              }
+  7)   1.344 us    |            }
+  7)   0.020 us    |            put_page();
+  7)   0.018 us    |            _cond_resched();
+  7)   0.100 us    |            __find_get_page();
+  7)   0.019 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.019 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.019 us    |                __virt_addr_valid();
+  7)   0.028 us    |                check_stack_object();
+  7)   0.649 us    |              }
+  7)   1.381 us    |            }
+  7)   0.021 us    |            put_page();
+  7)   0.018 us    |            _cond_resched();
+  7)   0.044 us    |            __find_get_page();
+  7)   0.019 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.029 us    |                __virt_addr_valid();
+  7)   0.019 us    |                check_stack_object();
+  7)   0.635 us    |              }
+  7)   1.395 us    |            }
+  7)   0.019 us    |            put_page();
+  7)   0.018 us    |            _cond_resched();
+  7)   0.100 us    |            __find_get_page();
+  7)   0.020 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.019 us    |                static_key_enabled();
+  7)   0.022 us    |                __virt_addr_valid();
+  7)   0.025 us    |                check_stack_object();
+  7)   0.642 us    |              }
+  7)   1.356 us    |            }
+  7)   0.020 us    |            put_page();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.097 us    |            __find_get_page();
+  7)   0.018 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.017 us    |                static_key_enabled();
+  7)   0.022 us    |                __virt_addr_valid();
+  7)   0.019 us    |                check_stack_object();
+  7)   0.627 us    |              }
+  7)   1.329 us    |            }
+  7)   0.019 us    |            put_page();
+  7)   0.018 us    |            _cond_resched();
+  7)   0.108 us    |            __find_get_page();
+  7)   0.018 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.020 us    |                __virt_addr_valid();
+  7)   0.025 us    |                check_stack_object();
+  7)   0.639 us    |              }
+  7)   1.387 us    |            }
+  7)   0.021 us    |            put_page();
+  7)   0.017 us    |            _cond_resched();
+  7)   0.101 us    |            __find_get_page();
+  7)   0.020 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.019 us    |                static_key_enabled();
+  7)   0.020 us    |                __virt_addr_valid();
+  7)   0.019 us    |                check_stack_object();
+  7)   0.638 us    |              }
+  7)   1.381 us    |            }
+  7)   0.021 us    |            put_page();
+  7)   0.017 us    |            _cond_resched();
+  7)   0.101 us    |            __find_get_page();
+  7)   0.018 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.019 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.019 us    |                __virt_addr_valid();
+  7)   0.018 us    |                check_stack_object();
+  7)   0.630 us    |              }
+  7)   1.564 us    |            }
+  7)   0.020 us    |            put_page();
+  7)   0.018 us    |            _cond_resched();
+  7)   0.109 us    |            __find_get_page();
+  7)   0.019 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.019 us    |                static_key_enabled();
+  7)   0.028 us    |                __virt_addr_valid();
+  7)   0.025 us    |                check_stack_object();
+  7)   0.643 us    |              }
+  7)   1.383 us    |            }
+  7)   0.019 us    |            put_page();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.103 us    |            __find_get_page();
+  7)   0.018 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.019 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.021 us    |                __virt_addr_valid();
+  7)   0.017 us    |                check_stack_object();
+  7)   0.644 us    |              }
+  7)   1.396 us    |            }
+  7)   0.019 us    |            put_page();
+  7)   0.018 us    |            _cond_resched();
+  7)   0.104 us    |            __find_get_page();
+  7)   0.019 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.019 us    |                static_key_enabled();
+  7)   0.023 us    |                __virt_addr_valid();
+  7)   0.025 us    |                check_stack_object();
+  7)   0.641 us    |              }
+  7)   1.628 us    |            }
+  7)   0.019 us    |            put_page();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.096 us    |            __find_get_page();
+  7)   0.018 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.017 us    |                static_key_enabled();
+  7)   0.024 us    |                __virt_addr_valid();
+  7)   0.018 us    |                check_stack_object();
+  7)   0.649 us    |              }
+  7)   1.416 us    |            }
+  7)   0.021 us    |            put_page();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.103 us    |            __find_get_page();
+  7)   0.019 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.019 us    |                static_key_enabled();
+  7)   0.020 us    |                __virt_addr_valid();
+  7)   0.018 us    |                check_stack_object();
+  7)   0.635 us    |              }
+  7)   1.304 us    |            }
+  7)   0.021 us    |            put_page();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.103 us    |            __find_get_page();
+  7)   0.020 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.019 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.021 us    |                __virt_addr_valid();
+  7)   0.018 us    |                check_stack_object();
+  7)   0.646 us    |              }
+  7)   1.375 us    |            }
+  7)   0.019 us    |            put_page();
+  7)   0.018 us    |            _cond_resched();
+  7)   0.102 us    |            __find_get_page();
+  7)   0.019 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.017 us    |                static_key_enabled();
+  7)   0.024 us    |                __virt_addr_valid();
+  7)   0.019 us    |                check_stack_object();
+  7)   0.623 us    |              }
+  7)   1.350 us    |            }
+  7)   0.019 us    |            put_page();
+  7)   0.018 us    |            _cond_resched();
+  7)   0.105 us    |            __find_get_page();
+  7)   0.018 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.019 us    |                static_key_enabled();
+  7)   0.021 us    |                __virt_addr_valid();
+  7)   0.018 us    |                check_stack_object();
+  7)   0.646 us    |              }
+  7)   1.431 us    |            }
+  7)   0.021 us    |            put_page();
+  7)   0.018 us    |            _cond_resched();
+  7)   0.098 us    |            __find_get_page();
+  7)   0.018 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.017 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.019 us    |                static_key_enabled();
+  7)   0.022 us    |                __virt_addr_valid();
+  7)   0.026 us    |                check_stack_object();
+  7)   0.638 us    |              }
+  7)   1.378 us    |            }
+  7)   0.018 us    |            put_page();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.103 us    |            __find_get_page();
+  7)   0.018 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.019 us    |                static_key_enabled();
+  7)   0.022 us    |                __virt_addr_valid();
+  7)   0.018 us    |                check_stack_object();
+  7)   0.629 us    |              }
+  7)   1.555 us    |            }
+  7)   0.019 us    |            put_page();
+  7)   0.017 us    |            _cond_resched();
+  7)   0.098 us    |            __find_get_page();
+  7)   0.018 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.024 us    |                __virt_addr_valid();
+  7)   0.028 us    |                check_stack_object();
+  7)   0.649 us    |              }
+  7)   1.349 us    |            }
+  7)   0.018 us    |            put_page();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.101 us    |            __find_get_page();
+  7)   0.018 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.017 us    |                static_key_enabled();
+  7)   0.020 us    |                __virt_addr_valid();
+  7)   0.026 us    |                check_stack_object();
+  7)   0.644 us    |              }
+  7)   1.457 us    |            }
+  7)   0.021 us    |            put_page();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.112 us    |            __find_get_page();
+  7)   0.020 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.019 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.019 us    |                static_key_enabled();
+  7)   0.026 us    |                __virt_addr_valid();
+  7)   0.027 us    |                check_stack_object();
+  7)   0.642 us    |              }
+  7)   1.332 us    |            }
+  7)   0.021 us    |            put_page();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.100 us    |            __find_get_page();
+  7)   0.019 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.019 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.017 us    |                static_key_enabled();
+  7)   0.021 us    |                __virt_addr_valid();
+  7)   0.018 us    |                check_stack_object();
+  7)   0.625 us    |              }
+  7)   1.374 us    |            }
+  7)   0.020 us    |            put_page();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.102 us    |            __find_get_page();
+  7)   0.018 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.019 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.019 us    |                static_key_enabled();
+  7)   0.020 us    |                __virt_addr_valid();
+  7)   0.028 us    |                check_stack_object();
+  7)   0.645 us    |              }
+  7)   1.516 us    |            }
+  7)   0.021 us    |            put_page();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.431 us    |            __find_get_page();
+  7)   0.019 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.027 us    |                __virt_addr_valid();
+  7)   0.018 us    |                check_stack_object();
+  7)   0.637 us    |              }
+  7)   1.397 us    |            }
+  7)   0.018 us    |            put_page();
+  7)   0.018 us    |            _cond_resched();
+  7)   0.106 us    |            __find_get_page();
+  7)   0.020 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.018 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.019 us    |                static_key_enabled();
+  7)   0.019 us    |                __virt_addr_valid();
+  7)   0.019 us    |                check_stack_object();
+  7)   0.626 us    |              }
+  7)   1.344 us    |            }
+  7)   0.019 us    |            put_page();
+  7)   0.018 us    |            _cond_resched();
+  7)   0.103 us    |            __find_get_page();
+  7)   0.020 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.019 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.021 us    |                __virt_addr_valid();
+  7)   0.018 us    |                check_stack_object();
+  7)   0.656 us    |              }
+  7)   1.370 us    |            }
+  7)   0.018 us    |            put_page();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.109 us    |            __find_get_page();
+  7)   0.018 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.019 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.019 us    |                static_key_enabled();
+  7)   0.018 us    |                __virt_addr_valid();
+  7)   0.019 us    |                check_stack_object();
+  7)   0.629 us    |              }
+  7)   1.303 us    |            }
+  7)   0.020 us    |            put_page();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.105 us    |            __find_get_page();
+  7)   0.020 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.017 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.018 us    |                __virt_addr_valid();
+  7)   0.025 us    |                check_stack_object();
+  7)   0.765 us    |              }
+  7)   1.496 us    |            }
+  7)   0.019 us    |            put_page();
+  7)   0.018 us    |            _cond_resched();
+  7)   0.096 us    |            __find_get_page();
+  7)   0.018 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.019 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.017 us    |                static_key_enabled();
+  7)   0.020 us    |                __virt_addr_valid();
+  7)   0.018 us    |                check_stack_object();
+  7)   0.627 us    |              }
+  7)   1.332 us    |            }
+  7)   0.019 us    |            put_page();
+  7)   0.018 us    |            _cond_resched();
+  7)   0.097 us    |            __find_get_page();
+  7)   0.018 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.019 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.019 us    |                static_key_enabled();
+  7)   0.020 us    |                __virt_addr_valid();
+  7)   0.025 us    |                check_stack_object();
+  7)   0.644 us    |              }
+  7)   1.362 us    |            }
+  7)   0.019 us    |            put_page();
+  7)   0.018 us    |            _cond_resched();
+  7)   0.104 us    |            __find_get_page();
+  7)   0.020 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.019 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.020 us    |                __virt_addr_valid();
+  7)   0.019 us    |                check_stack_object();
+  7)   0.649 us    |              }
+  7)   1.366 us    |            }
+  7)   0.020 us    |            put_page();
+  7)   0.019 us    |            _cond_resched();
+  7)   0.099 us    |            __find_get_page();
+  7)   0.019 us    |            mark_page_accessed();
+  7)               |            file_read_actor() {
+  7)   0.017 us    |              _cond_resched();
+  7)               |              __check_object_size() {
+  7)   0.018 us    |                static_key_enabled();
+  7)   0.020 us    |                __virt_addr_valid();
+  7)   0.017 us    |                check_stack_object();
+  7)   0.628 us    |              }
+  7)   1.194 us    |            }
+  7)   0.020 us    |            put_page();
+  7)               |            touch_atime() {
+  7)               |              current_fs_time() {
+  7)   0.024 us    |                current_kernel_time();
+  7)   0.226 us    |              }
+  7)   0.460 us    |            }
+  7) ! 128.229 us  |          }
+  7)               |          serc_file_filter [xfs]() {
+  7)               |            d_path() {
+  7)   0.018 us    |              prepend.constprop.25();
+  7)               |              prepend_path() {
+  7)   0.040 us    |                prepend_name();
+  7)   0.039 us    |                prepend_name();
+  7)   0.026 us    |                prepend_name();
+  7)   0.026 us    |                prepend_name();
+  7)   0.031 us    |                prepend_name();
+  7)   0.026 us    |                prepend_name();
+  7)   0.026 us    |                prepend_name();
+  7)   0.022 us    |                prepend_name();
+  7)   0.033 us    |                prepend_name();
+  7)   0.022 us    |                prepend_name();
+  7)   2.339 us    |              }
+  7)   2.763 us    |            }
+  7)   3.328 us    |          }
+  7)               |          xfs_iunlock [xfs]() {
+  7)   0.032 us    |            up_read();
+  7)   0.242 us    |          }
+  7) ! 133.167 us  |        }
+  7) ! 133.371 us  |      }
+  7) ! 133.602 us  |    }
+  7)   0.021 us    |    __fsnotify_parent();
+  7)   0.027 us    |    fsnotify();
+  7) ! 135.887 us  |  }
