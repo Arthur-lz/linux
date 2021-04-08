@@ -16,7 +16,8 @@
 
 * 2、kernel
 >   1)make menuconfig
->     将xfs编译到zImage, 即将原来的M改成*
+>     将xfs编译到bzImage, 即将原来的M改成*
+>     关闭Randomize the address of the kernel image,否则设置断点可能会失败
      
 >   2)make bzImage
 
