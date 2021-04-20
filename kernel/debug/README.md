@@ -14,3 +14,8 @@ gdb vmlinux
 ```
 
 > 当然可以在gdb中做的，都可以在ddd中做，而且更方便。
+
+* 物理机上的linux如何与qemu中的linux内核进行通信？
+> tcp/ip? 
+
+> debugfs?
