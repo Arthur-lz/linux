@@ -46,6 +46,9 @@
   
 ### 内存的申请、释放
 #### 伙伴系统
+> 管理的是物理内存, 其各种内核函数返回的地址，有strutc page * ，有内核虚拟地址（或称逻辑地址, 也有称作线性地址），这些都不是物理地址，
+  内存的物理地址可以通过内核函数virt_to_pfn来得到
+
 ##### alloc_pages
 * 申请的物理页面是连续的，页面数量是2的order次方，申请成功返回第一页面的page结构指针
 
@@ -86,7 +89,7 @@ cat /proc/pagetypeinfo
 * kmem_cache_create用于创建slab描述符
 > 申请定制大小、对齐方式的内存需要自己定义一个新的slab描述符
 
-* kmem_cache_alloc用于创建slab缓存对象
+* kmem_cache_alloc用于创建slab缓存对象, 其内部关中断完成此操作
 * kmem_cache_free用于释放slab缓存对象
 * 每一个slab由一到N个连续页面组成，创建slab描述符时会计算一个slab需要战胜多少个页面，一个slab里有多少个slab对象，多少个cache colour.
 
