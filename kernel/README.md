@@ -1,3 +1,9 @@
+## 目录组织
+|文件名|说明|
+|:-|:-|
+|KeyLink.md|fio, ftrace|
+|debug|内核调试相关|
+
 ## linux内核文件的区别(vmlinux、zImage、bzImage、uImage、vmlinuz、initrd )
 |内核|说明|
 |:-|:-|
