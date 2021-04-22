@@ -624,3 +624,8 @@ echo 0 > /sys/devices/system/cpu/cpu0/online
 
 ### 只有当slab系统启用后，kmalloc才可使用 
 
+### shell脚本里的命令exec "$@" 
+  $@表示的有传进脚本的参数
+  exec 表示执行
+  所以exec "$@"表示执行所有通过参数传进shell脚本的参数
+
