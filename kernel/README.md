@@ -51,7 +51,12 @@
 
 ##### alloc_pages
 * 申请的物理页面是连续的，页面数量是2的order次方，申请成功返回第一页面的page结构指针
-
+* get_page_from_freelist
+* zone_wartermark_ok
+* buffered_rmqueue
+* \__rmqueue_smallest, order > 0, 走此函数从伙伴系统分配页面
+  order == 0则从zone->pageset列表中分配, 其是一个CPU高速缓存
+* 
 ##### \__get_free_pages
 * 申请成功返回的是第一个页面的逻辑地址（即内核虚拟地址）
 
