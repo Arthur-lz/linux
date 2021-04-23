@@ -74,8 +74,10 @@
   在释放内存块时，查询相邻内存块是否空闲，如果也空闲则合并成一个大的内存块，并放到高一阶的空闲链表free_area中。如果还能继续合并邻近的内存块，
   那么继续合并，并转移到高阶空闲链表，这个过程会重复下去，直到所有可能合并都已经合并为止。
 
-* \__free_one_page
-* page_is_buddy, 判断内存块是空闲，并且order值也相同，那么找到了可以合并的伙伴
+* free_hot_cold_page, order == 0走这个函数来释放内存
+
+* \__free_one_page, order > 0走这个
+> page_is_buddy, 判断内存块是空闲，并且order值也相同，那么找到了可以合并的伙伴
 
 * 内存碎片与内存规整
   内存规整就是利用移动页面的位置让空闲页面连成一片。
@@ -98,12 +100,22 @@ cat /proc/pagetypeinfo
   描述符，节点，本地对象内存池（每个CPU一个），共享对象内存池（只有一个，多个CPU共享），三个链表（部分空闲、全部空闲、full），N个slab实例，
   众多slab对象
 
+* 全局链表slab_caches保存所有的slab描述符
+
 * 一个slab最大是2^25次方，即32MB 
 * 基于伙伴系统
-* kmem_cache_create用于创建slab描述符
+* kmem_cache_create用于创建slab描述符, 它是用来创建定制缓存的
 > 申请定制大小、对齐方式的内存需要自己定义一个新的slab描述符
 
+> cache_line_size, 计算cache行大小
+
+> alloc_kmem_cache_cpus，为每一个CPU分配其本地slab内存池
+
+> alloc_arraycache，用于分配共享对象内存池
+
 * kmem_cache_alloc用于创建slab缓存对象, 其内部关中断完成此操作
+* cache_grow
+
 * kmem_cache_free用于释放slab缓存对象
 * 每一个slab由一到N个连续页面组成，创建slab描述符时会计算一个slab需要战胜多少个页面，一个slab里有多少个slab对象，多少个cache colour.
 
