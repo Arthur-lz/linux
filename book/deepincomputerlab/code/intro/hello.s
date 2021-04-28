@@ -1,6 +1,8 @@
 	.file	"hello.c"
 	.section	.rodata.str1.1,"aMS",@progbits,1
 .LC0:
+	.string	"stardard C"
+.LC1:
 	.string	"hello, world!"
 	.text
 	.globl	main
@@ -11,6 +13,8 @@ main:
 	subq	$8, %rsp
 	.cfi_def_cfa_offset 16
 	movl	$.LC0, %edi
+	call	puts
+	movl	$.LC1, %edi
 	call	puts
 	movl	$0, %eax
 	addq	$8, %rsp
