@@ -663,4 +663,12 @@ cc -Og -S hello.c
 ### 反汇编器，objdump -d xxx.o
 > 反汇编器根据机器代码把你的二进制可执行程序，或目标文件.o生成一种类似汇编代码格式
 
+### numactl
+* numastat -p pid       // 查看某个进程内存在中哪个numa结点上
+
+* numactl -N 1 -m 1 ./hello.out // 绑定一个进程hello.out的内存到NUMA1
+
+### pidof 进程名，查看某个进程的pid
+
+### echo 3 > /proc/sys/vm/drop_caches, 清cache
 
