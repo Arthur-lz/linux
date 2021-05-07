@@ -1,6 +1,13 @@
 #include <stdio.h>
 
-int main()
+long scale(long x, long y, long z)
+{
+	long t = x + 4*y + 12*z;
+	return t;
+}
+//
+
+int main(int argn, int argc[])
 {
 #ifdef __STDC__
 	     printf("%s\n", "stardard C");
@@ -13,5 +20,6 @@ int main()
 #endif
 		  
 	printf("hello, world!\n");
+
 	return 0;
 }
