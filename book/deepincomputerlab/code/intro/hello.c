@@ -1,5 +1,20 @@
 #include <stdio.h>
 
+char cmpx(long a, long b)
+{
+	return a < b;	
+}
+
+long cmpy(long a, long b)
+{
+	return a < b;	
+}
+
+long cmpz(long a, long b)
+{
+	return a == b;	
+}
+
 long scale(long x, long y, long z)
 {
 	long t = x + 4*y + 12*z;
