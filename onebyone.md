@@ -675,5 +675,9 @@ cc -Og -S hello.c
 ### echo 3 > /proc/sys/vm/drop_caches, 清cache
 
 ### pstore
+> 主要用于存储内核异常时的log信息。实现方式是，管理一块“非易失性的存储空间”，如不断电的RAM或外部存储，当系统异常时，将log信息写到Pstore管理的存储空间，直到下一次系统正常时，在将log读出来，以文件形式提供给用户使用。
+
+* 模块代码主要在 kernel/fs/pstore 下
+* persistent storage
 * 是种文件系统
 * 用于记录crash,oop内核崩溃时内核信息，类似kdump，不过比kdump轻量级一些，可用于android?
