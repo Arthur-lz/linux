@@ -674,3 +674,6 @@ cc -Og -S hello.c
 
 ### echo 3 > /proc/sys/vm/drop_caches, 清cache
 
+### pstore
+* 是种文件系统
+* 用于记录crash,oop内核崩溃时内核信息，类似kdump，不过比kdump轻量级一些，可用于android?
