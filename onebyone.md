@@ -688,11 +688,24 @@ cc -Og -S hello.c
 
 ### cache是如何组织的？
 * 由set, way, tag, index来管理
+> cache是以cacheline为单位访问的，其大小为64Bytes
+
+> 如果cache大小为16KB，每个set有4个way，每个way有4个tag，每个way是64Bytes，那么16KB/4/64B=64=2^6，即有64个set；
+
+> 32位地址总线，虚拟地址中第31～22位是一级页表索引（页表项存的是二级页表物理地址），21～12是二级页表索引（二级页表项保存的是物理页面的物理地址），11～0是物理页面内部偏移
+
+
 * 有三种组织方式？VIVT, VIPT, PIPT
+* VIVT不需要经MMU转成物理地址，直接用虚拟地址访问cache
+* VIPT其中的tag需要经MMU转成物理地址后访问cache
+* PIPT是index和tag都需要经MMU转成物理地址后访问cache
 
 ### cache一致性问题
 
 ### GFP_ATOMIC
+* 不只是不会引起睡眠，它可以申请内存水位线Min/2；
+> 水位有三种High,Low,Min; High = 1.5Min, Low = 1.25Min;
+* Kswapd用于回收内存，当水位值小于等于Low时，当水位值为Min时，再有用户申请内存则直接回收内存, 这时用kswapd有点晚了
 
 
 
