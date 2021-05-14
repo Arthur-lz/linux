@@ -681,3 +681,30 @@ cc -Og -S hello.c
 * persistent storage
 * 是种文件系统
 * 用于记录crash,oop内核崩溃时内核信息，类似kdump，不过比kdump轻量级一些，可用于android?
+
+### kdump原理是什么？
+
+### lru算法
+
+### cache是如何组织的？
+* 由set, way, tag, index来管理
+* 有三种组织方式？VIVT, VIPT, PIPT
+
+### cache一致性问题
+
+### GFP_ATOMIC
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
