@@ -707,6 +707,10 @@ cc -Og -S hello.c
 > 水位有三种High,Low,Min; High = 1.5Min, Low = 1.25Min;
 * Kswapd用于回收内存，当水位值小于等于Low时，当水位值为Min时，再有用户申请内存则直接回收内存, 这时用kswapd有点晚了
 
+### GDB调试
+next和nexti(即n和ni)是下一条，不进入函数内部，比如说在某一行发生了函数调用，next/nexti就继续到下一行。next是在源码层面的下一行，而nexti就是机器指令层面的，单步到下一个机器指令。
+
+step和stepi(即s和si)就是单步步入，进入函数内部，比如说在某一行发生了函数调用，step/stepi就会进入函数体内部，把函数体执行一遍，再返回执行下一条指令。同理，step是在源码层面的操作指令，stepi是在机器指令层面的。
 
 
 
