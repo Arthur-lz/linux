@@ -41,7 +41,7 @@ void main()
 	long b = 0x12345678;
 	printf("  big is :0x%x\n", b);
 	big2small(b);
-	return;
+//	return;
 	double d = 1.01;
 	unsigned long u = double2bits(d);
 	printf("double is: %2.2x, bits is: %2.2x\n",d, u);
