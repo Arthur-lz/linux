@@ -1,0 +1,52 @@
+	.file	"psum1.c"
+	.text
+	.globl	psum1
+	.type	psum1, @function
+psum1:
+.LFB0:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	movq	%rdi, -24(%rbp) // a[]
+	movq	%rsi, -32(%rbp) // p[]
+	movq	%rdx, -40(%rbp) // n
+	movq	-24(%rbp), %rax
+	movl	(%rax), %eax
+	movq	-32(%rbp), %rdx
+	movl	%eax, (%rdx)
+	movq	-32(%rbp), %rax
+	movl	(%rax), %eax
+	movl	%eax, -12(%rbp)
+	movq	$1, -8(%rbp)
+	jmp	.L2
+.L3:
+	movq	-8(%rbp), %rax // i = 1
+	leaq	0(,%rax,4), %rdx // a[i]
+	movq	-24(%rbp), %rax // a[0]
+	addq	%rdx, %rax  	// a[0]+a[1]
+	movss	(%rax), %xmm0
+	movss	-12(%rbp), %xmm1
+	addss	%xmm1, %xmm0
+	movss	%xmm0, -12(%rbp)
+	movq	-8(%rbp), %rax
+	leaq	0(,%rax,4), %rdx
+	movq	-32(%rbp), %rax
+	addq	%rax, %rdx
+	movl	-12(%rbp), %eax
+	movl	%eax, (%rdx)
+	addq	$1, -8(%rbp)
+.L2:
+	movq	-8(%rbp), %rax
+	cmpq	-40(%rbp), %rax // i < n
+	jl	.L3
+	popq	%rbp
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE0:
+	.size	psum1, .-psum1
+	.ident	"GCC: (GNU) 4.8.5 20150623 (Red Hat 4.8.5-44)"
+	.section	.note.GNU-stack,"",@progbits
