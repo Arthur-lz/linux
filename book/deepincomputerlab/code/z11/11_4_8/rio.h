@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #define RIO_BUFSIZE	8192
 typedef struct {
 	int rio_fd;
