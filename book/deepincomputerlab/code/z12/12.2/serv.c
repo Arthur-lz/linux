@@ -61,7 +61,7 @@ int main(int argc, char **argv)
 		}
 		if (FD_ISSET(listenfd, &ready_set)) {
 			clientlen = sizeof(struct sockaddr_storage);
-			connfd = accept(listenfd, (SA*)&clientaddr, &clientlen);
+			connfd = accept(listenfd, (SA*)&clientaddr, &clientlen); // 服务器总是使用同一个监听描述符来监听不同的客户端，所以每一个返回的connfd都是对应不同的客户端的连接描述符，这一点一定要注意
 			getnameinfo((SA*)&clientaddr, clientlen, client_hostname, MAXLINE, client_port, MAXLINE, 0);
 			printf("Connected to (%s, %s)\n", client_hostname, client_port);
 			echo(connfd); // echo函数会一直在，除非客户端输入的消息中包含有over字符串才会结束echo
