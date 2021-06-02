@@ -21,12 +21,11 @@ int main(int argc, char **argv)
 
 	while (fgets(buf, MAXLINE, stdin) != NULL) {
 		rio_writen(clientfd, buf, strlen(buf));
+		rio_readlineb(&rio, buf, MAXLINE);
 		fputs("server answer:", stdout);
-		while(rio_readlineb(&rio, buf, MAXLINE))
-			fputs(buf, stdout);
+		fputs(buf, stdout);
 	}
 
 	close(clientfd);
-	printf("client over\n");
 	exit(0);
 }
