@@ -14,13 +14,15 @@ void echo_cnt(int connfd);
 void *threadfn(void *argv)
 {
 	int connfd;
-	pthread_detach(pthread_self());
+	pthread_t id = pthread_self();
+	pthread_detach(id);
+	printf("tid %d in.\n", (int)id);	
 
 	while ((connfd = sbuf_remove(&sbuf)) <= 0);
 
 	echo_cnt(connfd);
 	close(connfd);
-	printf("tid %d over.\n", pthread_self());	
+	printf("tid %d over.\n", (int)id);	
 	return NULL;
 }
 
