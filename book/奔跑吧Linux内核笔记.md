@@ -136,20 +136,193 @@
 > 如果是TLB命中，即，TLB中保存有页表项PTE，而PTE中有要找的PPN，那么不用查页表，直接用TLB输出的PTE来得到PPN，从而得到物理地址
 
 ### ARMv8-A架构处理器的四级页表
+* 以页面大小是4KB为例说明，与二级页表类似，其64位中使用了48位用作页表编码
+> 0～11位，用于页内偏移
 
+> 12～20位，是第4级页表索引
 
+> 21～29位，是3级页表索引
 
+> 30～38位，是2级页表索引
 
+> 39～47位，是1级页表索引
 
+> 一级页表基址保存在mm.pgd中，当然也在寄存器TTBRx中
 
+## 11、在多核处理器中，cache的一致性是如何实现的？请简述MESI协议的含义
+* 出现高速缓存一致性问题的原因是：在多核上的dcache和内存可能有同一上数据的多个副本
+> 如果CPU只有一个核，那么是不存在高速缓存一致性问题的
 
+* MESI协议，M（修改Modified）、E（独占Eclusive）S（共享Share）I（无效Invalid）
 
+* MESI协议定义
+|状态|描述|
+|:-|:-|
+|M|这行数据有效，数据被修改，和内存中的数据不一致，数据只存在本cache中|
+|E|这行数据有效，数据和内存中数据一致，数据只存在于本cache中|
+|S|这行数据有效，数据和内存中数据一致，多个cache有这个数据的副本|
+|I|这行数据无效|
 
+* MESI状态说明
+|当前状态|操作|响应|迁移状态|
+|:-|:-|:-|:-|
+|M|总线读|Flush该cache line到内存，以便其他CPU可以访问到最新的内容，状态变成S|S|
+|M|总线写|Flush该cache line到内存，然后其他CPU修改cache line，因此本cache line执行清空数据操作，状态变成I|I|
+|M|处理器读|本地处理器读该cache line，状态不变|M|
+|M|处理器写|本地处理器写该cache line，状态不变|M|
+|E|总线读|独占状态的cache line是干净的，因此状态变成S|S|
+|E|总线写|数据被修改，该cache line不能再使用了，状态变成I|I|
+|E|本地读|从该cache line中取数据，状态不变|E|
+|E|本地写|修改该cache line数据，状态变成M|M|
+|S|总线读|状态不变|S|
+|S|总线写|数据被修改，该cache line数据不能使用了，状态变成I|I|
+|S|本地读|状态不变|S|
+|S|本地写|修改了该cache line的数据，状态变成M；其他核上共享的cache line的状态变成I|M|
+|I|总线读|状态不变|I|
+|I|总线写|状态不变|I|
+|I|本地读|1、如果cache miss, 则从内存中取数据，cache line变成E；2、如果其他cache有这份数据，且状态为M，则将数据更新到内存，本cache再从内存中取数据，两个cache的状态都变成s；3、如果其他cache有这份数据，且状态是S或E，本cache从内存中取数据，这些cache line都变成S|E/S|
+|I|本地写|1、如果cache miss，从内存中取数据，在cache中修改，状态变成M；2、如果其他cache有这份数据，且状态为M，则要先将数据更新到内存，其他cache line状态变成I，然后修改本cache line的内容|M|
 
+## 12、cache在Linux内核中有哪些应用？
+* 1.内核中常用的数据结构通常是和L1 cache对齐的
+> mm_struct使用SLAB_HWCACHE_ALIGN标志位来创建slab缓存，见proc_caches_init()
 
+* 2.一些常用的数据结构在定义时就约定以L1 cache对齐，如: struct zone, struct irqaction, softirq_vec[], irq_stat[, struct worker_pool
+> 使用宏___cacheline_internodeaigned_in_smp, ____cacheline_aligned_in_smp来定义上述数据结构, 内核源码下：include/linux/cache.h
 
+* cache与内存交换数据的最小单位是cache line
+> 如果一个结构没有和cache line对齐，那么结构有可能会占用多个cache line
 
+> 举例：假设结构C1和C2，缓存到L1 cache时没有按照cache line对齐，因此它们有可能同时占用了一条cache line，根据cache一致性协议，假设cpu0修改结构体C1时会导致cpu1的cache line失效。两个CPU原本没有共享访问，因为要共同访问同一个cache line，产生了事实上的共享。解决这个问题的一个方法是让结构体C1和C2按照cache line对齐，以空间换时间。
 
+* 3.数据结构中频繁访问的成员可以单独占用一个cache line，或者相关的成员在cache line中彼此错开，以提高访问效率
+> 例如，zone->lock, zone->lru_lock这两个频繁被访问的锁，可以让它们各自使用不同的cache line, 以提高获取锁的效率
+
+> 还有，struct worker_pool中的nr_running成员也独占一个cache line，避免多cpu同时读写该成员时引发其他临近的成员“颠簸”
+
+* 4. slab日着色区
+
+* 5. 自旋锁的实现
+
+## 13、简述ARM big.LITTLE架构，包括总线连接和cache管理
+* ARM提出大小核概念
+> 大核：针对性能优化过的处理器内核
+
+> 小核：针对功耗优化过的处理器内核
+
+* CCI-400模块（缓存一致性控制器）：用于管理大小核架构中缓存一致性相关的模块
+> 它只支持两个CPU簇，而CCI-500可支持6个CPU簇(cluster)
+
+> 大小核集群中的cache一致性管理
+
+> 实现CPU间数据共享
+
+> 可连接GPU, MMU, CPU, 外设, DMC
+
+> 外设需要支持ACE协议才可连接到CCI-400上
+
+* GIC-400：中断控制器
+> 与CPU直接连接
+
+* MMU-400：内存管理单元　
+
+* DMC-400: 内存控制器
+> 连接内存设备，如LP-DDR2/3或DDR内存设备
+
+* NIC-400: 用于AMBA总线协议的连接，可以支持AXI、AHB和APB总线的连接
+> 如用于连接DMA, LCD设备
+
+* ACE协议（AMBA AXI Coherency Extension），是AXI4协议的扩展协议，它增加了很多特性用于支持硬件一致性
+> 模块之间共享内存不需要软件参与，硬件直接管理和维护各个cache之间的一致性
+
+## 14、cache coherency和memory consistency有什么区别？
+* cache coherency，关注的是同一个数据在多个cache和内存中的一致性问题
+> 解决高速缓存一致性的方法主要是总线监听协议，例如MESI协议
+
+* memory consistency, 关注的是处理器系统对多个地址进行存储器访问序列的正确性 
+> 这需要对内存访问模型的知识，如严格一致性内存模型、处理器一致性内存模型、弱一致性内存模型
+
+> 现在处理器中广泛应用的是弱一致性内存模型，而内存屏障指令即属于这一模型
+
+## 15、简述cache的write back有哪些策略
+* write back（回写模式），在进行写操作时，数据直接写入当前cache, 而不会继续传递，当该cache line被替换出去时，被改写的数据才会更新到下一级cache或主存储器中
+
+* write through（直写模式），进行写操作时，数据同时写入当前的cache、下一级cache或主存储器中
+
+## 16、简述cache line的替换策略
+* cache不命中时，意味着处理器需要从主存储器中获取数据，而且还需要将cache的某个cache line替换出去
+
+* cache 的替换策略有：随机法（Random Policy）、先进先出法（FIFO）、最近最少使用算法（LRU）
+> LRU：根据各块使用情况，总是选择最近最少使用的块来替换，符合局部性原理
+
+> FIFO：选择最先调入的那个cache block进行替换，最先调入的块可能被多次命中，但是被优先替换，因而不符合局部性原理
+
+> 随机：随机确定替换的cache block，命中率较低
+
+* Cortex-A57处理器中，L1 cache 采用的LRU算法，L2 cache 采用的是随机算法
+
+* Cortex-A72处理器中，L2 cache采用LRU或伪随机算法
+
+## 17、多进程间频繁切换对TLB有什么影响？现代的处理器是如何面对这个问题的？
+* TLB用于缓存页表项，输入vpn, 输出pte，而pte中有ppn
+> tlb可以缓存的pte项是有限的，如果系统页大小是4KB, 而一个程序需要512页，那么对应的就需要512个页表项来缓存这个程序，如果tlb可存的pte个数小于512，则tlb不命中的机率就会高，反之，如果页的大小是1MB，则只需要2个pte就可以了，这样tlb命中率就高
+
+## 18、简述NUMA架构特点
+* 首先要知道什么是UMA，之后再说NUMA
+> 现在大多数ARM采用的是UMA的内存架构，内存是统一结构和统一寻址
+
+* UMA内存架构的系统有以下特点
+> 所有硬件资源都是共享的，每个处理器都能访问到系统中的内存和外设资源
+
+> 所有处理器都是平等的
+
+> 统一寻址访问内存
+
+> 处理器和内存通过内部的一条总线连接在一起
+
+* NUMA架构特点
+> 每个CPU集群有本地内存结点，访问本地的内存更快，访问别的CPU集群的内存结点速度慢
+
+* ARM在2016年Cavium公司发布的ARMv8-A指令集的服务器芯片ThunderX2开始支持NUMA
+
+## 19、ARM从Cortex系列开始性能有了质的飞跃，比如Cortex-A8/A15/A53/A72，说说Cortex系列在芯片设计方面做了哪些重大改进？
+* 2005年发布的Cortex-A8
+> 引入超标量技术，单时钟周期可并行发射两条指令
+
+> 静态调度流水线和顺序执行
+
+* 2007年发布的Cortex-A9
+> 引入乱序执行和猜测执行
+
+> 扩大L2 Cache容量
+
+* 2010年发布的Cortex-A15
+> 主频到2.5GHz, 支持8核，单个簇最多4核，有1TB物理地址空间，支持虚拟化
+
+> 引入Micro-Ops，微操作概念，与x86的uops指令想法类似
+
+* 2012年发布的Cortex-A53,A57
+> A57是首款支持64位的ARM处理器内核
+
+* 2015年发布的Cortex-A72
+> 5发射, 并行执行8条微操作指令
+
+## 开源指令集
+* OpenRISC
+> linux内核中已经包含这个体系结构
+
+* RISC-V
+> 还没有被集成到linux内核
+
+> 是由伯克利大学设计的
+
+> 最基础的指令集只包含40条指令
+
+> 通过扩展可以支持64位和128位运算以及变长指令
+
+> 2016年RISC-V基金会成立（成员有华为、Google、HP、甲骨文、西部数据等）
+
+> 已经进入GCC/Binutils主线
 
 
 
