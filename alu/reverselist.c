@@ -34,7 +34,7 @@ struct dlist * reverseList(struct dlist* head){
         cur->next = pre; 
         pre = cur;       
         cur = tmp;	 
-	output_list(pre);
+	//output_list(pre);
 
     }
     head->next = NULL;

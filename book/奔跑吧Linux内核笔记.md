@@ -430,6 +430,7 @@ start_kernel()->
 				paging_init()->
 						prepare_page_table()
 						map_lowmem()
+						bootmem_init()
 
 // paging_init()中是先调用prepare_page_table()，之后调用map_lowmem(), 见arch/arm/mm/mmu.c中函数paging_init()实现
 
@@ -447,6 +448,138 @@ start_kernel()->
 > 对应ARM Vexpress，__init_end值为0x60800000
 
 ### 2.1.4 zone初始化
+* 页表初始化完成后，内核就可以对内存进行管理了，内核采用分区的方式来管理这些页面
+> zone会经常被访问，因此这个数据结构要求以L1 cache对齐　
+
+> zone结构中的ZONE_PADDING()是让zone->lock和zone->lru_lock分布在不同的cache line中
+
+> 一个内存结点只有几个zone实例，所以才会用ZONE_PADDING()用空间换时间
+
+* zone一般分为ZONE_DMA, ZONE_DMA32, ZONE_NORMAL, ZONE_HIGHMEM
+
+* ARM Vexpress只有ZONE_NORMAL, ZONE_HIGHME
+> ZONE的类型定义在include/linux/mmzone.h中, struct zone也在mmzone.h中定义
+
+* zone的初始化集中在bootmem_init()中完成，其也是在paging_init中被调用的
+> zone具体的初始化函数是在free_area_init_core中, 其调用路径为
+```c
+start_kernel()->
+		setup_arch()->
+				paging_init()->
+						bootmem_init()->
+								zone_sizes_init()->
+											free_area_init_node()->
+														free_area_init_core()
+```
+
+* struct zonelist, 定义在mmzone.h中
+```c
+struct zone {
+	...						// 省略很多
+	struct free_area	free_area[MAX_ORDER]; 	// free_area结构中包含有几种迁移类型的页面, ARM里有六种迁移类型 
+	...						// 省略很多
+};
+struct zoneref {
+	struct zone *zone;
+	int zone_idx;
+};
+struct zonelist {
+	struct zoneref _zonerefs[MAX_ZONES_PER_ZONELIST + 1];
+};
+```
+> 伙伴系统从zonelist开始分配内存，zonelist中有一个zoneref数组，数组里有成员指向zone数据结构。zoneref数组的第一个成员指向的zone是页面分配器的第一个侯选者，其他成员是在第一个候选者分配失败之后才考虑的
+
+> zonelist初始化路径如下
+```c
+start_kernel()->
+		build_all_zonelists()->
+		 			build_all_zonelists_init()->
+									__build_all_zonelists()->
+												build_zonelists()->
+															build_zonelists_node()
+								
+// build_zonelists_node函数中从最高MAX_NR_ZONES的zone开始循环，初始化zonelist的_zonerefs数组
+```
+
+* mem_map全局变量，它是一个struct page数组，实现快速把虚拟地址映射到物理地址
+
+### 2.1.5 空间划分
+* 内核中使用宏PAGE_OFFSET来描述内核空间偏移量, 以地址总线位宽为32位来计算，虚拟地址空间是4GB时，用户空间和内核空间划分如下
+> 当用户空间与内核空间按3G/1G划分时，内核空间大小是1GB, 那么PAGE_OFFSET就等于0xC0000000
+
+> 当用户空间与内核空间按2G/2G划分时，此时内核空间大小是2GB，那么PAGE_OFFSET就等于0x80000000
+
+* ARM Linux中有一个配置选项Memory split（它可用于高速用户和内核空间大小划分）, 在文件arch/arm/Kconfig
+
+* 利用PAGE_OFFSET可以换算线性映射时物理地址和虚拟地址的转换关系
+> 线性映射的物理地址 = 虚拟地址 - PAGE_OFFSET + PHYS_OFFSET
+
+### 2.1.6 物理内存初始化
+* 在内核启动时，内核知道物理内存DDR的大小，并计算出高端内存的起始地址和内核空间的内存布局后，物理内存页面接下来就要加入到伙伴系统中
+> uboot或BIOS把物理内存的大小告诉linux内核
+
+> 大部分物理内存页面都放在MIGRATE_MOVABLE链表中　
+
+> 大部分物理内存页面初始化时存放在2的10次方链表中
+
+* 物理页面是如何加入到伙伴系统的？
+> 是以2的order次幂的方式加入的
+
+```c
+static unsigned long __init free_low_memory_core_early(void)
+{
+	...
+	for_each_free_mem_range(i, NUMA_NO_NODE, &start, &end, NULL)
+		count += _free_memory_core(start, end);
+	...
+}
+
+static void __init __free_page_memory(unsigned long start, unsigned long end)
+{
+	int order;
+	while (start < end) {
+		...
+		__free_pages_bootmem(pfn_to_page(start), order);
+		...
+	}
+}
+
+void __init __free_pages_bootmem(struct page *page, unsigned int order)
+{
+	...
+	__free_pages(page, order); // 4.4.24版本，__free_pages_bootmem()->__free_pages_boot_core()->__free_pages()
+}
+```
+
+> 物理页面加入到伙伴系统的代码调用路径(4.4.24版本内核)
+
+|函数|.c|
+|:-|:-|
+|start_kernel   |init/main.c|
+|mm_init	|init/main.c |
+|mem_init        | arch/arm/mm/init.c |
+|free_all_bootmem|mm/nobootmem.c|	
+|free_low_memory_core_early|mm/nobootmem.c|
+|__free_memory_core	|mm/nobootmem.c|
+|__free_pages_memory|mm/nobootmem.c|
+|__free_pages_bootmem|mm/page_alloc.c |
+|__free_pages_boot_core|mm/page_alloc.c |
+|__free_pages|mm/page_alloc.c|
+
+## 2.2 页表的映射过程
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
