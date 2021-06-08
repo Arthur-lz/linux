@@ -324,6 +324,129 @@
 
 > 已经进入GCC/Binutils主线
 
+# 第2章 内存管理
+## 内核有属于内核自己的页表；每个进程有属于进程自己的页表；
+## 虚拟内存和物理内存采用页表来建立映射关系
+## 本章以ARM Vexpress平台为例讲述
+* 不支持NUMA
+
+## 用户态内存管理相关API
+```c
+void *malloc(size_t size);
+void free(void *ptr);
+
+void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);
+int munmap(void *addr, size_t length);
+
+int getpagesize(void);
+
+int mprotect(const void *addr, size_t len, int prot);
+
+int mlock(const void *addr, size_t len);
+int munlock(const void *addr, size_t len);
+
+int madvise(void *addr, size_t length, int advice);
+void *mremap(void *old_address, size_t old_size, size_t new_size, int flags, ...);
+int remap_file_pages(void *addr, size_t size, int prot, ssize_t pgoff, int flags);
+```
+
+## 2.1 物理内存初始化
+### 2.1.1 内存管理概述
+* 用户层　
+> 通过libc库封装的C语言函数malloc, mmap等
+
+* 内核层
+> 使用系统调用实现用户层libc封装的C语言函数(sys_brk, sys_mmp, sys_madvise)
+
+> VMA管理
+
+> 缺页中断
+
+> 匿名页面
+
+> page cache
+
+> 页面回收
+
+> slab分配器　
+
+> 页表管理
+
+> 伙伴系统/页面分配器
+
+* 硬件层
+> MMU
+
+> TLB
+
+> cache
+
+> 物理内存（板载的）
+
+### 2.1.2 内存大小
+* 物理内存大小　
+> ARM Linux中，各种设备相关属性采用DTS（device tree source）方式来描述
+
+> 2011年ARM Linux社区开始全面支持DTS
+
+> ARV Vexpress平台中，内存的定义在arch/arm/boot/dts/vexpress-v2p-ca9.dts中定义
+
+```
+	memory@60000000 {                                                                                                                        
+		device_type = "memory";
+	        reg = <0x60000000 0x40000000>;
+	};
+// 内存的起始地址是0x60000000
+// 内存的大小是0x40000000 = 1GB = 2^30
+```
+
+> 内核在启动过程中，需要解析这些DTS文件，代码调用关系如下:
+
+```c
+start_kernel()->
+		setup_arch()->
+				setup_machine_fdt()->
+							early_init_dt_scan_nodes()->
+											early_init_dt_scan_memory()
+															->memblock_add()
+
+// 书中写的是会调用函数memblock_add添加到memblock子系统中，所以函数early_init_dt_add_memory_arch是arch/arm64/kernel/setup.c中定义的，所以可知Vexpress平台是64位的系统
+
+// early_init_dt_add_memory_arch是在early_init_dt_scan_memory中调用的
+	
+// drviers/of/fdt.c
+
+int __init early_init_dt_scan_memory
+```
+
+* 虚拟内存大小　
+
+### 2.1.3 物理内存映射
+* 在内核使用内存前，需要初始化内核的页表
+#### 书中给的内核代码调用路径是
+```c
+start_kernel()->
+		setup_arch()->
+				paging_init()->
+						prepare_page_table()
+						map_lowmem()
+
+// paging_init()中是先调用prepare_page_table()，之后调用map_lowmem(), 见arch/arm/mm/mmu.c中函数paging_init()实现
+
+// 因书中给出的是上述调用路径，所以paging_init()函数是在arch/arm/mm/mmu.c中实现;而不是在arch/arm64/mm/mmu.c中，因为这个里面的paging_init没有调用prepage_page_table()和map_lowmem()，这就与上一节2.1.2中最后一句说的会调用memblock_add()函数是冲突的，因为它是在arm64中才会调memblock_add
+// 上述内核版本是3.10.0
+// 下载了4.4.24版本的内核源码，目前截止到书中39页，与书中源码一致
+```
+
+* kernel的代码段起始地址是_stext
+> 在内核版本4.4.24中函数map_lowmem中有_stext直接引用，但内核4.11.10及以后版本4.20.9都使用的是KERNEL_START
+
+> ARM Vexpress, _stext值为0x60000000
+
+* kernel的代码终止地址是__init_end
+> 对应ARM Vexpress，__init_end值为0x60800000
+
+### 2.1.4 zone初始化
 
 
 
