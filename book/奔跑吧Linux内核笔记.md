@@ -660,7 +660,146 @@ swapper_pg_dir = .;
 ```
 
 ## 2.3 内核内存的布局图
+* Linux 内核在启动时会打印出内核内存空间布局图
+> start_kernel->mm_init->mem_init
 
+### 2.3.1 ARM32内核内存布局图
+* ARM Vexpress 平台打印的内核内存空间布局图如下
+```
+Virtual kernel memory layout:
+	vector	: 0xffff0000	-	0xffff1000	(4KB)
+	fixmap	: 0xffc00000	-	0xfff00000	(3072 KB)
+	vmalloc : 0xf0000000	-	0xff000000	(240 MB)
+	lowmem  : 0xc0000000 	-	0xef800000	(760 MB)
+	pkmap	: 0xbfe00000 	-	0xc0000000	(2 MB)
+	modules : 0x0xbf0000	-	0xbfe00000	(14 MB)
+	 .text	: 0xc0008000	-	0xc0658750	(6466 KB)
+	 .init  : 0xc0659000	-	0xc0782000	(1188 KB)
+	 .data  : 0xc0782000	-	0xc07b1920	(191 KB)
+	 .bss	: 0xc07b190	-	0xc07db378	(167 KB)
+```
+
+* 内核编译完成后生成的System.map文件中有各部分地址(当然全是虚拟地址)
+* 高端内存起始地址是在内存初始化时，在函数sanity_check_meminfo()中确定的，并将高端内存起始地址保存在全局变量high_memory中
+* 内核通常把低于760MB的称为线性映射内存，高于760MB的称为高端内存
+
+### 2.3.2 ARM64内核内存布局图
+* ARM64处理器采用48位物理寻址; 虚拟地址同样最大支持48位寻址　
+* Linux内核在大多数体系结构上把两个地址空间划分为用户空间和内核空间
+> 用户空间：0x0000 0000 0000 0000	～	0x0000 ffff ffff ffff
+
+> 内核空间：0xffff 0000 0000 0000	～	0xffff ffff ffff ffff
+
+* 64位的Linux内核中没有高端内存概念，因为48位寻址空间已经足够大了
+
+* ARM64架构的Linux内核的内存分布图如下　
+```
+Virtual kernel memory layout:
+	vmalloc : 0xffff 0000 0000 0000		-	0xffff 7bff bfff 0000 	(126974 GB)
+	vmemmap : 0xffff 7bff c000 0000		-	0xffff 7fff c000 0000	(4096 GB)
+		: 0xffff 7bff c100 0000		-	0xffff 7bff c300 0000 	(32 MB)
+	fixed	: 0xffff 7fff fabf e000		-	0xffff 7fff ac00 0000 	(8 KB)
+	PCI I/O : 0xffff 7fff fae0 0000		-	0xffff 7fff fbe0 0000 	(16 MB)
+	modules : 0xffff 7fff c000 0000		-	0xffff 8000 0000 0000 	(64 MB)
+	memory	: 0xffff 8000 0000 0000		-	0xffff 8000 8000 0000	(2048 MB)
+	 .init  : 0xffff 8000 0077 4000		-	0xffff 8000 008b c000	(1312 KB)
+	 .text  : 0xffff 8000 0008 0000		-	0xffff 8000 0077 34e4	(7118 KB)
+	 .data  : 0xffff 8000 008c 0000 	-	0xffff 8000 0091 f400	(381 KB)
+```
+
+## 2.4 分配物理页面
+### 2.4.1 伙伴系统分配内存
+```c
+// include/linux/gfp.h
+#define alloc_pages(gfp_mask, order) alloc_pages_node(numa_node_id(), gfp_mask, order)
+alloc_pages->alloc_pages_node->__alloc_pages->__alloc_pages_nodemask->first_zones_zonelist
+									get_page_from_freelist->for_each_zone_zonelist_nodemask
+									__alloc_pages_slowpath
+									
+	get_page_from_freelist->cpuset_zone_allowed
+				zone_watermark_ok
+				buffer_rmqueue->__rmqueue->__rmqueue_smallest->expand
+						zone_statistics
+				prep_new_page->check_new_page
+
+/* 1. 伙伴系统分配内存的第一步是要找到一个合适的zone
+   2. 之后遍历zone的空闲区中指定迁移类型的空闲链表，从与order相等的空闲区开始寻找，如果第一个等于order的空闲区中对应迁移类型的空闲链表没有空闲对象，则order++，进入下一次循环，找更大的空闲区对应迁移类型的空闲链表，如果空闲链表里有空闲对象，那么就把这个空闲块从链表上取下来，之后用expand来拆分内存块（当然，如果找到的内存区的order与目标相同就不拆分了，直接从链表上取下来返回，这在expand里有判断）
+   3. 到这里内存块已经分配成功，从__rmqueue返回struct page
+   4. 回到buffer_rmqueue后，需要调用zone_staticstics做统计
+   5. 回到get_page_from_freelist后，调用prep_new_page来调用check_new_page对分配的内存块的struct page进行检查，合格后即可返回最终的struct page
+ */
+```
+* 找到zone之后，在函数__rmqueue_smallest中找空闲链表时，首先找的是与申请的order相同的空闲区中的空闲链表，如果没有空闲对象，才会往大的空闲区中找
+> 所以，一般来说找到的空闲链表都是大于申请的order的，所以需要expand进行切分，返回一个合适大小的page
+
+* 什么样子的zone是合适的？（page = alloc_pages(GFP_KERNEL, order）
+> 首先根据分配掩码找到：空闲链表的迁移类型、zone索引(用于从zonelist中定位是哪个zone)、使用numa_node_id()得到内存结点
+
+> 之后根据内存结点找到zonelist
+
+> 之后在for_each_zone_zonelist_nodemask中的指定的内存结点上遍历该内存结点下zonelist的_zonerefs数组中的所有zone（对于ARM32，只有NORMAL和HIGH），找与zone_idx相同的zone，到这里已经找到zone了
+
+### 2.4.2 释放页面
+* 核心函数__free_pages->__free_pages_ok->__free_one_page
+			free_hot_cold_page
+
+```c
+static inline void __free_one_page(struct page *page, 
+					unsigned long pfn,
+					struct zone *zone, 
+					unsigned int order,
+					int migratetype)
+{
+	unsigned long page_idx;
+	unsigned long combined_idx;
+	unsigned long uninitialized_var(buddy_idx);
+	struct page *buddy;
+	int max_order = MAX_ORDER;
+
+	page_idx = pfn & ((1 << max_order) - 1);
+
+	while (order < max_order - 1) {
+		buddy_idx = __find_buddy_index(page_idx, order);
+		buddy = page + (buddy_idx - page_idx);
+		if (!page_is_buddy(page, buddy, order))
+			break;
+
+		if (page_is_guard(buddy))
+			clear_page_guard(zone, buddy, order, migratetype);
+		else {
+			list_del(&buddy->lru);
+			zone->free_area[order].nr_free--;
+			rmv_page_order(buddy);
+		}
+		combined_idx = buddy_idx & page_idx;
+		page = page + (combined_idx - page_idx);
+		page_idx = combined_idx;
+		order++;
+	}
+}
+```
+
+* 函数__free_one_page是合并相邻伙伴的核心代码，举例如下
+> 假设现在要释放一个内存块A，大小为2个page, 内存块的page的开始页帧号是0x8e010, order=1
+
+> 1、首先计算得出page_idx = 0x8e010 & ((1 << 10) - 1) = 0x8e010 & 0x3ff = 0x10;
+
+> 2、在第一次while循环中，计算buddy_idx = page_idx ^ (1 << order) = 0x10 ^ 2 = 0x12
+
+> 3、那么buddy就是内存块A的相邻内存块B了
+
+> 4、接下来通过page_is_buddy函数判断内存块B是不是空闲内存块
+
+> 5、如果发现内存块B也是空闲块，并且order等于1，那我们就找到一个伙伴，把它从空闲链表上取下来，以便和内存块A合并到高一阶的空闲链表中
+
+> 6、这时combined_idx指向内存块A的起始地址。order++表示继续在附近寻找有没有可能合并的相邻内存块，这次要找的order=2
+
+> 7、重复步骤2，查找附近有没有order=2的内存块
+
+> 8、如果在0x14位置的内存块C不满足合并条件，例如内存块C不是空闲页面，或者C的order不是2。如果没有找到order=2的内存块，那么只能合并内存块A和B了，然后把这个内存块添加到空闲页表中
+
+### 2.4.3 小结
+## 2.5 slab分配器
 
 
 
