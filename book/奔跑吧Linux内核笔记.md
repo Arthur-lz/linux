@@ -567,12 +567,99 @@ void __init __free_pages_bootmem(struct page *page, unsigned int order)
 |__free_pages|mm/page_alloc.c|
 
 ## 2.2 页表的映射过程
+* 多级页表命名
+|页表名|kernel中的命名|
+|:-|:-|
+|一级页表（L0）|PGD|
+|二级页表（L1）|PUD|
+|三级页表（L2）|PMD|
+|四级页表（L3）|PTE|
+### 2.2.1 ARM32页表映射
+* PGD页表基址通过init_mm结构的pgd成员来获取
 
+#### ARM结构中一级页表PGD的偏移应该从第20位开始，为何头文件arch/arm/include/asm/pgtable-2level.h中的宏PGDIR_SHIFT是21，即从21位开始？
+> start_kernel->setup_arch->paging_init->map_mem->__map_memblock->create_mapping->alloc_init_pud->alloc_init_pmd->alloc_init_pte->early_pte_alloc
 
+```c
+// arch/arm/mm/mmu.c 
 
+static pte_t * __init early_pte_alloc(pmd_t *pmd, unsigned long addr, unsigned long prot)
+{
+	if (pmd_none(*pmd)) {
+		pte_t *pte = early_alloc(PTE_HWTABLE_OFF + PTE_HWTABLE_SIZE);
+		...
+}
+```
+* 看上面的源码，early_alloc中传递的PTE_HWTABLE_OFF + PTE_HWTABLE_SIZE = 512 + 512
 
+> 1、ARM32硬件结构中，PGD是从20位开始31位结束，PGD页表项数目是4096; PTE是从12位开始到19位结束，有256个PTE页表项；
 
+> 2、Linux 内核中, PGD是从21位开始到31位结束，PGD页表项数目是2048; PTE是从12位到20位，共有512个PTE页表项；
 
+> 对应1和2，Linux内核中少了一半PGD页表项，所以它采用双倍的PTE来补PGD少的那一半PGD页表项，即，在Linux内核中一个PGD表项对应512个PTE页表项
+
+> 再看上面的代码，实际分配的是512 + 512个PTE页表项给一个PGD页表项，这么做是为什么呢？其中一半是给内核用的页表，后面的是给ARM硬件MMU用的
+
+> 为什么不用一份，而是分别准备两组PTE？这是因为，ARM硬件页面表中没有提供对标志位PTE_DIRTY, PTE_YOUNG, PTE_PRESENT支持，所以需要使用内核页表来模拟上述3个标志位
+
+* PTE_DIRYT, PTE_YOUNG, PTE_PRESENT用途
+> PTE_DIRYT，CPU执行写操作时会设置该标志位，表示对应的页面被写过，为脏页
+
+> PTE_YOUNG，CPU访问页面时会标记该标志。在页面换出时，如果该标志位置位，说明该页刚刚被访问过，根据LRU算法，此页不益被换出，同时清除该标志位
+
+> PTE_PRESENT，页在内存中
+
+### 2.2.2 ARM64页表映射
+* 内核初始化阶段会对内核空间的页表进行一一映射
+> 使用函数create_mapping()完成映射　
+
+> start_kernel->setup_arch->paging_init->map_mem->__map_memblock->create_mapping
+
+> __create_mapping->alloc_init_pud->alloc_init_pmd->alloc_init_pte
+
+* 本节以4KB页面，48位地址，4级页表说明ARM64的地址映射过程
+> 用户空间和内核空间内存分布图
+
+|start|end|size|use|
+|:-|:-|:-|:-|
+|0x0000 0000 0000 0000|0x0000 ffff ffff ffff|256TB|用户|
+|0xffff 0000 0000 0000|0xffff ffff ffff ffff|256TB|内核|
+
+> VMALLOC_START = 0XFFFF 0000 0000 0000
+
+* PGD页表基址通过init_mm结构的pgd来取，swapper_pg_dir全局变量指向PGD页表基址
+```
+// arch/arm64/kernel/vmlinux.lds.S
+swapper_pg_dir = .;
+. += SWAPPER_DIR_SIZE;
+
+// arch/arm64/include/asm/page.h
+
+#define SWAPPER_PGTABLE_LEVELS	(CONFIG_ARM64_PGTABLE_LEVELS - 1) // 因为这里讲的是4级页表，所以CONFIG_ARM64_PGTABLE_LEVELS = 4
+#define SWAPPER_DIR_SIZE	(SWAPPER_PGTABLE_LEVELS * PAGE_SIZE)
+
+// arch/arm64/include/asm/pgtable-hwdef.h
+#define ARM64_HW_PGTABLE_LEVEL_SHIFT(n) ((PAGE_SHIFT - 3) * (4 - (n)) + 3) //  (4 - n) * (PAGE_SHIFT - 3) + 3
+
+#define PAGE_SHIFT 	12 // 因为是4KB页面
+#define PGDIR_SHIFT 	ARM64_HW_PGTABLE_LEVEL_SHIFT(0) 	// (4 - 0) * (12 - 3) + 3 = 39
+#define PUD_SHIFT 	ARM64_HW_PGTABLE_LEVEL_SHIFT(1)  	// (4 - 1) * (12 - 3) + 3 = 30
+#define PMD_SHIFT 	ARM64_HW_PGTABLE_LEVEL_SHIFT(2)		// (4 - 2) * (12 - 3) + 3 = 21
+#define PTE_SHIFT	ARM64_HW_PGTABLE_LEVEL_SHIFT(3)		// (4 - 3) * (12 - 3) + 3 = 12
+
+#define PTRS_PER_PTE    (1 << (PAGE_SHIFT - 3)) // 1 << 9 = 2^9 = 512
+#define PTRS_PER_PGD	PTRS_PER_PTE
+#define PTRS_PER_PUD	PTRS_PER_PTE
+#define PTRS_PER_PMD	PTRS_PER_PTE
+
+#define PGDIR_SIZE	1 << PGDIR_SHIFT 	// 1 << 39 // 512GB, 因为有512个PGD页表项，所以总计可映射的最大虚拟地址是：512 * 512GB = 256TB
+#define PUD_SIZE	1 << PUD_SHIFT		// 1 << 30 // 1GB, 512个PGD, 512个PUD，一个PUD可映射1GB，所以可映射最大地址是:512 * 512 * 1GB = 256TB
+#define PMD_SIZE	1 << PMD_SHIFT		// 1 << 21 // 2MB, 512PGD * 512PUD * 512PMD * 2MB = 256TB
+#define PTE_SIZE	1 << PTE_SHIFT		// 1 << 12 // 4KB, 512PGD * 512PUD * 512PMD * 512PTE * 4KB = 256TB	
+
+```
+
+## 2.3 内核内存的布局图
 
 
 
