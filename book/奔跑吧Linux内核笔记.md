@@ -938,8 +938,31 @@ struct kmem_cache_node {
 > 2.注册定时器，定时调用cache_reap
 
 ## 2.6 vmalloc
+* 本书中介绍的是以ARM32的内核路径为例说明vmalloc实现的; 
+* 相关数据结构、宏定义、关键函数
+```c
+VMALLOC_START, VMALLOC_END
+struct vm_struct
+static struct rb_root vmap_area_root = RB_ROOT;
+struct vmap_area
 
+__vmalloc_node_range->__get_vm_area_node->alloc_vmap_area->__insert_vmap_area
+			__vmalloc_area_node->map_vm_area
 
+pte_alloc_one_kernel
+```
+
+### vmalloc的逻辑流
+* __vmalloc_node_range->__get_vm_area_node->alloc_vmap_area->__insert_vmap_area
+			__vmalloc_area_node->map_vm_area
+
+> alloc_vmap_area在vmalloc空间查找一块大小合适的且没被使用的空间hole，并将最终找到或分配的hole插入到vmap_area_root红黑树，函数返回vmap_area*
+
+> __get_vm_area_node利用alloc_vmap_area返回的vmap_area建立vm_struct，并返回vm_struct*
+
+> 接下来__vmalloc_area_node函数给vmalloc分配物理页面，并将page指针保存到vm_struct.pages数组中，之后调用map_vm_area更新页表
+
+## 2.7 VMA操作
 
 
 
