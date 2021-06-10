@@ -800,9 +800,78 @@ static inline void __free_one_page(struct page *page,
 
 ### 2.4.3 小结
 ## 2.5 slab分配器
+### 2.5.1 创建slab描述符（有很事要做）
+* 关键数据结构
+```c
+// struct kmem_cache是slab描述符, 在include/linux/slab_def.h中定义
+struct kmem_cache {
+	struct array_cache __percpu *cpu_cache; // 本地CPU对象缓冲池
+	unsigned int batchcount; // 当本地CPU缓冲池为空时，从共享缓冲池或slabs_partialslabs_free中获取的对象数目;由enable_cpucache计算
+	unsigned int limit; // 当本地缓冲池中空闲对象个数大于limit时，主动释放batchcount个对象，便于内核回收或销毁slab;在enable_cpucache中计算
+	unsigned int shared; // 多核系统中shared大于0, 在enable_cpucache()中初始化
+	unsigned int size; // 对象长度，需要根据align调整
+	...
+	unsigned int flags; //对象分配掩码
+	unsigned int num; // 一个slab中最多可以有的对象数
 
+	unsinged int gfproder; // 一个slab中占用2^gfporder个页面
+	...
+	size_t colour; // 一个slab中有几个不同的cache line, 即，包含的cache line数量
+	unsinged int colour_off; // 一上cache colour的长度
+	...
 
+	unsigned int freelist_size;
+	...
+	const char *name; // slab描述符名字
+	...
+	int object_size; // 实际申请的对象大小
+	int align; // 对齐长度
+	struct kmem_cache_node *node[MAX_NUMNODES]; // slab节点，在numa系统中，每个结点有一个kmem_cache_node; 它包含3个slab链表：部分空闲、完全用尽、空闲
+};
 
+struct array_cache {
+	unsinged int avail; // 对象缓冲池中可用的对象数　
+	unsigned int limit; // 当本地缓冲池中空闲对象个数大于limit时，主动释放batchcount个对象，便于内核回收或销毁slab
+	unsigned int batchcount; // 当本地CPU缓冲池为空时，从共享缓冲池或slabs_partialslabs_free中获取的对象数目
+	unsigned int touched;
+	void *entry[]; // 用于保存对象
+};
+
+// struct kmem_cache_node定义在mm/slab.h中
+struct kmem_cache_node {
+	spinlock_t list_lock;
+	struct list_head slabs_partial; //部分空闲， 链表中成员是slab
+	struct list_head slabs_full;    //完全用尽
+	struct list_head slabs_free;	//空闲　
+	unsigned long free_objects; // 三个链表中所有空闲对象数目
+	unsigned int free_limit; // slab中可容许的空闲对象数目最大阈值
+	unsigned int colour_next;
+	struct array_cache *shared; //多核CPU中，除了本地CPU的缓冲池外，其余CPU有一个共享的对象缓冲池
+	...
+};
+ 
+```
+
+* 关键函数
+> kmem_cache_create/destroy, 创建自定义的slab描述符;kmalloc用于创建通用的缓存
+
+> kmem_cache_alloc/free
+
+> calculate_slab_order, 计算一个slab需要多少个物理页面
+
+> cache_estimate, 计算了slab中可容纳多少个对象
+
+> cache_line_size, 计算L1 cache line大小
+
+> enable_cpucache, 计算shared, limit, batchcount
+
+> alloc_kmem_cache_cpus, 分配每CPU对象缓冲池
+
+* 新创建的slab描述符会添加到全局链表slab_caches中
+* 一个slab最多可以包含KMALLOC_MAX_ORDER（25）个页面，2^25 = 32MB
+> 见include/linux/slab.h
+
+### 2.5.2 分配slab对象　
 
 
 
