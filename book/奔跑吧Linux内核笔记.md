@@ -672,11 +672,11 @@ Virtual kernel memory layout:
 	vmalloc : 0xf0000000	-	0xff000000	(240 MB)
 	lowmem  : 0xc0000000 	-	0xef800000	(760 MB)
 	pkmap	: 0xbfe00000 	-	0xc0000000	(2 MB)
-	modules : 0x0xbf0000	-	0xbfe00000	(14 MB)
+	modules : 0xbf000000	-	0xbfe00000	(14 MB)
 	 .text	: 0xc0008000	-	0xc0658750	(6466 KB)
 	 .init  : 0xc0659000	-	0xc0782000	(1188 KB)
 	 .data  : 0xc0782000	-	0xc07b1920	(191 KB)
-	 .bss	: 0xc07b190	-	0xc07db378	(167 KB)
+	 .bss	: 0xc07b1920	-	0xc07db378	(167 KB)
 ```
 
 * 内核编译完成后生成的System.map文件中有各部分地址(当然全是虚拟地址)
@@ -723,10 +723,10 @@ alloc_pages->alloc_pages_node->__alloc_pages->__alloc_pages_nodemask->first_zone
 				prep_new_page->check_new_page
 
 /* 1. 伙伴系统分配内存的第一步是要找到一个合适的zone
-   2. 之后遍历zone的空闲区中指定迁移类型的空闲链表，从与order相等的空闲区开始寻找，如果第一个等于order的空闲区中对应迁移类型的空闲链表没有空闲对象，则order++，进入下一次循环，找更大的空闲区对应迁移类型的空闲链表，如果空闲链表里有空闲对象，那么就把这个空闲块从链表上取下来，之后用expand来拆分内存块（当然，如果找到的内存区的order与目标相同就不拆分了，直接从链表上取下来返回，这在expand里有判断）
-   3. 到这里内存块已经分配成功，从__rmqueue返回struct page
+   2. 之后遍历zone的空闲区中指定迁移类型的空闲链表，从与order相等的空闲区开始寻找(current_order = order)，如果第一个等于order的空闲区中对应迁移类型的空闲链表没有空闲对象，则++current_order，进入下一次循环，找更大的空闲区对应迁移类型的空闲链表，如果空闲链表里有空闲对象，那么就把这个空闲块从链表上取下来，之后用expand来拆分内存块（当然，如果找到的内存区的order与目标相同就不拆分了，直接从链表上取下来返回，这在expand里会将找的这个页块拆开，结束拆分的条件是当前分配的页块的current_order不大于申请的order）
+   3. 到这里内存块已经分配成功，从__rmqueue返回struct page指针　
    4. 回到buffer_rmqueue后，需要调用zone_staticstics做统计
-   5. 回到get_page_from_freelist后，调用prep_new_page来调用check_new_page对分配的内存块的struct page进行检查，合格后即可返回最终的struct page
+   5. 回到get_page_from_freelist后，调用prep_new_page来调用check_new_page对分配的内存块的struct page进行检查，合格后即可返回最终的struct page指针
  */
 ```
 * 找到zone之后，在函数__rmqueue_smallest中找空闲链表时，首先找的是与申请的order相同的空闲区中的空闲链表，如果没有空闲对象，才会往大的空闲区中找
@@ -782,9 +782,9 @@ static inline void __free_one_page(struct page *page,
 * 函数__free_one_page是合并相邻伙伴的核心代码，举例如下
 > 假设现在要释放一个内存块A，大小为2个page, 内存块的page的开始页帧号是0x8e010, order=1
 
-> 1、首先计算得出page_idx = 0x8e010 & ((1 << 10) - 1) = 0x8e010 & 0x3ff = 0x10;
+> 1、首先计算得出page_idx = 0x8e010 & ((1 << 10) - 1) = 0x8e010 & 0x3ff = 0x10; // 取pfn的后10位
 
-> 2、在第一次while循环中，计算buddy_idx = page_idx ^ (1 << order) = 0x10 ^ 2 = 0x12
+> 2、在第一次while循环中，计算buddy_idx = page_idx ^ (1 << order) = 0x10 ^ 2 = 0x12 // ^是异或, 0001 0000 ^ 0010 = 0001 0010 = 0x12
 
 > 3、那么buddy就是内存块A的相邻内存块B了
 
