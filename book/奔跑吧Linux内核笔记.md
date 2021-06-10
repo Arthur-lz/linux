@@ -845,7 +845,7 @@ struct kmem_cache_node {
 	struct list_head slabs_free;	//空闲　
 	unsigned long free_objects; // 三个链表中所有空闲对象数目
 	unsigned int free_limit; // slab中可容许的空闲对象数目最大阈值
-	unsigned int colour_next;
+	unsigned int colour_next; // slab结点中下一个slab应当包括的colour数目
 	struct array_cache *shared; //多核CPU中，除了本地CPU的缓冲池外，其余CPU有一个共享的对象缓冲池
 	...
 };
@@ -872,6 +872,72 @@ struct kmem_cache_node {
 > 见include/linux/slab.h
 
 ### 2.5.2 分配slab对象　
+* 关键函数
+> kmem_cache_alloc
+
+> cache_alloc
+
+> cache_alloc_refill
+```
+1.首先判断共享对象缓冲池n->shared中有没有空闲对象，有的话，尝试迁移batchcount个空闲对象到本地对象缓冲池, 使用transfer_objects实现
+2.如果共享对象缓冲池没有空闲对象，那么查看slab结点中的slabs_partial, slabs_free链表
+  1)如果slabs_partial或slabs_free链表不为空，说明有空闲对象，那么从链表中取出一个slab，通过slab_get_obj()取得对象地址，然后通过ac_put_obj把对象迁移到本地对象缓冲池中，最后把这个slab挂回合适的链表；这里是每次从slab里取一个对象，所以在cache_alloc_refill中是用一个循环来迁移batchcount个对象的
+
+  2)如果slabs_partal, slabs_free链表都为空，说明整个slab节点都没有空闲对象，这时需要重新分配slab, 即需要使用函数cache_grow来分配slab 
+```
+
+> cache_grow, 分配slab, 首先分配所需页面（用伙伴系统来分配），之后调用alloc_slabmgmt, slab_map_pages
+
+> alloc_slabmgmt, 设置page->s_mem, s_mem是slab中第一个对象的开始地址；还计算slab中的freelist
+
+> slab_map_pages, 设置page->slab_cache, slab_cache就是当前操作的slab描述符, 只有slab的第一个页面的page结构中的slab_cache指向slab描述符
+
+### 2.5.3 释放slab缓冲对象
+* virt_to_pfn, pfn_to_page
+* 在一个slab中，第一个页面的page结构中的page->slab_cache指向struct kmem_cache，即指向slab描述符
+* __cache_free
+* cache_flusharray
+> 当本地对象缓冲池中的空闲对象ac-avail（可用空闲对象数）大于或等于ac->limit时，__cache_free会调用cache_flusharray来尝试回收空闲对象
+
+> cache_flusharray在回收空闲对象时，先判断是否有共享对象缓冲池，如果有，就把本地对象缓冲池中的空闲对象复制batchcount个到共享对象缓冲池
+
+> 如果共享对象缓冲池中的空闲元旦数量等于limit，那么会调用free_block主动释放batchcount个空闲对象。如果slab没有活跃对象了（即page->active == 0），并且slab节点中所有空闲对象数目n->free_objects超过n->free_limit，那么调用slabs_destroy来销毁这个slab
+
+* free_block
+
+* ac_put_obj, 将对象释放到本地对象的缓冲池中
+
+* page->active用于记录活跃slab对象个数，slab_get_obj函数分配一个slab对象时会增加page->active值，slab_put_obj函数释放一个slab对象时会减小page->active
+
+### 2.5.4 kmalloc分配函数
+* 系统启动时会调用create_kmalloc_caches()函数创建名为kmalloc-16, kmalloc-32, kmalloc-64....的slab描述符
+* kmalloc_index函数, 用于方便查找使用哪个slab描述符来分配slab对象, 它根据不同的size与2的order次对比来选择不同的kmalloc-x描述符
+> 源码中，最大可返回26，即kmalloc最大可分配64MB？书中写最大32MB
+
+* mm/slab_common.c中定义的全局kmalloc_caches数组中保存着所有kmalloc描述符
+
+### 2.5.5 小结
+* slab着色区的作用是让不同的slab可以命中到不同的cache line
+> 通过colour_next * colour_off来实现, colour_next从0加到kmem_cache.colour，colour_off是cache line大小
+
+* slab分配器通过使用本地CPU对象缓冲池可提升硬件和cache使用率
+> 让一个对象运行在同一个CPU上，可以让对象使用同一个CPU的cache，有助于提高性能
+
+> 访问per-cpu类型的本地对象缓冲池不需要使用自旋锁，因为不会有别的CPU来访问这些per-cpu类型的对象池，避免自旋锁争用
+
+* 微小嵌入式系统使用slob分配器
+
+* 大型系统使用slub分配器
+
+* slab需要的物理内存在什么时候分配？
+> 在创建slab描述符时，不会立即分配页面，要等到分配slab对象时，发现本地缓冲池和共享缓冲池都是空的，然后查询3大链表中也没有空闲对象，这时才分配一个slab所需要的页面，并且把这个slab挂入slabs_free链表
+
+* slab系统有两种回收内存的方式
+> 1.使用kmem_cache_free释放一个对象
+
+> 2.注册定时器，定时调用cache_reap
+
+## 2.6 vmalloc
 
 
 
