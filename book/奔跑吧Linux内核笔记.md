@@ -664,7 +664,7 @@ swapper_pg_dir = .;
 > start_kernel->mm_init->mem_init
 
 ### 2.3.1 ARM32内核内存布局图
-* ARM Vexpress 平台打印的内核内存空间布局图如下
+* ARM Vexpress 平台打印的内核虚拟内存空间布局图如下
 ```
 Virtual kernel memory layout:
 	vector	: 0xffff0000	-	0xffff1000	(4KB)
@@ -692,7 +692,7 @@ Virtual kernel memory layout:
 
 * 64位的Linux内核中没有高端内存概念，因为48位寻址空间已经足够大了
 
-* ARM64架构的Linux内核的内存分布图如下　
+* ARM64架构的Linux内核的虚拟内存分布图如下　
 ```
 Virtual kernel memory layout:
 	vmalloc : 0xffff 0000 0000 0000		-	0xffff 7bff bfff 0000 	(126974 GB)
@@ -723,7 +723,7 @@ alloc_pages->alloc_pages_node->__alloc_pages->__alloc_pages_nodemask->first_zone
 				prep_new_page->check_new_page
 
 /* 1. 伙伴系统分配内存的第一步是要找到一个合适的zone
-   2. 之后遍历zone的空闲区中指定迁移类型的空闲链表，从与order相等的空闲区开始寻找(current_order = order)，如果第一个等于order的空闲区中对应迁移类型的空闲链表没有空闲对象，则++current_order，进入下一次循环，找更大的空闲区对应迁移类型的空闲链表，如果空闲链表里有空闲对象，那么就把这个空闲块从链表上取下来，之后用expand来拆分内存块（当然，如果找到的内存区的order与目标相同就不拆分了，直接从链表上取下来返回，这在expand里会将找的这个页块拆开，结束拆分的条件是当前分配的页块的current_order不大于申请的order）
+   2. 之后遍历zone的空闲区中指定迁移类型的空闲链表，从与order相等的空闲区开始寻找(current_order = order)，如果第一个等于order的空闲区中对应迁移类型的空闲链表没有空闲对象，则++current_order，进入下一次循环，找更大的空闲区对应迁移类型的空闲链表，如果空闲链表里有空闲对象，那么就把这个空闲块从链表上取下来，之后用expand来拆分内存块（当然，如果找到的内存区的order与目标相同就不拆分了，直接从链表上取下来返回; 这在expand里会将找的这个页块拆开，结束拆分的条件是当前分配的页块的current_order不大于申请的order）
    3. 到这里内存块已经分配成功，从__rmqueue返回struct page指针　
    4. 回到buffer_rmqueue后，需要调用zone_staticstics做统计
    5. 回到get_page_from_freelist后，调用prep_new_page来调用check_new_page对分配的内存块的struct page进行检查，合格后即可返回最终的struct page指针
@@ -806,7 +806,7 @@ static inline void __free_one_page(struct page *page,
 // struct kmem_cache是slab描述符, 在include/linux/slab_def.h中定义
 struct kmem_cache {
 	struct array_cache __percpu *cpu_cache; // 本地CPU对象缓冲池
-	unsigned int batchcount; // 当本地CPU缓冲池为空时，从共享缓冲池或slabs_partialslabs_free中获取的对象数目;由enable_cpucache计算
+	unsigned int batchcount; // 当本地CPU缓冲池为空时，从共享缓冲池或slabs_partial, slabs_free中获取的对象数目;由enable_cpucache计算
 	unsigned int limit; // 当本地缓冲池中空闲对象个数大于limit时，主动释放batchcount个对象，便于内核回收或销毁slab;在enable_cpucache中计算
 	unsigned int shared; // 多核系统中shared大于0, 在enable_cpucache()中初始化
 	unsigned int size; // 对象长度，需要根据align调整
@@ -817,10 +817,16 @@ struct kmem_cache {
 	unsinged int gfproder; // 一个slab中占用2^gfporder个页面
 	...
 	size_t colour; // 一个slab中有几个不同的cache line, 即，包含的cache line数量
-	unsinged int colour_off; // 一上cache colour的长度
+	// colour 的值就是一个slab描述符中slab的个数(根据colour_next的取值推断)
+	// 从着色区的功能上分析，colour是slab总数也是合理
+
+	unsinged int colour_off; // 一个cache colour的长度, 等于L1 cache line大小
+	// 着色区的长度 = colour_next * colour_off, 其中colour_next从0开始递增, 最大值colour-1
 	...
 
 	unsigned int freelist_size;
+	// cache_init_objs调用set_free_obj初始化freelist中每个值为索引值
+	// 有一点不明白的是，在free_block中回收缓冲对象时，slab_put_obj还是调用set_free_obj，值还是原值，而且在slab_get_obj中只是page->active++，freelist中保存的值未做任何变化，是不是多余调用slab_put_obj中的set_free_obj？
 	...
 	const char *name; // slab描述符名字
 	...
@@ -829,13 +835,14 @@ struct kmem_cache {
 	struct kmem_cache_node *node[MAX_NUMNODES]; // slab节点，在numa系统中，每个结点有一个kmem_cache_node; 它包含3个slab链表：部分空闲、完全用尽、空闲
 };
 
-struct array_cache {
+struct array_cache { 
 	unsinged int avail; // 对象缓冲池中可用的对象数　
 	unsigned int limit; // 当本地缓冲池中空闲对象个数大于limit时，主动释放batchcount个对象，便于内核回收或销毁slab
 	unsigned int batchcount; // 当本地CPU缓冲池为空时，从共享缓冲池或slabs_partialslabs_free中获取的对象数目
 	unsigned int touched;
 	void *entry[]; // 用于保存对象
 };
+// cpu_cache_get(kmem_cache*)取cpu本地slab缓冲池array_cache*
 
 // struct kmem_cache_node定义在mm/slab.h中
 struct kmem_cache_node {
@@ -859,7 +866,7 @@ struct kmem_cache_node {
 
 > calculate_slab_order, 计算一个slab需要多少个物理页面
 
-> cache_estimate, 计算了slab中可容纳多少个对象
+> cache_estimate, 计算了一个slab中可容纳多少个对象
 
 > cache_line_size, 计算L1 cache line大小
 
@@ -885,7 +892,6 @@ struct kmem_cache_node {
 
   2)如果slabs_partal, slabs_free链表都为空，说明整个slab节点都没有空闲对象，这时需要重新分配slab, 即需要使用函数cache_grow来分配slab 
 ```
-
 > cache_grow, 分配slab, 首先分配所需页面（用伙伴系统来分配），之后调用alloc_slabmgmt, slab_map_pages
 
 > alloc_slabmgmt, 设置page->s_mem, s_mem是slab中第一个对象的开始地址；还计算slab中的freelist
@@ -901,7 +907,7 @@ struct kmem_cache_node {
 
 > cache_flusharray在回收空闲对象时，先判断是否有共享对象缓冲池，如果有，就把本地对象缓冲池中的空闲对象复制batchcount个到共享对象缓冲池
 
-> 如果共享对象缓冲池中的空闲元旦数量等于limit，那么会调用free_block主动释放batchcount个空闲对象。如果slab没有活跃对象了（即page->active == 0），并且slab节点中所有空闲对象数目n->free_objects超过n->free_limit，那么调用slabs_destroy来销毁这个slab
+> 如果共享对象缓冲池中的空闲对象数量等于limit，那么会调用free_block主动释放batchcount个空闲对象。如果slab没有活跃对象了（即page->active == 0），并且slab节点中所有空闲对象数目n->free_objects超过n->free_limit，那么调用slabs_destroy来销毁这个slab
 
 * free_block
 
@@ -916,7 +922,21 @@ struct kmem_cache_node {
 
 * mm/slab_common.c中定义的全局kmalloc_caches数组中保存着所有kmalloc描述符
 
+* kmalloc函数分配物理内存给内核后，后续不需要更新页表？
+
 ### 2.5.5 小结
+* 不论是slab自定义描述符分配缓冲对象还是使用kmalloc来分配缓冲对象，都是在分配物理内存，为什么vmalloc在使用页分配器分配完物理内存后，需要调用map_vm_area建立页表映射，而slab这些不需要？
+> 因为slab对象太小了？每个对象最大SLAB_OBJ_MAX_NUM是2^7或2^15
+
+> 还是因为slab系统架构本身即可?
+
+> ?
+
+* 一个slab没有明确的数据结构来描述，它成三段组，着色区 + freelist区 + obj区
+> 着色区的值从0，按colour_off递增，保障各个不同的slab在cache line上不冲突
+
+> obj就是slab对象, 一个slab中的obj个数等于kmem_cache.num　
+
 * slab着色区的作用是让不同的slab可以命中到不同的cache line
 > 通过colour_next * colour_off来实现, colour_next从0加到kmem_cache.colour，colour_off是cache line大小
 
@@ -941,26 +961,30 @@ struct kmem_cache_node {
 * 本书中介绍的是以ARM32的内核路径为例说明vmalloc实现的; 
 * 相关数据结构、宏定义、关键函数
 ```c
-VMALLOC_START, VMALLOC_END
 struct vm_struct
+VMALLOC_START, VMALLOC_END
 static struct rb_root vmap_area_root = RB_ROOT;
-struct vmap_area
+struct vmap_area // 用于将找到的hole插入到红黑树vmap_area_root中；并通过setup_vmalloc_vm设置vm_struct
 
 __vmalloc_node_range->__get_vm_area_node->alloc_vmap_area->__insert_vmap_area
+					  setup_vmalloc_vm
 			__vmalloc_area_node->map_vm_area
 
 pte_alloc_one_kernel
+alloc_page->alloc_pages(gfp_mask, 0) // vmalloc的物理内存由伙伴系统负责(alloc_page)分配
+map_vm_area // vmalloc的建立页表映射函数
 ```
 
 ### vmalloc的逻辑流
 * __vmalloc_node_range->__get_vm_area_node->alloc_vmap_area->__insert_vmap_area
+					    setup_vmalloc_vm
 			__vmalloc_area_node->map_vm_area
 
-> alloc_vmap_area在vmalloc空间查找一块大小合适的且没被使用的空间hole，并将最终找到或分配的hole插入到vmap_area_root红黑树，函数返回vmap_area*
+> 1、alloc_vmap_area在vmalloc空间查找一块大小合适的且没被使用的空间hole，并将最终找到或分配的hole插入到vmap_area_root红黑树，函数返回vmap_area*
 
-> __get_vm_area_node利用alloc_vmap_area返回的vmap_area建立vm_struct，并返回vm_struct*
+> 2、setup_vmalloc_vm把alloc_vmap_area返回的vmap_area中包含hole的信息填写到vm_struct，并返回vm_struct*
 
-> 接下来__vmalloc_area_node函数给vmalloc分配物理页面，并将page指针保存到vm_struct.pages数组中，之后调用map_vm_area更新页表
+> 3、接下来__vmalloc_area_node函数给vmalloc分配物理页面，并将page指针保存到vm_struct.pages数组中，之后调用map_vm_area更新页表
 
 ## 2.7 VMA操作
 
