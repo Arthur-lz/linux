@@ -987,6 +987,70 @@ map_vm_area // vmalloc的建立页表映射函数
 > 3、接下来__vmalloc_area_node函数给vmalloc分配物理页面，并将page指针保存到vm_struct.pages数组中，之后调用map_vm_area更新页表
 
 ## 2.7 VMA操作
+* 关键数据结构　
+```c
+struct vm_area_struct {
+	unsigned long vm_start;
+	unsigned long vm_end;
+	...
+	struct rb_node vm_rb;
+	...
+	struct mm_struct *vm_mm;
+	...
+
+}; 
+struct mm_struct {
+	struct vm_area_struct *mmap; // 单链表来存当前进程中所有的vm_area_struct实例
+	struct rb_root mm_rb; // 每个进程都有一个红黑树，每个vm_area_struct实例都会连到此红黑树上
+	...
+};
+```
+
+### 2.7.1 查找VMA
+* 关键函数
+> find_vma
+
+### 2.7.2 插入VMA
+* 关键函数
+> insert_vm_struct, 向VMA链表和红黑树插入一个新的VMA
+
+> find_vma_links查找要插入的位置
+
+> vma_link 添加到链表(__vma_link_list)和红黑树(__vma_link_rb)
+
+### 2.7.3 合并VMA
+* vma_merge函数实现将一个新的VMA和附近的VMA合并
+> 最终合并在vma_adjust函数实现
+
+* vma_merge()常见的可以合并的3种情况
+> 1、新的VMA的起始地址和prev节点的结束地址重合
+
+> 2、新的VMA的终止地址和next节点的开始地址重合
+
+> 3、新的VMA的开始地址和prev节点的结束地址重合，且新的VMA的结束地址与next节点的开始地址重合
+
+
+### 2.7.4 红黑树例子
+* 见实验: book/runlinuxkernel/code/2/2.7.4
+### 2.7.5 小结
+
+## 2.8 malloc
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
