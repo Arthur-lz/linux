@@ -1011,12 +1011,42 @@ struct mm_struct {
 > find_vma
 
 ### 2.7.2 插入VMA
-* 关键函数
-> insert_vm_struct, 向VMA链表和红黑树插入一个新的VMA
+#### 关键函数
+* insert_vm_struct, 向VMA链表和红黑树插入一个新的VMA
 
-> find_vma_links查找要插入的位置
+* find_vma_links查找要插入的位置, 作为返回值的几个参数如下
+> rb_parent指针指向要插入的节点的父节点
 
-> vma_link 添加到链表(__vma_link_list)和红黑树(__vma_link_rb)
+> pprev指针指向要插入的节点的父节点指向的VMA
+
+* 书中125页描述“rb_link指向要插入节点指针本身的地址”，新的节点还没有插入，哪里来的rb_link？也就是说，红黑树上的某个没有子节点的节点P，它的左右子节点的指针P->rb_left和P->rb_right在rb_link_node中全是初始化为NULL的？
+```c
+// 我的新的理解如下，我的答案：
+struct rb_node {
+	...
+	struct rb_node *rb_right;
+	struct rb_node *rb_left;
+};
+
+struct rb_node ***rb_link;
+struct rb_node **rb_parent;
+1.假设新节点A
+2.rb_parent是无疑问的，它是新节点A的父节点
+  rb_parent中的两个成员rb_left和rb_right全指向NULL，但是因为rb_parent是已经存在的，即已经被初始化的有物理内存的，那么它的两个成员也是已经被初始化的，这两个成员rb_left, rb_right都是指针，它们各自占用的8字节地址空间已经被分配了，只不过指针的值是NULL
+
+3.rb_link是三级指针，它的作用是存二级指针的值，而二级指针的作用是存一级指针的值，所以
+find_vma_links(...,&rb_link,...)
+{
+	struct ** __rb_link;
+	...
+		__rb_link = &__rb_parent->rb_right;// 或rb_left指针的地址，注意有&
+	...
+	*rb_link = __rb_link; // 这里是将二级值指针的值修改为指针rb_left或rb_right的地址
+	...
+}
+```
+
+* vma_link 添加到链表(__vma_link_list)和红黑树(__vma_link_rb)
 
 ### 2.7.3 合并VMA
 * vma_merge函数实现将一个新的VMA和附近的VMA合并
