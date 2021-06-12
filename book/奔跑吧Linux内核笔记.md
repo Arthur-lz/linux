@@ -1069,7 +1069,111 @@ find_vma_links(...,&rb_link,...)
 ### 2.7.5 小结
 
 ## 2.8 malloc
+### 2.8.1 brk实现
+* malloc, brk是从进程虚拟地址空间堆上分配虚拟内存
+> mm_struct.end_data是数据段的结束地址，brk申请分配的虚拟地址必须大于它
 
+> mm_struct.brk记录动态分配区当前的底部
+
+> brk系统调用的参数是新边界newbrk，它等于申请内存长度len, 加上mm_struct.brk, newbrk = len + mm_struct.brk
+
+> 如果newbrk < mm_struct.brk，表示释放空间，调用do_munmap函数实现
+
+* 关键数据结构、函数
+> find_vma_intersection, 使用旧边界找当前进程中有没有一块已经存在的VMA满足当前申请要求，如果有则返回旧边界
+
+> do_brk->get_unmapped_area // 判断虚拟内存是否有足够的空间
+	  find_vma_links // 在红黑树中的精确定位插入新节点的节点相关信息
+	  vma_merge // 是否可以合并vma
+	  vma_link  // 如果不可以合并，则创建新vma，并将其添加到mm_struct.mmap链表和mm_struct.mm_rb红黑树
+
+> 从do_brk返回目标vma的起始地址, 之后回到brk系统调用中，判断flags是否置位VM_LOCKED，如果是则需要调用mm_populate立即分配物理内存并建立页表映射
+
+* 调用系统调用mlockall会置位VM_LOCKED
+
+### 2.8.2 VM_LOCKED情况
+* 指定标志位VM_LOCKED表示：需要立即为描述的这块进程地址空间的VMA分配物理页面并建立映射
+* mm_populate->__mm_populate->__mlock_vma_pages_range->__get_user_pages
+> __mlock_vma_pages_range调用__get_user_pages给VMA分配物理内存并建立映射
+
+* __get_user_pages
+> mm/gup.c
+
+> cond_resched, 判断当前进程是否需要被调度，内核代码通常在while循环中添加cond_resched，用于优化系统的延迟
+
+> follow_page_mask, 查看vma中的虚拟页面是否已经分配了物理内存，通过判断页表的方式来确认; follow_page_mask是follow_page的具体实现;mm/gup.c
+
+* follow_page_mask
+> 在mm/gup.c中实现
+
+> 它通过检查页表PGD, PUD, PMD, PTE来检查各级页表是否有效，通过下列函数来检查
+
+```c
+pgd_offset, pud_offset, pmd_offset, follow_page_pte
+```
+
+> follow_page_pte->vm_normal_page
+
+> vm_normal_page把页面分为normal page, special page
+
+```
+1. normal page举例，匿名页面、page cache和共享内存页面
+2. special page，这些页面不希望参与内存管理的回收、合并，如:
+   1) VM_IO: 为I/O设备映射内存
+   2) VM_PFN_MAP: 纯PFN映射, vma->vm_flags中如果定义了这些标志位，则这是special mapping, 见vm_normal_page函数
+   3) VM_MIXEDMAP: 固定映射
+```
+
+> 如果follow_page_mask没有返回struct page，那么__get_user_pages会调用faultin_page->handle_mm_fault来人为地触发一个缺页中断
+
+> handle_mm_fault是缺页中断处理的核心函数
+
+> 分配完页面后，pages指针数组指向这些page，最后调用flush_anon_page, flush_dcache_page来flush这些页面对应的cache
+
+### 2.8.3 小结
+* 处理器的MMU硬件单元处理最小单元是页
+> 内核建立虚拟地址和物理地址映射以页为单位
+
+> PAGE_ALIGN(addr)宏让地址addr按页大小对齐
+
+* 每个进程都有一个自己的页表，一个mm_struct结构、一个管理VMA的红黑树和链表
+> mm_struct.pgd指向页面基地址
+
+> 进程本身的VMA会挂入属于自己的红黑树和链表
+
+* malloc函数的逻辑流
+```c
+malloc()->
+      brk()->
+          find_vma_intersection()->
+	           get_unmapped_area()->
+		     		vma_merge()->
+					分配一个新的vma->
+						把新的vma插入mm系统->
+							无VM_LOCKED->返回brk新边界
+							VM_LOCKED->mm_populate()->
+								__mlock_vma_pages_range()->
+										__get_user_pages()->
+											find_extend_vma()->
+												follow_page_mask()->
+													N->faultin_page()->
+ 													  handle_mm_fault()->
+													      page页面已经分配和映射->
+													      			返回brk新边界
+
+// find_vma_intersection()查找是否已经存在vma
+// get_unmapped_area()判断是否有足够的空间
+// vma_merge()判断是否可以和附近的vma合并　
+```
+
+* malloc实现涉及内存管理中几个重要函数
+> get_user_pages, 将用户空间的虚拟内存传到内核空间，内核为其分配物理内存并建立页表映射; 如果pte的内容为空或者PRESENT没置位，那么handle_mm_fault()分配内存并建立映射
+
+> follow_page, 通过虚拟地址寻找相应的物理页面，返回normal mapping页面对应的struct page, 函数寻找确认的过程中会查页表, 但还有其他判断
+
+> vm_normal_page, 过滤掉那些special page
+
+## 2.9 mmap
 
 
 
