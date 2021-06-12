@@ -1048,6 +1048,10 @@ find_vma_links(...,&rb_link,...)
 
 * vma_link 添加到链表(__vma_link_list)和红黑树(__vma_link_rb)
 
+#### 二级指针在Linux内核中主要有两种用法
+* 作为函数形参
+* 链表操作（如上面的红黑树操作；还有RCU）
+
 ### 2.7.3 合并VMA
 * vma_merge函数实现将一个新的VMA和附近的VMA合并
 > 最终合并在vma_adjust函数实现
