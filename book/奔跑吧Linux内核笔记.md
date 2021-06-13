@@ -1054,6 +1054,8 @@ find_vma_links(...,&rb_link,...)
 
 ### 2.7.3 合并VMA
 * vma_merge函数实现将一个新的VMA和附近的VMA合并
+> vma_merge的参数中的prev是新VMA的前继节点，start, end是新vma的起始和结束地址，所以，在使用vma_merge时可知，新的vma并未创建
+
 > 最终合并在vma_adjust函数实现
 
 * vma_merge()常见的可以合并的3种情况
@@ -1145,21 +1147,42 @@ pgd_offset, pud_offset, pmd_offset, follow_page_pte
 ```c
 malloc()->
       brk()->
-          find_vma_intersection()->
+          find_vma_intersection()
+	  do_brk()->
 	           get_unmapped_area()->
 		     		vma_merge()->
 					分配一个新的vma->
 						把新的vma插入mm系统->
 							无VM_LOCKED->返回brk新边界
-							VM_LOCKED->mm_populate()->
-								__mlock_vma_pages_range()->
-										__get_user_pages()->
-											find_extend_vma()->
-												follow_page_mask()->
-													N->faultin_page()->
- 													  handle_mm_fault()->
-													      page页面已经分配和映射->
-													      			返回brk新边界
+	  VM_LOCKED->
+	    mm_populate()->
+		__mlock_vma_pages_range()->
+				__get_user_pages()->
+					find_extend_vma()->
+						follow_page_mask()->
+							N->faultin_page()->
+ 								  handle_mm_fault()->
+								      page页面已经分配和映射->
+  								      			返回brk新边界
+
+/* malloc有三条逻辑流　　
+ * 1.find_vma_intersection, 查找已经存在的vma逻辑流程
+ *
+ * 2.do_brk, 申请vma的逻辑流
+ *   1)先用get_unmapped_area判断目前剩余的虚拟地址空间是否够大
+ *   2)再用vma_merge判断能不能合并，如果可以合并就不分配新的vma，所以原则是新的虚拟地址能合并先合并到原有的vma，不能合并才分配新的vma给虚拟地址
+ *   3)前面1)不满足条件就返回错误, 2)是满足条件就直接返回合并后的新vma，如果不能合并接下来就需要创建一个新的vma来管理这个虚拟地址
+ *   4)有了新的vma，就需要把这添加到mm_struct的红黑树和vm_area_struct链表中
+ *   5)如果mm->def_flags标志位VM_LOCKED没有置位，则直接返回新的brk边界
+ *   6)如果有置位VM_LOCKED则在回到系统调用brk()后，需要调用mm_populate()为vma分配物理内存并建立映射
+ *
+ * 3.mm_populate, 需要立即分配物理页面并建立页表映射的逻辑流
+ *   1)调用__mlock_vma_pages_range为vma分配物理内存并建立页表映射，它只是入口，具体的分配和建立映射是后面的__get_user_pages完成
+ *   2)find_extend_vma, 查找vma，如果目标start地址小于vma->start，则扩展vma；如果没有找到，且start在gate_vma中，那用gate_vma;否则从__get_user_pages错误返回
+ *   3)现在找到vma了，接下来判断它的页表，用follow_page_mask，如果一切正常则返回struct page，如果页表中没有对应这个新虚拟地址合适的物理页面，则手动触发页中断，用函数faultin_page调用缺页中断处理函数handle_mm_fault来分配物理页面并建立映射
+ *   4)从mm_populate返回到brk()系统调用
+ *   5)brk系统调用返回brk新边界
+ */
 
 // find_vma_intersection()查找是否已经存在vma
 // get_unmapped_area()判断是否有足够的空间
@@ -1167,7 +1190,7 @@ malloc()->
 ```
 
 * malloc实现涉及内存管理中几个重要函数
-> get_user_pages, 将用户空间的虚拟内存传到内核空间，内核为其分配物理内存并建立页表映射; 如果pte的内容为空或者PRESENT没置位，那么handle_mm_fault()分配内存并建立映射
+> get_user_pages, 将用户空间的虚拟内存传到内核空间，内核为其分配物理内存并建立页表映射; 如果pte的内容为空或者页表L_PTE_PRESENT没置位，那么handle_mm_fault()分配内存并建立映射
 
 > follow_page, 通过虚拟地址寻找相应的物理页面，返回normal mapping页面对应的struct page, 函数寻找确认的过程中会查页表, 但还有其他判断
 
