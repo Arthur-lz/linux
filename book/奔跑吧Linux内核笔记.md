@@ -1197,7 +1197,66 @@ malloc()->
 > vm_normal_page, 过滤掉那些special page
 
 ## 2.9 mmap
+* 私有映射和共享映射的区别？
+* 下面strace捕捉某个进程的mmap调用，为什么第二次调用mmap没有出现地址重叠错误呢？
+```c
+mmap(0x20000000, 8192, PORT_READ | PORT_WRITE, MAP_PRIVATE | MAP_FIXED | MAP_ANONYMOUS, -1, 0) = 0x20000000
+...
+mmap(0x20000000, 4096, PORT_READ | PORT_WRITE, MAP_PRIVATE | MAP_FIXED | MAP_ANONYMOUS, -1, 0) = 0x20000000
+/////////////////////////////////////////////////////
+unsigned long mmap_region(struct file *file, unsigned long addr, unsigned long len, vm_flags_t vm_flags, unsigned long pgoff)
+{
+	...
+	if (find_vma_links(mm, addr, addr + len, &prev, &rb_link, &rb_parent)) {
+		if (do_munmap(mm, addr, len))
+			return -ENOMEM;
+		...
+	}
+	...
+}
+/* 回答：
+ * 查看do_mmap_pgoff()->mmap_region()函数, 看上面的代码片段, 在mmap_region中调用了函数find_vma_links函数，它是用来查找当前进程地址空间中的VMA们的，它会检查当前要映射的区域和已经存在的vma们是否存在重叠，如果有重叠，它会返回-ENOMEM，这样在mmap_region函数中会调用do_munmap函数来把这段重叠的区域先销毁，然后重新映射，这就是上面问题中mmap第二次映射同样的地址没有出错的原因
+ * 
+ */
+```
 
+### 2.9.1 mmap概述
+```c
+#include <sys/mman.h>
+
+void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);
+
+int munmap(void *addr, size_t length);
+
+// addr 一般设置为NULL, 让内核来分配地址 
+// prot 设置映射区域的读写属性
+// flags，以什么方式映射，如共享映射、私有映射
+// fd, 文件映射时，它是打开的文件句柄 
+// offset, 文件映射时，表示文件的偏移
+
+prot可以取这些值：PROT_EXEC, PROT_WRITE, PROT_READ, PROT_NONE
+flags可取值：MAP_PRVATE, MAP_SHARED, MAP_ANONYMOUS, MAP_FIXED, MAP_POPULATE
+```
+#### mmap映射类型
+* 私有匿名映射，通常用于内存分配
+> 当参数fd=-1, flags=MAP_PRIVATE | MAP_ANONYMOUS时，创建的mmap映射是私有匿名映射
+
+> 私有匿名映射最常见的用途是glibc分配大块内存中，当需要分配的内存大于MMAP_THREASHOLD(128KB)时，glibc会默认使用mmap代替brk来分配内存
+
+* 私有文件映射，通常用于加载动态库
+
+* 共享匿名映射，通常用于进程间共享内存
+
+* 共享文件映射，通常用于内存映射IO，进程间通信
+> 共享文件映射通常有两个应用场景：读写文件、进程间通信
+
+### 2.9.2 小结
+* 问题：在一个播放程序中同时打开几十个不同的高清视频文件，发现播放有些卡，打开视频文件是用mmap函数实现的，请分析原因
+> 使用mmap来创建文件映射时，由于只是创建了vma，而没有立即为vma分配物理内存和页表映射，所以当播放器真正读取文件时，产生了缺页中断才去读取文件内容到page cache中。这样每次播放器真正读取文件时，会频繁的发生缺页中断，然后从文件中读取磁盘内容到page cache中，导致磁盘读性能比较差，从而造成播放视频卡。
+
+> 如何解决这个问题？有效提高流媒体服务I/O性能的方法是增大内核默认预读窗口，默认内核预读的大小是128KB, 可以通过shell命令blockdev --setra来修改
+
+## 2.10 缺页中断处理
 
 
 
