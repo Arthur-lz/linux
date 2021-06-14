@@ -1294,6 +1294,28 @@ static struct fsr_info fsr_info[] = {
 ```
 
 ### 2.10.1 do_page_fault()
+* do_page_fault是缺页中断处理的核心函数，它具体实现与CPU的体系结构相关
+```c
+do_page_fault->
+	__do_page_fault->find_vma
+	                 access_error
+			 handle_mm_fault->重新建立物理页面与vma的映射关系->handle_pte_fault->(1),(2),(3)
+				(1)pte_present()为0
+				   页不在内存中，这是真正的缺页
+				   A.pte内容为空
+				     a.文件映射，调用vma.vm_ops.do_fault()
+				     b.匿名映射，调用do_anonyous_page()
+				   B.pte内容不为空，且present没置位，说明页被交换到了swap分区，调用do_swap_page加载页面
+
+				(2)pte有物理页面，但页面原来是只读，现在需要写操作
+				   调用do_wp_page()
+				(3)pte_mkyoung(), 设置访问标志位, 表示页面刚刚被访问过
+
+	__do_user_fault, 如果__do_page_fault返回出错，且进程处于用户模式，则会调用__do_user_fault
+	__do_kernel_fault, 如果__do_page_fault返回出错，且处于内核模式，则执行__do_kernel_fault
+```
+
+### 2.10.2 匿名页面缺页中断
 
 
 
