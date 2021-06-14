@@ -1149,17 +1149,18 @@ malloc()->
       brk()->
           find_vma_intersection()
 	  do_brk()->
-	           get_unmapped_area()->
-		     		vma_merge()->
-					分配一个新的vma->
-						把新的vma插入mm系统->
-							无VM_LOCKED->返回brk新边界
-	  VM_LOCKED->
-	    mm_populate()->
-		__mlock_vma_pages_range()->
-				__get_user_pages()->
-					find_extend_vma()->
-						follow_page_mask()->
+	           get_unmapped_area()
+		   find_vma_links()
+		   vma_merge()
+		   分配一个新的vma
+		   vma_link()把新的vma插入mm系统
+	           无VM_LOCKED->返回brk新边界
+	   	   置位VM_LOCKED->
+	    		mm_populate()->
+			  __mlock_vma_pages_range()->
+					__get_user_pages()->
+						find_extend_vma()
+						follow_page_mask()
 							N->faultin_page()->
  								  handle_mm_fault()->
 								      page页面已经分配和映射->
@@ -1241,7 +1242,7 @@ flags可取值：MAP_PRVATE, MAP_SHARED, MAP_ANONYMOUS, MAP_FIXED, MAP_POPULATE
 * 私有匿名映射，通常用于内存分配
 > 当参数fd=-1, flags=MAP_PRIVATE | MAP_ANONYMOUS时，创建的mmap映射是私有匿名映射
 
-> 私有匿名映射最常见的用途是glibc分配大块内存中，当需要分配的内存大于MMAP_THREASHOLD(128KB)时，glibc会默认使用mmap代替brk来分配内存
+> 私有匿名映射最常见的用途是glibc分配大块内存中，当需要分配的内存大于M_MMAP_THRESHOLD(128KB)时，glibc会默认使用mmap代替brk来分配内存
 
 * 私有文件映射，通常用于加载动态库
 
@@ -1256,8 +1257,43 @@ flags可取值：MAP_PRVATE, MAP_SHARED, MAP_ANONYMOUS, MAP_FIXED, MAP_POPULATE
 
 > 如何解决这个问题？有效提高流媒体服务I/O性能的方法是增大内核默认预读窗口，默认内核预读的大小是128KB, 可以通过shell命令blockdev --setra来修改
 
+* mmap逻辑流
+```c
+mmap->sys_mmap_pgoff->do_mmap_pgoff->get_unmapped_area->mmap_region->vma_merge->N->分配一个新的VMA->三个分支
+分支一、文件映射->获取文件结构->file->f_op->mmap()->把新vma插入mm系统中（红黑树和vma链表）
+分支二、匿名映射->把新vma插入mm系统中
+分支三、shmem映射->shmem_zero_setup()建立一个共享匿名映射->把新的vma插入到mm系统中
+->有VM_LOCKED->mm_populate->...->返回addr
+->无VM_LOCKED->返回addr
+```
 ## 2.10 缺页中断处理
+* 匿名页面、KSM页面、page cache页面、写时复制、私有映射、共享映射
+* 缺页异常依赖CPU的体系结构
+* ARM的MMU中有两个与存储访问失效相关的寄存器
+> 失效状态寄存器（Data Fault Status Register, FSR）
 
+> 失效地址寄存器（Data Fault Address Register, FAR）
+
+* do_DataAbort()
+```c
+struct fsr_info {
+	int (*fn)(unsigned long addr, unsigned int fsr, struct pt_regs *regs); // 修复失效状态的函数指针
+	int sig; // 内核处理失败时，发送的信号类型
+	int code;
+	const char *name; // 失效状态的名称
+};
+
+static struct fsr_info fsr_info[] = {
+...
+{ do_page_fault,        SIGSEGV, SEGV_MAPERR,   "page translation fault"}, // 页面转换失效
+...
+{ do_page_fault,        SIGSEGV, SEGV_ACCERR,   "page permission fault"},  // 页面访问权限失效
+...
+};
+// fsr_info与具体的CPU体系结构相关，上面的例子中的fsr_info数组定义在arch/arm/mm/fsr-2level.c
+```
+
+### 2.10.1 do_page_fault()
 
 
 
