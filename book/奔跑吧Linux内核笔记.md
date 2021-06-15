@@ -1703,7 +1703,57 @@ struct anon_vma_chain {
 > 答：匿名页面，还有一种特殊情况，是利用shmem机制建立的文件映射，其实也是使用的匿名页面，在内存紧张时，这种页面也会被swap到交换分区
 
 ## 2.14 匿名页面生命周期
+### 2.14.1 匿名页面的诞生
+* 匿名页面的诞生
+> page->_count = 1;
 
+> page->_mapcount = 0;
+
+> page->flags = PG_lru | PG_swapbacked;
+
+> 加入活跃lru
+
+> page->mapping = anon_vma;
+
+### 2.14.2 匿名页面的使用
+### 2.14.3 匿名页面的换出
+* 扫描活跃链表，加入到不活跃链表add_to_swap
+> page->_count=3
+
+> page->_mapcount=0
+
+> page->flags=PG_lru|PG_swapbacked|PG_swapcache|PG_dirty|PG_uptodate|PG_locked
+
+* try_to_unmap()
+> page->_count=2
+
+> page->_mapcount=-1
+
+> page->flags=PG_lru|PG_swapbacked|PG_swapcache|PG_dirty|PG_uptodate|PG_locked
+
+* page_out()
+> page->_count=2
+
+> page->_mapcount=-1
+
+> page->flags=PG_lru|PG_swapbacked|PG_swapcache|PG_uptodate|PG_reclaim|PG_writeback;
+
+* 第x次扫描不活跃链表(x>=2, 假设在第x次扫描不活跃链表时页面写入swap分区完成)
+> Block layer层的回调函数end_swap_bio_write()->end_page_writeback()完成：1清PG_writeback标志位、2唤醒等待在该页PG_writeback的线程，wake_up_page
+
+> shrink_page_list()->__remove_mapping()：判断_count是否为2，并将_count置0、清PG_swapcache,PG_locked
+
+> 最后把page加入free_page链表中，释放该页, 到这里，该页的内容已经写入swap分区，它的物理页面已经释放
+
+### 2.14.4 匿名页面的换入
+* 匿名页面被换出到swap分区后，如果应用程序需要读写这个页面，缺页中断发生，因为pte中的present位为0显示该页面不在内存中，但pte表项不为空，说明该页在swap分区中，因此调用do_swap_page()函数重新读入该页内容
+
+### 2.14.5 匿名页面的销毁
+* 当用户进程关闭或退出时，内核会扫描这个用户进程所有的vma，并会清除这些vma上所有的映射，如果符合释放标准，相关页面会被释放
+
+### 2.14.6 小结
+
+## 2.15 页面迁移
 
 
 
