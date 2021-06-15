@@ -1483,7 +1483,7 @@ enum pageflags {
 > 5、内核对页面进行操作的关键路径上也会_count加1;如follow_page、get_user_pages
 
 * _mapcount是页面被进程映射的个数, 也就是pte页表个数
-> _mapcount主要用于RMAP反和映射机制
+> _mapcount主要用于RMAP反向映射机制
 
 > _mapcount == -1表示没有pte映射到页面中
 
@@ -1499,8 +1499,210 @@ enum pageflags {
 * _count是page的命根子，因为当_count == 0时页面就会被释放
 * _mapcount是page的幸福指数，因为它是进程映射页面的个数，被用的多说明更具有价值
 
-## 2.12 反射映射RMAP
+## 2.12 反向映射RMAP
+* struct page中的_mapcount记录有多少个用户PTE页表项映射了物理页面，不包括内核地址空间映射物理页面产生的PTE页表项
+* 有的页面需要被迁移，有的页面长时间不使用需要交换到磁盘，在交换前，必须找出哪些进程使用这个页面，然后断开这些映射的PTE
+* 一个物理页面可以被多个进程的虚拟内存映射
+* 一个虚拟页面同时只能有一个物理页面与之映射
+#### 反向映射的作用范围(我个人分析得出的结论)：
+* 1.用户进程使用函数mmap建立的私有匿名映射、匿名共享映射
+> 首先要明确有哪些操作会出现物理页面被多个虚拟页面映射的函数, 且是进程的PTE
 
+> 其次，用什么数据结构来记录这种一个物理页面对多个虚拟页面(av, avc)
+
+* 2.父进程创建子进程时
+
+### 2.12.1 父进程分配匿名页面　
+* 父进程分配什么样子的匿名页面？
+> do_anonymous_page
+
+* 关键数据结构 
+```c
+// av
+struct anon_vma {
+	struct anon_vma *root;
+	struct rw_semaphore rwsem;
+	atomic_t refcount;
+	struct anon_vma *parent;
+	struct rb_root rb_root;
+};
+
+// avc
+struct anon_vma_chain {
+	struct vm_area_struct *vma;
+	struct anon_vma *anon_vma;
+	struct list_head same_vma;
+	struct rb_node rb;
+	unsigned long rb_subtree_last;
+};
+```
+
+* 关键函数
+> page_add_new_anon_rmap
+
+
+### 2.12.2 父进程创建子进程
+* 父进程通过fork调用创建子进程时，子进程会
+> 复制父进程的进程地址空间VMA数据结构的内容作为自己的进程地址空间
+
+> 复制父进程的pte页表项内容到子进程的页表中，实现父子进程共享页表
+
+* 多个不同子进程中的虚拟页面会同时映射到同一个物理页面
+
+* 多个不相干的进程的虚拟页面也可以通过ksm机制映射到同一个物理页面
+
+### 2.12.3 子进程发生COW
+* 子进程和父进程共享的匿名页面，在子进程vma发生cow时
+```
+产生缺页中断->handle_pte_fault->do_wp_page->分配一个新的匿名页面->__page_set_anon_rmap使用子进程的anon_vma来设置page->mapping
+```
+
+### 2.12.4 RMAP应用
+* 典型应用
+> 1.kswapd内核线程回收页面需要断开所有映射了该匿名页面的用户PTE页表项
+
+> 2.页面迁移时，需要断开所有映射到匿名页面的用户PTE页表项
+
+* 反向映射的核心函数try_to_unmap
+> mm/rmap.c
+
+* 内核中有三种页面需要unmap
+> 1. KSM页面
+
+> 2. 匿名页面
+
+> 3. 文件映射页面
+
+### 2.12.5 小结　
+
+## 2.13 回收页面
+### 2.13.1 LRU链表
+* 内核中一共有五种LRU链表
+> 不活跃匿名页面链表（LRU_INACTIVE_ANON）
+
+> 活跃匿名页面链表（LRU_ACTIVE_ANON）
+
+> 不活跃文件映射页面链表（LRU_INACTIVE_FILE）
+
+> 活跃文件映射页面链表（LRU_ACTIVE_FILE）
+
+> 不可回收页面链表（LRU_UNEVICTABLE）
+
+* LRU链表这样分，是因为当内存紧张时总是优先换出page cache页面，而不是匿名页面
+> 因为大多数情况下, page cache页面不需要回写磁盘
+
+> 而匿名页面必须写入交换区才能被换出
+
+* 每个zone都有一整套LRU链表
+> zone结构中成员lruvec指向这些LRU链表
+
+#### page_check_references()函数作用
+* 1.如果有访问引用pte，那么
+> 该页面是匿名页面，则加入活跃链表
+
+> 最近第二次访问的page cache或shared page cache，则加入活跃链表
+
+> 可执行文件的page cache，加入活跃链表
+
+> 除上述三种情况外，继续留在不活跃链表，例如第一次访问的page cache
+
+* 2.如果没有访问引用pte，则表示可以尝试回收它
+
+#### ARM32 Linux内核实现了两套页表，一套给linux内核，一套给ARM硬件
+
+### 2.13.2 kswapd内核线程
+* 负责在内存不足时回收页面
+* 系统启动时会在kswapd_try_to_sleep()函数中睡眠并让出CPU控制权。当系统内存紧张时，例如alloc_pages在低水位中无法分配出内存，这时分配内存函数会调用wakeup_kswapd()来唤醒kswapd内核线程。kswapd内核线程被唤醒后，调用balance_pgdat()来回收页面
+
+### 2.13.3 balance_pgdat函数
+### 2.13.4 shrink_zone函数
+* 扫描zone中所有可回收页面
+
+### 2.13.5 shrink_active_list函数
+* 从活跃链表加入不活跃链表
+
+### 2.13.6 shrink_inactive_list函数
+* 把不活跃链表中的页面加入到活跃链表
+* 从不活跃链表中回收页面　
+
+### 2.13.7 跟踪LRU活动情况
+### 2.13.8 Refault Distance算法
+* T2 - T1
+> 第二次读的时间减第一次踢出的时间= Refault Distance
+
+### 2.13.9 小结
+* 页面回收流程
+> 1、从空闲页面添加到LRU链表
+
+|1)匿名页面|比如do_anonymous_page()=>加入活跃LRU|
+|:-|:-|
+|2) page cache|文件读或者mmap读=>加入不活跃LRU|
+|3) 共享内存||
+
+> 2、从活跃链表加入不活跃链表shrink_active_list()
+
+|1)page_referenced()返回该页是否被引用？并清除每个引用PTE的YOUNG bit|
+|:-|
+|2) 有被引用的可执行的page cache页面加入活跃LRU，其他都加入不活跃LRU|
+
+> 3、从不活跃链表加入活跃链表shrink_inactive_list()
+
+|1) 有被引用的匿名页面|
+|:-|
+|2) 有被引用的可执行的page cache|
+|3) 访问2次的page cache|
+|4) 分配swap空间不成功的匿名页面|
+|5) try_to_unmap()/pageout()/try_to_release_page()失败的页面|
+
+> 4、继续待在不活跃LRU
+
+|1) 已经被别的进程加锁的页|
+|:-|
+|2) 正在回写的页|
+|3) 没有被引用的页|
+|4) 只访问了一次的page cache|
+|5) 脏的page cache|
+
+> 5、从不活跃LRU中回收页面shrink_inactive_list()
+
+|1) try_to_unmap()通过反向映射来解除每个引用pte映射|
+|:-|
+|2) pageout()把脏页/匿名页面写入存储设备|
+|3) 释放BH buffer|
+|4) 释放页|
+
+
+* kswapd内核线程何时会被唤醒？
+> 答：分配内存时，当在zone的WMARK_LOW水位分配失败时，会支唤醒kswapd内核线程来回收页面
+
+* LRU链表如何知道page的活动频繁程序？
+> 答：LRU链表按照先进先出的逻辑，页面先进入LRU链表头，然后慢慢挪动到链表尾，有一个老化过程。另外，page中有PG_reference/PG_active标志位和页表的PTE_YOUNG位来实现第二次机会法
+
+* kswapd按照什么原则来换出页面？
+> 答：页面在活跃LRU链表，需要从链表头到链表尾的一个老化过程才能迁移到不活跃LRU链表。在不活跃LRU链表中又经过一个老化过程，首先被剔除那些脏页面或正在回写的页面，然后那些在不活跃LRU链表老化过程中没有被访问引用的页面是最佳的被换出候选者，具体看shrink_page_list()函数
+
+* kswapd按照什么方向扫描zone？
+> 答：从低zone到高zone，和分配页面的方向相反
+
+* kswapd以什么标准退出扫描LRU？
+> 答：判断当前内存节点是否处于“生态平衡”，详见pgdat_balanced()函数
+
+* 手持设备（例如Android系统）没有swap分区，kswapd会扫描匿名页面LRU吗？
+> 答：没有swap分区不会扫描匿名页面LRU链表，详见get_scan_count()函数
+
+* swappiness的含义是什么？kswapd如何计算匿名页面和page cache之间的扫描比重？
+> 答：swappiness用于设置swap分区写页面的活跃程序，详见get_scan_count()
+
+* 当秕中充斥着大量只访问一次的文件访问时，kswapd如何来规避这种风暴？
+> 答：page_check_reference()函数设计了一个简易的过滤那些短时间只访问一次的page cache的过滤器，详见page_check_reference()
+
+* 在回收page cache时，对于dirty的page cache ，kswapd会马上回写吗？
+> 答：不会，详见shrink_page_list()函数
+
+* 内核中有哪些页面会被kswapd写到交换分区？
+> 答：匿名页面，还有一种特殊情况，是利用shmem机制建立的文件映射，其实也是使用的匿名页面，在内存紧张时，这种页面也会被swap到交换分区
+
+## 2.14 匿名页面生命周期
 
 
 
