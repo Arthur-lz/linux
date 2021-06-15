@@ -1316,7 +1316,190 @@ do_page_fault->
 ```
 
 ### 2.10.2 匿名页面缺页中断
+* do_anonyous_page, 匿名页面缺页中断核心函数
+* 在linux内核中，未关联到文件的页面称为匿名页面
 
+```c
+static int do_anonymous_page(struct mm_struct *mm, struct vm_area_struct *vma, unsigned long address, pte_t *page_table, pmd_t *pmd, unsigned int flags)
+{
+	struct mem_cgroup *memcg;
+	struct page *page;
+	spinlock_t *ptl;
+	pte_t entry;
+
+	if (check_stack_guard_page(vma, address) < 0) // 判断当前vma是否需要添加一个guard page作为安全垫
+		return VM_FAULT_SIGSEGV;
+
+	// use the zero-page for reads
+	if (!(flags & FAULT_FLAG_WRITE) && !mm_forbids_zeropage(mm)) { //分配的内存只需要只读，则使用一个全0填充的全局页面empty_zero_page
+		entry = pte_mkspecial(pfn_pte(my_zero_pfn(address), vma->vm_page_prot)); // pfn_pte使用0页面生成一个PTE Entry, pte_mkspecial设置PTE entry的PTE_SPECIAL标志位
+		page_table = pte_offset_map_lock(mm, pmd, address, &ptl); // 获取当前pte页表项
+		if (!pte_none(*page_table)) // 判断取到的pte页表项是否为空
+			goto unlock;
+		goto setpte; // 页表项不为空，则跳到setpte
+	}
+
+	if (unlikely(anon_vma_prepare(vma))
+		goto oom;
+	page = alloc_zeroed_user_highpage_movable(vma, address); // 分配一个可写的匿名页面, 其利用伙伴系统来分配新页面
+	if (!page)
+		goto oom;
+
+	__SetPageUptodate(page);
+
+	if (mem_cgroup_try_charge(page, mm, GFP_KERNEL, &memcg))
+		goto oom_free_page;
+	entry = mk_pte(page, vma->vm_page_prot); // 生成一个PTE Entry
+	if (vma->vm_flags & VM_WRITE)
+		entry = pte_mkwrite(pte_mkdirty(entry));
+	page_table = pte_offset_map_look(mm pmd, address, &ptl);
+	if (!pte_none(＊page_table))
+		goto release;
+	inc_mm_counter_fast(mm, MM_ANONPAGES); // 增加匿名页面统计计数
+	page_add_new_anon_rmap(page, vma, address); // 把匿名页面添加到反射映射机制中
+	mem_cgroup_commit_charge(page, memcg, false);
+	lru_cache_add_active_or_unevictable(page, vma); // 把匿名页面添加到LRU链表中
+}
+
+// empty_zero_page在系统启动时，由paging_init()分配一个页面作为零页面
+```
+
+### 2.10.3 文件映射缺页中断 
+* vma->vm_ops->fault()
+```c
+static int do_fault(struct mm_struct *mm, struct vm_area_struct *vma, unsigned long address, pte_t *page_table, pmd_t *pmd, unsigned int flags,
+		pte_t orig_pte)
+{
+	pgoff_t pgoff = (((address & PAGE_MASK) - vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
+
+	pte_unmap(page_table);
+	if (!(flags & FAULT_FLAG_WRITE))
+		return do_read_fault(mm, vma, address, pmd, pgoff, flags, orig_pte); // 只读异常
+	if (!(vma->vm_flags & VM_SHARED))
+		return do_cow_fault(mm, vma, address, pmd, pgoff, flags, orig_pte); // 写时复制异常
+
+	return do_shared_fault(mm, vma, address, pmd, pgoff, flags, orig_pte);// 写缺页异常 
+}
+```
+### 2.10.4 写时复制
+* do_wp_page()
+> 处理用户修改pte页表没有可写属性的页面，它新分配一个新页并复制旧页内容到新页
+
+> 有两个大的分支，一个是需要创建新页的“写时复制”，另一个是“复用原页面”
+
+* 哪些情况需要创建新页的写时复制Gotten？
+> 不是normal mapping页面且不是可写的共享页面
+
+> 是normal mapping且不是单身匿名页面
+
+* 哪些情况是复用原来的页面Reuse？
+> 是normal mapping页面, 是匿名页面且不是KSM，是单身匿名页面
+
+> 是normal mapping页面，文件映射并且可写的共享页面
+
+> 不是normal mapping页面，是可写共享页面
+
+* Gotten: 写时复制
+> 1、分配一个新页面new_page
+
+> 2、设置new_page的pte页表项的Dirty/Write位
+
+> 3、把new_page设置到原来的pte表项中
+
+> 4、把new_page添加到rmap系统中
+
+> 5、把new_page添加到活跃LRU链表中
+
+> 6、释放oldpage
+
+* Reuse: 复用原来页面
+> 1、设置页面pte的Dirty/Write标志位
+
+> 2、文件映射页面，设置PageDirty，调用系统回写机制回写一部分页面
+
+### 2.10.5 小结
+#### 缺页中断发生后，根据pte页表项中的PRESENT位、pte内容是否为空、是否文件映射等条件，相应处理函数如下
+* 1、匿名页面缺页中断do_anonymous_page()
+> (1)判断条件：pte页表项中PRESENT没有置位、pte内容为空且没有指定vma->vm_ops->fault()函数指针
+
+> (2)应用场景：malloc()分配内存
+
+* 2、文件映射缺页中断do_fault()
+> (1)判断条件：pte页表项中的PRESENT没有置位，pte内容为空且指定了vma->vm_ops->fault()函数指针
+
+> (2)应用场景：A、使用mmap读文件内容；B、动态库映射
+
+* 3、swap缺页中断do_swap_page()
+> 判断条件：pte页表项中的PRESENT没有置位且pte页表项内容不为空
+
+* 4、写时复制COW缺页中断do_wp_page()
+> 判断条件：pte页表项中的PRESENT置位且发生写错误缺页中断
+
+> 应用场景：fork。父进程fork子进程，父子进程共享父进程的匿名页面，当父子中一方修改内容时，COW便会发生
+
+* do_wp_page分两种情况处理
+> reuse复用old_page：单身匿名页面和可写的共享页面
+
+> gotten写时复制：非单身页面、只读或非共享的文件映射页面
+
+## 2.11 Page引用计数
+* 匿名页面与page cache页面有什么区别？
+
+### 2.11.1 struct page数据结构
+```c
+// include/linux/mm_types.h
+struct page {
+
+};
+
+// flags 标志位集合
+// include/linux/page-flags.h
+enum pageflags {
+
+};
+// 操作标志位的宏
+#define TESTPAGEFLAG(uname, lname) static inline int Page##uname(const struct *page page) {return test_bit(PG_##lname, &page->flags);}
+#define SETPAGEFLAG(uname, lname) static inline int SetPage##uname(const struct *page page) {return set_bit(PG_##lname, &page->flags);}
+#define CLEARPAGEFLAG(uname, lname) static inline int ClearPage##uname(const struct *page page) {return clear_bit(PG_##lname, &page->flags);}
+// flags除了存标志位外，还存放SECTION编号、NODE节点编号、ZONE编号和LAST_CPUPID等
+```
+### 2.11.2 _count和_mapcount的区别
+* _count是内核中引用该页面的次数
+> 加：get_page, 减：put_page
+
+> 伙伴系统分配好的页面初始_count值为1
+
+> _count == 0 说明页面已经释放了，如果put_page将_count减到0，则会立即调用__put_single_page()释放页面
+
+* _count常规用法：
+> 1、分配页面时_count引用计数会变成1
+
+> 2、加入LRU链表时，page会被kswapd内核线程使用，因此_count加1
+
+> 3、被映射到其他用户进程pte时，_count会加1
+
+> 4、页面的private中有私有数据;PG_swapable页面：__add_to_swap_cache()人增加_count；PG_private页面：buffer_migrate_page()会增加_count;
+
+> 5、内核对页面进行操作的关键路径上也会_count加1;如follow_page、get_user_pages
+
+* _mapcount是页面被进程映射的个数, 也就是pte页表个数
+> _mapcount主要用于RMAP反和映射机制
+
+> _mapcount == -1表示没有pte映射到页面中
+
+> _mapcount == 0表示只有父进程映射了页面；匿名页面刚分配时，_mapcount初始为0
+
+> _mapcount > 0表示除了父进程外还有其他进程映射了这个页面
+
+### 2.11.3 页面锁PG_Locked
+* flags标志集合中的PG_Locked标志，内核常利用PG_Locked来设置一个页面锁
+> 调用lock_page()函数申请页面锁, 如果页面锁被其他进程占用了，那么当前进程会睡眠等待
+
+### 2.11.4 小结
+* _count是page的命根子，因为当_count == 0时页面就会被释放
+* _mapcount是page的幸福指数，因为它是进程映射页面的个数，被用的多说明更具有价值
+
+## 2.12 反射映射RMAP
 
 
 
