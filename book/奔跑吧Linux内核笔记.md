@@ -1034,8 +1034,26 @@ struct rb_node **rb_parent;
 2.rb_parent是无疑问的，它是新节点A的父节点
   rb_parent中的两个成员rb_left和rb_right全指向NULL，但是因为rb_parent是已经存在的，即已经被初始化的有物理内存的，那么它的两个成员也是已经被初始化的，这两个成员rb_left, rb_right都是指针，它们各自占用的8字节地址空间已经被分配了，只不过指针的值是NULL
 
-3.rb_link是三级指针，它的作用是存二级指针的值，而二级指针的作用是存一级指针的值，所以
-find_vma_links(...,&rb_link,...)
+3.三级指针的值是存二级指针的地址，而二级指针的值是存一级指针的地址，所以
+static nt find_vma_links(struct mm_struct *mm, unsigned long addr, unsigned long end, struct vm_area_struct **pprev,
+			struct rb_node ***rb_link, struct rb_node **rb_parent)
+int insert_vm_struct(struct mm_struct *mm, struct vm_area_struct *vma)
+{
+	struct vm_area_struct *prev;
+	struct rb_node **rb_link, *rb_parent;
+
+	if (!vma->vm_file) {
+		BUG_ON(vma->anon_vma);
+		vma->vm_pgoff = vma->vm_start >> PAGE_SHIFT;
+	}
+	if (find_vma_links(mm, vma->vm_start, vma->vm_end, &prev, &rb_link, &rb_parent)) // 关注三个指针prev, rb_link, rb_parent
+		return -ENOMEM;
+	/* 指针prev, rb_link, rb_parent的值全是NULL，因为没有初始化，但是指针的地址都已经分配了内存，所以可以取它们的地址作为参数传给find_vma_links函数
+	 */
+	...
+	
+}
+find_vma_links(...,&rb_link,...) 
 {
 	struct ** __rb_link;
 	...
@@ -1800,13 +1818,254 @@ struct rmap_walk_control {
 > kswapd()
 
 ## 2.16 内存规整（memory compaction）
+* 内核使用的页面是不可迁移的，且实现迁移的难度和复杂度大，因此内核本身的物理页面不作迁移
 
+* 用户进程使用的页面，是通过用户页表映射来访问，用户页表可以移动和瞩映射关系，不会影响用户进程
 
+* 内存规整基于页面迁移实现
 
+### 2.16.1 内存规整实现
+* 内存规整的一个重要应用场景：在分配大块内存时（order > 1），在WMARK_LOW低水位情况下分配失败，唤醒kswapd内核线程后依然无法分配出内存，这时使用__alloc_pages_direct_compact()来压缩内存尝试分配所需内存
+> alloc_pages->__alloc_pages_nodemask->__alloc_pages_slowpath->alloc_pages_direct_compact
 
+```c
+static struct page * __alloc_pages_direct_compact(gfp_t gfp_mask, unsigned int order,
+              			int alloc_flags, const struct alloc_context *ac,                                                                                		enum migrate_mode mode, int *contended_compaction,
+                 		bool *deferred_compaction)
+{
+        unsigned long compact_result;
+   	struct page *page;
 
+        if (!order)
+        	return NULL;
+ 
+        current->flags |= PF_MEMALLOC;
+  	compact_result = try_to_compact_pages(gfp_mask, order, alloc_flags, ac,
+                                                 mode, contended_compaction);
+    	current->flags &= ~PF_MEMALLOC;
 
+  	switch (compact_result) {
+    	case COMPACT_DEFERRED:
+             	*deferred_compaction = true;
+      	/* fall-through */
+        case COMPACT_SKIPPED:
+                 return NULL;
+	default:
+                 break;
+     	}
+	count_vm_event(COMPACTSTALL);
+	// 上面执行完内存规整后，会调用get_page_from_freelist来尝试分配内存，如果分配成功则返回page
+	page = get_page_from_freelist(gfp_mask, order, alloc_flags & ~ALLOC_NO_WATERMARKS, ac);
+	...
+}
 
+unsigned long try_to_compact_pages(gfp_t gfp_mask, unsigned int order,int alloc_flags, const struct alloc_context *ac,
+		enum migrate_mode mode, int *contended)
+{
+	for_each_zone_zonelist_nodemask(zone, z, ac->zonelist, ac->high_zoneidx,ac->nodemask) {
+		int status;
+		int zone_contended;
+
+		if (compaction_deferred(zone, order))
+			continue;
+		status = compact_zone_order(zone, order, gfp_mask, mode,&zone_contended, alloc_flags,ac->classzone_idx);
+		...
+		if (zone_watermark_ok(zone, order, low_wmark_pages(zone),ac->classzone_idx, alloc_flags)) {
+		}
+	}
+}
+
+static unsigned long compact_zone_order(struct zone *zone, int order, gfp_t gfp_mask, enum migrate_mode mode, int *contended, int alloc_flags,
+		int classzone_idx)
+{
+	unsigned long ret;
+	struct compact_control cc = {
+		.nr_freepages = 0,
+		.nr_migratepages = 0,
+		.gfp_mask = gfp_mask,
+		.zone = zone,
+		.mode = mode,
+		.alloc_flags = alloc_flags,
+		.classzone_idx = classzone_idx,
+	};
+	INIT_LIST_HEAD(&cc.freepages);
+	INIT_LIST_HEAD(&cc.migratepages);
+
+	ret = compact_zone(zone, &cc);
+}
+compact_zone->compaction_suitable
+	      compact_finished
+	      isolate_migratepages()函数用于扫描和查找合适迁移的页面，从zone的头部开始找
+	      migrate_pages()迁移页的核心函数
+```
+
+* 不适合内存规整迁移的页面总结如下
+> 必须在LRU链表中的页面，还在伙伴系统中的页面不适合
+
+> 正在回写的页面不适合
+
+> 标记有PG_unevictable页面不适合
+
+> 没有定义mapping->a_ops->migratepage()方法的脏页面不适合
+
+## 2.17 KSM
+* KSM（Kernel SamePage Merging）,用于合并内容相同的页面
+> KSM的出现是为了优化虚拟化中产生的冗余页面。因为虚拟化的实际应用中在同一台宿主机上会有许多相同的操作系统和应用程序，那么许多内存页面的内容有可能是相同的，因此它们可以被合并，从而释放内存供其他程序使用
+
+> ksm允许合并同一个进程或不同进程之间的内容相同的匿名页面；
+
+> ksm把内容相同的页面合并成只读的页面，从而释放出物理页面，当应用程序需要改变页面内容时，会发生写时复制(copy-on-write, COW)
+
+### 2.17.1 KSM实现
+* ksm在初始化时会创建一个ksmd内核线程
+
+* KSM只会处理通过madvise系统调用显式指定的用户进程空间内存
+> 用户程序想使用KSM，那么在分配内存时必须显式调用madvise(addr, length, MADV_MERGEABLE) 
+
+> 用户想在KSM中取消一个用户进程地址空间的合并功能必须调用madvise(addr, length, MADV_UNMERGEABLE)
+	
+### 2.17.2 匿名页面和KSM页面的区别
+* 使用宏PageAnon()和PageKsm()区分
+* KVM最早是为了KVM虚拟机设计的
+* 一个典型的应用程序可以由以下五个内存组成
+> 1.可执行文件的内存映射
+
+> 2.程序分配使用的匿名页面
+
+> 3.进程打开的文件映射
+
+> 4.进程访问文件系统产生的cache
+
+> 5.进程访问内核产生的内核buffer
+
+## 2.18 Dirty COW内存漏洞
+* 实验代码book/runlinuxkernel/code/2/2.18
+
+## 2.19 总结内存管理数据结构和API
+### 2.19.1 内存管理数据结构关系图
+* 用mm和虚拟地址vaddr找对应的vma
+```c
+find_vma
+find_vma_prev
+find_vma_intersection
+```
+
+* 用page和vma找虚拟地址vaddr
+```c
+mm/rmap.c
+
+// 针对匿名页面
+vma_address
+=> pgoff = page->index;
+=> vaddr = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
+```
+
+* 用page找到所有映射的vma
+```c
+// 通过反向映射rmap系统来实现rmap_walk()
+// 对于匿名页面来说：
+=> 由page->mapping找到anon_vma数据结构
+=> 遍历anon_vma->rb_root红黑树，取出avc数据结构
+=> 每个avc数据结构中指向每个映射的vma
+```
+
+* 用vma和虚拟地址找相应的page
+```c
+include/linux/mm.h
+
+follow_page
+=> 由虚拟地址vaddr通过查询页表找出pte
+=> 由pte找出页帧号pfn, 然后在mem_map[]找到相应的page
+```
+
+* page和pfn之间互换
+```c
+include/asm-generic/memory_model.h
+// 由page到pfn:
+page_to_pfn()
+
+// 由pfn到page
+__pfn_to_page(pfn)
+
+```
+
+* pfn和paddr之间互换
+```c
+arch/arm/include/asm/memory.h
+
+// 由paddr到pfn
+__phys_to_pfn(paddr)
+
+// 由pfn到paddr
+__pfn_to_phys(pfn)
+```
+
+* page和pte之间互换
+```c
+// page到pte
+=> 先由page到pfn
+=> 然后由pfn到pte
+
+// 由pte到page
+pte_page(pte)
+```
+
+* zone和page之间互换
+```
+// 由zone到page
+zone数据结构有zone->start_pfn指向zone起始的页面，然后由pfn找到page数据结构
+
+// page到zone
+page_zone()函数返回page所属的zone
+```
+
+* zone和pg_data互换
+```
+// pd_data到zone
+pd_data_t->node_zones
+
+// zone到pd_data
+zone->zone_pgdat
+```
+
+### 2.19.2 内存管理中常用api
+* 1.页表相关
+> 查询页表
+
+> 判断页表项的状态
+
+> 修改页表
+
+> page和pfn的关系
+
+* 2.内存分配
+> 分配和释放页面
+
+> slab分配器
+
+> vmalloc相关
+
+* 3.VMA操作相关
+* 4.页面相关
+> PG_XXX标志位操作
+
+> page引用计数操作
+
+> 匿名页面和KSM页面
+
+> 页面操作
+
+> 页面映射
+
+> 缺页中断 
+
+> LRU和页面回收
+
+## 2.20 最新更新和展望
+### 2.20.1 页面回收策略从zone迁移到node
+### 2.20.2 OOM Killer改进
+### 2.20.3 swap优化
+### 2.20.4 展望
 
 
 

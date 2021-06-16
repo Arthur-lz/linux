@@ -17,7 +17,8 @@ void main()
 	int j = 2;
 	*c = malloc(1);
 	char *d = *c;
-	printf("main: c=%p, *c=%p\n", c, *c);
+	int *x;
+	printf("main: c=%p, *c=%p, &x=%p\n", c, *c, &x);
 	test(c);
 
 	printf("main after test c=%p, *c=%p\n", c,*c);
