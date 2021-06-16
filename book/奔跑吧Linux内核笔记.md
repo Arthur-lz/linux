@@ -1535,6 +1535,16 @@ struct anon_vma_chain {
 	struct rb_node rb;
 	unsigned long rb_subtree_last;
 };
+
+struct rmap_walk_control {                                                                                                                       
+    	void *arg;
+      	int (*rmap_one)(struct page *page, struct vm_area_struct *vma,
+                                         unsigned long addr, void *arg);
+        int (*done)(struct page *page);
+        struct anon_vma *(*anon_lock)(struct page *page);
+        bool (*invalid_vma)(struct vm_area_struct *vma, void *arg);
+};
+// 上面的rmap_walk_control配合函数rmap_walk一起用，rmap_walk会遍历所有找到的avc并执行rmap_one
 ```
 
 * 关键函数
@@ -1754,9 +1764,42 @@ struct anon_vma_chain {
 ### 2.14.6 小结
 
 ## 2.15 页面迁移
+* migrate_pages()函数
+> mm/migrate.c
 
+> 调用unmap_and_move一个页面一个页面的迁移, 返回MIGRAEPAGE_SUCCESS表示页面迁移成功
 
+> MIGRAGE_ASYNC, 它是枚举类型的迁移模式，它表示异步迁移
 
+> PF_MEMALLOC, 当前进程的标志位，表示可能是在直接内存压缩内核路径上，不可以睡眠等待页面锁（不安全）
+
+> 页面锁PG_locked
+
+> wait_on_page_writeback()
+
+> move_to_new_page()
+
+> page_mapping(), 匿名页面、KSM页面、slab页面它返回NULL-------4.4.24内核源码
+
+> migrage_page()
+
+> remove_migration_ptes(), 利用反向映射机制找到映射旧页面的每一个pte，之后迁移页面的每一个pte
+
+> rmap_walk会对每一个找到的avc执行rmap_one函数指令指向的函数
+
+> set_pte_at()
+
+* 为什么不可以在直接内存压缩内核路径上睡眠等待页面锁？
+> 举例，在文件预读时，预读的所有页面都会加页面锁，并添加到LRU链表。等预读完成后，这些页面会标记PG_uptodate并释放页面锁，这个过程中块设备会把多个页面合并到一个BIO中。如果分配第2和第3个页面时发生内存短缺，内核会运行到直接内存压缩内核路径上，导致一个页面已经加了页面锁又支等待这个页面锁，产生死锁。因此，在直接压缩内存的内核路径上标记PF_MEMALLOC
+
+* PF_MEMALLOC标志位一般是在直接内存压缩、直接内存回收和kswapd中设置，这些场景下也可能会有少量的内存分配行为，设置PF_MEMALLOC表示允许它们使用系统预留的内存，即不考虑水位值
+> __perform_reclaim()
+
+> __alloc_pages_direct_compact()
+
+> kswapd()
+
+## 2.16 内存规整（memory compaction）
 
 
 
