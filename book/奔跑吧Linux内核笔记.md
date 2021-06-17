@@ -2048,19 +2048,77 @@ zone->zone_pgdat
 * 3.VMA操作相关
 * 4.页面相关
 > PG_XXX标志位操作
+```c
+PageXXX()
+SetPageXXX()
+ClearPageXXX()
+TestSetPageXXX()
+TestClearPageXXX()
+void lock_page(struct page *page);
+int trylock_page(struct page *page);
+void wait_on_page_bit(struct page *page, int bit_nr);
+void wake_up_page(struct page *page, int bit);
+static inline void wait_on_page_locked(struct page *page);
+static inline void wait_on_page_writeback(struct page *page);
+```
 
 > page引用计数操作
+```c
+void get_page(struct page *page);
+void put_page(struct page *page);
+#define page_cache_get(page)	get_page(page)
+#define page_cache_release(page)	put_page(page)
+static inline int page_count(struct page *page);
+static inline int page_mapcount(struct page *page);
+static inline int page_mapped(struct page *page);
+static inline int put_page_testzero(struct page *page);
+
+```
 
 > 匿名页面和KSM页面
+```c
+static inline int PageAnon(struct page *page);
+static inline int PageKsm(struct page *page);
+struct address_space *page_mapping(struct page *page);
+void page_add_new_anon_rmap(struct page *page, struct vm_area_struct *vma, unsigned long address);
+```
 
 > 页面操作
+```c
+struct page *follow_page(struct vm_area_struct *vma, unsigned long address, unsigned int foll_flags);
+
+struct page *vm_normal_page(struct vm_area_struct *vma, unsigned long addr, pte_t pte);
+
+long get_user_pages(struct task_struct *tsk, struct mm_struct *mm, unsigned long start, unsigned long nr_pages, int write, int force, struct page **pages, struct vm_area_struct **vmas);
+```
 
 > 页面映射
+```c
+void create_mapping_late(phys_addr_t phys, unsigned long virt, phys_addr_t size, pgprot_t prot);
+
+unsigned long do_mmap_pgoff(struct file *file, unsigned long addr, unsigned long len, unsigned long prot, unsigned long flags, unsigned long pgoff, unsigned long *populate);
+
+int remap_pfn_range(struct vm_area_struct *vma, unsigned long addr, unsigned long pfn, unsigned long size, pgprot_t prot);
+```
 
 > 缺页中断 
+```c
+int do_page_fault(unsigned long addr, unsigned int fsr, struct pt_regs *regs);
+int handle_pte_fault(struct mm_struct *mm, struct vm_area_struct *vma, unsigned long address, pte_t *pte, pmd_t *pmd, unsigned int flags);
+static int do_anonymous_page(struct mm_struct *mm, struct vm_area_struct *vma, unsigned long address, pte_t *page_table, pmd_t *pmd, unsigned int flags);
+
+static int do_wp_page(struct mm_struct *mm, struct vm_area_struct *vma, unsigned long address, pte_t *page_table, pmd_t *pmd, spinlock_t *ptl, pte_t orig_pte);
+
+```
 
 > LRU和页面回收
+```c
+void lru_cache_add(struct page *page);
 
+#define lru_to_page(_head) (list_entry((_head)->prev, struct page, lru))
+
+bool zone_watermark_ok(struct zone *z, unsigned int order, unsigned long mark, int classzone_idx, int alloc_flags);
+```
 ## 2.20 最新更新和展望
 ### 2.20.1 页面回收策略从zone迁移到node
 ### 2.20.2 OOM Killer改进
