@@ -1943,14 +1943,41 @@ compact_zone->compaction_suitable
 
 ## 2.19 总结内存管理数据结构和API
 ### 2.19.1 内存管理数据结构关系图
-* 用mm和虚拟地址vaddr找对应的vma
+```
+ ____         ________
+|_MM_|       |__vaddr_|
+   ^              ^            ___________
+    \            /            |__pg_data__|
+  (1)\      (2) /                   /
+      \        /               (8) /
+       \      /                   /
+      __V___ V___            ____V____
+     |___VMA_____|          |__zone___|
+          ^		       ^
+       (3)|               (7) /
+          |                  /           
+     _____V________________</     ___________
+    /    page     \<_____________|	     |
+    \_____________/      (9)     | mem_map[] |
+        ^    ^                   |___________|
+   (4) /      \ (6)
+   ___V___   __V____		
+  |_pfn___| |__pte__|
+     ^
+  (5)|
+  ___V___
+ |_paddr_|
+
+```
+
+* (1)用mm和虚拟地址vaddr找对应的vma
 ```c
 find_vma
 find_vma_prev
 find_vma_intersection
 ```
 
-* 用page和vma找虚拟地址vaddr
+* (2)用page和vma找虚拟地址vaddr
 ```c
 mm/rmap.c
 
@@ -1960,7 +1987,7 @@ vma_address
 => vaddr = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
 ```
 
-* 用page找到所有映射的vma
+* (3)用page找到所有映射的vma
 ```c
 // 通过反向映射rmap系统来实现rmap_walk()
 // 对于匿名页面来说：
@@ -1978,7 +2005,7 @@ follow_page
 => 由pte找出页帧号pfn, 然后在mem_map[]找到相应的page
 ```
 
-* page和pfn之间互换
+* (4)page和pfn之间互换
 ```c
 include/asm-generic/memory_model.h
 // 由page到pfn:
@@ -1989,7 +2016,7 @@ __pfn_to_page(pfn)
 
 ```
 
-* pfn和paddr之间互换
+* (5)pfn和paddr之间互换
 ```c
 arch/arm/include/asm/memory.h
 
@@ -2000,7 +2027,7 @@ __phys_to_pfn(paddr)
 __pfn_to_phys(pfn)
 ```
 
-* page和pte之间互换
+* (6)page和pte之间互换
 ```c
 // page到pte
 => 先由page到pfn
@@ -2010,7 +2037,7 @@ __pfn_to_phys(pfn)
 pte_page(pte)
 ```
 
-* zone和page之间互换
+* (7)zone和page之间互换
 ```
 // 由zone到page
 zone数据结构有zone->start_pfn指向zone起始的页面，然后由pfn找到page数据结构
@@ -2019,7 +2046,7 @@ zone数据结构有zone->start_pfn指向zone起始的页面，然后由pfn找到
 page_zone()函数返回page所属的zone
 ```
 
-* zone和pg_data互换
+* (8)zone和pg_data互换
 ```
 // pd_data到zone
 pd_data_t->node_zones
