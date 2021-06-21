@@ -2273,7 +2273,7 @@ fork->do_fork->copy_process->dup_task_struct->arch_dup_task_struct
          		                set_task_cpu
          		    copy_thread
          		    copy_files, copy_fs, copy_io
-         		    copy_mm->dum_mm->mm_init->mm_alloc_pgd->__pgd_alloc
+         		    copy_mm->dup_mm->mm_init->mm_alloc_pgd->__pgd_alloc
          		                                            pud_alloc
          				     		            pmd_alloc
          							    pte_alloc_map
@@ -2289,7 +2289,42 @@ fork->do_fork->copy_process->dup_task_struct->arch_dup_task_struct
 // copy_page_range函数复制父进程VMA的页表到子进程页表中
 //
 // wake_up_new_task准备唤醒新创建的进程，也就是把进程加入到调度器里接受调度运行
+
+// init_struct_pid是init_task进程的默认配置，新进程需要重新分配pid实例（alloc_pid初始化pid结构，pid_nr获取新进程真正的pid号）
+
+// vfork创建的子进程，首先要保证子进程先运行
 ```
+
+* copy_mm函数
+> 如果current->mm ==  NULL 则表示父进程没有自己的运行空间，只是一个“寄人篱下”的线程或内核线程 
+
+> 如果要创建一个和父进程共享内存空间的新进程，那么直接将新进程的mm指针指向父进程的mm即可
+
+* dup_mm函数分配一个mm数据结构, 并从父进程中复制相关内容
+
+* mm_struct的几个相关成员
+> mm_rb
+
+> mm_users, 表示在用户空间的用户个数
+
+> mm_count表示内核中引用了该数据结构的个数
+
+> mmap_sem, 用于保护进程地址空间的读写信号量 
+
+> page_table_lock用于保护进程页表的spinlock锁
+
+* 对于ARM体系结构，Linux内核栈顶存放着ARM的通用寄存器, 在代码中使用struct pt_regs表示
+> 如果新进程不是内核线程，那么将父进程的寄存器值复制到子进程中, thread_info.cpu_context成员中保存着进程上下文相关的通用寄存器
+
+```c
+#define task_pt_regs(p) \
+	((struct pt_regs*)(THREAD_START_SP + task_stack_page(p)) - 1)
+
+struct pt_regs {
+	unsigned long uregs[18];
+};
+```
+
 ### 3.1.3 小结
 ## 3.2 CFS 调度器
 
