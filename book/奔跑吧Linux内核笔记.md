@@ -2159,6 +2159,158 @@ bool zone_watermark_ok(struct zone *z, unsigned int order, unsigned long mark, i
 ### 2.20.3 swap优化
 ### 2.20.4 展望
 
+# 第3章 进程管理
+## 3.1 进程的诞生
+```c
+int main(void)
+{
+	int i;
+	for (i = 0; i < 2; i++) {
+		fork();
+		printf("-\n");
+	}
+	wait(NULL);
+	wait(NULL);
+	return 0;
+}
+// 问：上述代码输出几个-？
+```
+* 线程和进程的区别：进程拥有独立的资源空间，而线程共享进程的资源空间
+
+* Linux内核并没有对线程有特别的调度算法或定义特别的数据结构来标识线程，线程和进程都使用相同的PCB（进程控制块，Processing control block）数据结构
+
+* 内核里使用clone创建线程，其工作方式和创建进程fork方法类似，但区分哪些资源和父进程共享，哪些资源为线程独占
+
+* fork系统调用是所有进程的孵化器（idle进程除外）
+
+### 3.1.1 init进程
+* linux内核在启动时会有一个init_task进程，它是系统中所有进程的鼻祖，称为0号进程或idle进程或swapper进程
+> 当系统没有进程需要调度时，调度器就地支执行idle进程
+
+> idle进程在内核启动时(start_kernel()函数)时静态创建，所有核心的数据结构都是预先静态赋值
+
+> init_task进程的task_struct数据实例通过INIT_TASK宏来赋值
+
+```c
+// include/linux/init_task.h
+
+#define INIT_TASK(tsk)   \
+{
+	.state		= 0,	\
+	.stack		= &init_thread_info,	\
+	...
+	.flags		= PF_KTHREAD,	\
+	...
+	.policy		= SCHED_NORMAL,		\
+	...
+	.mm		= NULL,	\
+	.active_mm	= &init_mm,	\
+	...
+}
+/* 1.stack指向thread_info
+ * 2.通常内核栈大小是8KB（ARM32是8KB, 这与体系结构相关, ARM64是16KB）, 存放在内核映像文件的data段中，在编译链接时预先分配好，见arch/arm/kerenl/vmlinux.lds.S链接文件
+ * 
+ */
+```
+* ARM32处理器从汇编代码跳转到start_kernel()函数之前，设置了寄存器SP为指向8KB的内核栈顶部区域（需预留8字节空洞） 
+```
+// arch/arm/kernel/head-common.S
+__mmap_switched:
+	adr	r3, __mmap_switched_data
+	...
+	ARM(ldmia	r3!, {r4, r5, r6, r7, sp})
+	...
+	b	start_kernel
+ENDPROC(__mmap_switched)
+```
+
+* current用于获取当前进程的task_struct实例，它利用了内核栈的特性
+> 首先通过SP寄存器得到当前内核栈的地址，对齐后取到struct thread_info指针，再通过thread_info->task得到task_struct实例
+
+```c
+// arch/arm/include/asm/thread_info.h
+
+struct thread_info {
+	unsigned long	flags;
+	int 	preempt_count;
+	...
+	struct task_struct *task;
+	...
+	__u32		cpu;
+	...
+	struct cpu_context_save cpu_context;
+	...
+};
+```
+### 3.1.2 fork
+* 进程或线程是通过fork、vfork、clone等系统调用来建立的
+> 在内核中这三个系统调用都是通过同一个函数do_fork()来实现的, 定义在kernel/fork.c
+
+```c
+long do_fork(unsigned long clone_flags, unsigned long stack_start, unsigned long stack_size, int __user *parent_tidptr, int __user *child_tidptr);
+
+// clone_flags: 创建进程的标志位集合, 定义在include/uapi/linux/sched.h
+// stack_start: 用户态栈的起始地址
+// stack_size: 用户态栈的大小，通常设置0
+// parent_tidptr, child_tidptr: 指向用户空间中地址的两个指针，分别指向父子进程的PID
+
+// fork的实现：
+	do_fork(SIGCHLD, 0, 0, NULL, NULL);
+// vfork的实现：
+	do_fork(CLONE_VFORK | CLONE_VM | SIGCHLD, 0, 0, NULL, NULL);
+// clone的实现:
+	do_fork(clone_flags, newsp, 0, parent_tidptr, child_tidptr);
+// 内核线程：
+	do_fork(flags | CLONE_VM | CLONE_UNTRACED, (unsigned long)fn, (unsigned long)arg, NULL, NULL);
+
+```
+
+* 关键路径
+```c
+fork->do_fork->copy_process->dup_task_struct->arch_dup_task_struct
+         				     setup_thread_stack
+         		    sched_fork->__sched_fork
+         		                set_task_cpu
+         		    copy_thread
+         		    copy_files, copy_fs, copy_io
+         		    copy_mm->dum_mm->mm_init->mm_alloc_pgd->__pgd_alloc
+         		                                            pud_alloc
+         				     		            pmd_alloc
+         							    pte_alloc_map
+         							    set_pte_ext
+         				     dup_mmap->anon_vma_fork
+         				     	       __vma_link_rb
+         					       copy_page_range->copy_pud_range->copy_pmd_range->copy_pte_range->copy_one_pte
+         		    task_pt_regs
+	       wake_up_new_task
+         
+// dup_mmap函数的主要作用是遍历父进程中所有的VMA，然后复制父进程VMA中对应的pte页表项到子进程相应的VMA对应的pte中，但只是复制pte页表项，并没有复制vma对应的页面内容					       
+
+// copy_page_range函数复制父进程VMA的页表到子进程页表中
+//
+// wake_up_new_task准备唤醒新创建的进程，也就是把进程加入到调度器里接受调度运行
+```
+### 3.1.3 小结
+## 3.2 CFS 调度器
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
