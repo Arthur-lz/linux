@@ -568,14 +568,17 @@ void __init __free_pages_bootmem(struct page *page, unsigned int order)
 
 ## 2.2 页表的映射过程
 * 多级页表命名
+
 |页表名|kernel中的命名|
 |:-|:-|
 |一级页表（L0）|PGD|
 |二级页表（L1）|PUD|
 |三级页表（L2）|PMD|
 |四级页表（L3）|PTE|
+
 ### 2.2.1 ARM32页表映射
 * PGD页表基址通过init_mm结构的pgd成员来获取
+> init_mm是mm_struct结构类型
 
 #### ARM结构中一级页表PGD的偏移应该从第20位开始，为何头文件arch/arm/include/asm/pgtable-2level.h中的宏PGDIR_SHIFT是21，即从21位开始？
 > start_kernel->setup_arch->paging_init->map_mem->__map_memblock->create_mapping->alloc_init_pud->alloc_init_pmd->alloc_init_pte->early_pte_alloc
@@ -1659,8 +1662,10 @@ struct rmap_walk_control {
 > 第二次读的时间减第一次踢出的时间= Refault Distance
 
 ### 2.13.9 小结
+* Linux4.0内核的页面回收代码基于zone的LRU扫描策略
+
 * 页面回收流程
-> 1、从空闲页面添加到LRU链表
+> 1、从空闲页面添加到LRU链表（这里是说，页面回收前需要先分配哈，新分配的匿名页面需要加入到活跃LRU）
 
 |1)匿名页面|比如do_anonymous_page()=>加入活跃LRU|
 |:-|:-|
@@ -1771,7 +1776,9 @@ struct rmap_walk_control {
 
 > shrink_page_list()->__remove_mapping()：判断_count是否为2，并将_count置0、清PG_swapcache,PG_locked
 
-> 最后把page加入free_page链表中，释放该页, 到这里，该页的内容已经写入swap分区，它的物理页面已经释放
+> 最后把page加入free_page链表中，释放该页。到这里，该页的内容已经写入swap分区，它的物理页面已经释放
+
+* 所谓的物理页面已经释放，其实指就是将该通过伙伴系统将该页回收到zone的free_area中free_list？my answer is right.
 
 ### 2.14.4 匿名页面的换入
 * 匿名页面被换出到swap分区后，如果应用程序需要读写这个页面，缺页中断发生，因为pte中的present位为0显示该页面不在内存中，但pte表项不为空，说明该页在swap分区中，因此调用do_swap_page()函数重新读入该页内容
@@ -1785,9 +1792,9 @@ struct rmap_walk_control {
 * migrate_pages()函数
 > mm/migrate.c
 
-> 调用unmap_and_move一个页面一个页面的迁移, 返回MIGRAEPAGE_SUCCESS表示页面迁移成功
+> 调用unmap_and_move一个页面一个页面的迁移, 返回MIGRATEPAGE_SUCCESS表示页面迁移成功
 
-> MIGRAGE_ASYNC, 它是枚举类型的迁移模式，它表示异步迁移
+> MIGRATE_ASYNC, 它是枚举类型的迁移模式，它表示异步迁移
 
 > PF_MEMALLOC, 当前进程的标志位，表示可能是在直接内存压缩内核路径上，不可以睡眠等待页面锁（不安全）
 
@@ -1808,7 +1815,7 @@ struct rmap_walk_control {
 > set_pte_at()
 
 * 为什么不可以在直接内存压缩内核路径上睡眠等待页面锁？
-> 举例，在文件预读时，预读的所有页面都会加页面锁，并添加到LRU链表。等预读完成后，这些页面会标记PG_uptodate并释放页面锁，这个过程中块设备会把多个页面合并到一个BIO中。如果分配第2和第3个页面时发生内存短缺，内核会运行到直接内存压缩内核路径上，导致一个页面已经加了页面锁又支等待这个页面锁，产生死锁。因此，在直接压缩内存的内核路径上标记PF_MEMALLOC
+> 举例，在文件预读时，预读的所有页面都会加页面锁，并添加到LRU链表。等预读完成后，这些页面会标记PG_uptodate并释放页面锁，这个过程中块设备会把多个页面合并到一个BIO中。如果分配第2和第3个页面时发生内存短缺，内核会运行到直接内存压缩内核路径上，导致一个页面已经加了页面锁又去等待这个页面锁，产生死锁。因此，在直接压缩内存的内核路径上标记PF_MEMALLOC
 
 * PF_MEMALLOC标志位一般是在直接内存压缩、直接内存回收和kswapd中设置，这些场景下也可能会有少量的内存分配行为，设置PF_MEMALLOC表示允许它们使用系统预留的内存，即不考虑水位值
 > __perform_reclaim()
@@ -1820,7 +1827,7 @@ struct rmap_walk_control {
 ## 2.16 内存规整（memory compaction）
 * 内核使用的页面是不可迁移的，且实现迁移的难度和复杂度大，因此内核本身的物理页面不作迁移
 
-* 用户进程使用的页面，是通过用户页表映射来访问，用户页表可以移动和瞩映射关系，不会影响用户进程
+* 用户进程使用的页面，是通过用户页表映射来访问，用户页表可以移动和修改映射关系，不会影响用户进程
 
 * 内存规整基于页面迁移实现
 
@@ -1926,7 +1933,7 @@ compact_zone->compaction_suitable
 	
 ### 2.17.2 匿名页面和KSM页面的区别
 * 使用宏PageAnon()和PageKsm()区分
-* KVM最早是为了KVM虚拟机设计的
+* Ksm最早是为了KVM虚拟机设计的
 * 一个典型的应用程序可以由以下五个内存组成
 > 1.可执行文件的内存映射
 
