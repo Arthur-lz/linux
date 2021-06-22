@@ -2187,7 +2187,7 @@ int main(void)
 * linux内核在启动时会有一个init_task进程，它是系统中所有进程的鼻祖，称为0号进程或idle进程或swapper进程
 > 当系统没有进程需要调度时，调度器就地支执行idle进程
 
-> idle进程在内核启动时(start_kernel()函数)时静态创建，所有核心的数据结构都是预先静态赋值
+> idle进程在内核启动时(start_kernel()函数)静态创建，所有核心的数据结构都是预先静态赋值
 
 > init_task进程的task_struct数据实例通过INIT_TASK宏来赋值
 
@@ -2268,20 +2268,20 @@ long do_fork(unsigned long clone_flags, unsigned long stack_start, unsigned long
 * 关键路径
 ```c
 fork->do_fork->copy_process->dup_task_struct->arch_dup_task_struct
-         				     setup_thread_stack
-         		    sched_fork->__sched_fork
-         		                set_task_cpu
-         		    copy_thread
-         		    copy_files, copy_fs, copy_io
-         		    copy_mm->dup_mm->mm_init->mm_alloc_pgd->__pgd_alloc
-         		                                            pud_alloc
-         				     		            pmd_alloc
-         							    pte_alloc_map
-         							    set_pte_ext
-         				     dup_mmap->anon_vma_fork
-         				     	       __vma_link_rb
-         					       copy_page_range->copy_pud_range->copy_pmd_range->copy_pte_range->copy_one_pte
-         		    task_pt_regs
+         				      setup_thread_stack
+         		     sched_fork->__sched_fork
+         		                 set_task_cpu
+         		     copy_thread
+         		     copy_files, copy_fs, copy_io
+         		     copy_mm->dup_mm->mm_init->mm_alloc_pgd->__pgd_alloc
+         		                                             pud_alloc
+         		         	     		             pmd_alloc
+         		         				     pte_alloc_map
+         		         				     set_pte_ext
+         		         	      dup_mmap->anon_vma_fork
+         		         	     	        __vma_link_rb
+         		         		        copy_page_range->copy_pud_range->copy_pmd_range->copy_pte_range->copy_one_pte
+         		     task_pt_regs
 	       wake_up_new_task
          
 // dup_mmap函数的主要作用是遍历父进程中所有的VMA，然后复制父进程VMA中对应的pte页表项到子进程相应的VMA对应的pte中，但只是复制pte页表项，并没有复制vma对应的页面内容					       
@@ -2296,7 +2296,7 @@ fork->do_fork->copy_process->dup_task_struct->arch_dup_task_struct
 ```
 
 * copy_mm函数
-> 如果current->mm ==  NULL 则表示父进程没有自己的运行空间，只是一个“寄人篱下”的线程或内核线程 
+> 如果current->mm ==  NULL 则表示进程没有自己的运行空间，只是一个“寄人篱下”的线程或内核线程 
 
 > 如果要创建一个和父进程共享内存空间的新进程，那么直接将新进程的mm指针指向父进程的mm即可
 
