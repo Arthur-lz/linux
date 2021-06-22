@@ -2326,15 +2326,137 @@ struct pt_regs {
 ```
 
 ### 3.1.3 小结
+
 ## 3.2 CFS 调度器
+* 三种类型的进程：交互式进程、批处理进程、实时进程
+> 交互式进程：与人机交互的进程，和鼠标、键盘、触摸屏等相关的应用，如vim, 它一直在睡眠等待用户召唤它，这类进程的特点是系统响应时间越快越好，否则用户就会抱怨系统卡
 
+> 批处理进程：此类进程默默地工作和付出，可能会占用比较多的系统资源，例如编译代码
 
+> 实时进程：有些应用对整体时延有严格要求，例如现在很火的VR设备，从头部转动到视频显示需要控制到19毫秒以内，否则会使人出现眩晕感；对于工业控制系统，不符合要求的时延可能会导致严重的事故
 
+* O(N)调度器
+> 发布于1992年
 
+> 该调度器算法：从就绪队列中比较所有进程的优先级，然后选择一个最高优先级的进程作为下一个调度进程。每个进程有一个固定时间片，当进程时间片使用完之后，调度器会选择下一个调度进程，当所有进程都运行一遍后再重新分配时间片。这个调度器选择下一个调度进程前需要遍历整体就绪队列，花费O(n)时间
 
+#### 目前linux内核实现了4种调度策略, 这样可以让不同的进程采用不同的调度策略
+> 这些调度策略可以使用struct sched_class来定义调度类
 
+> 这4种调度类通过next指针串联在一起，用户空间程序可以使用调度策略API（sched_setscheduler()函数）来设定用户进程的调度策略 
 
+* deadline
 
+* realtime
+
+* CFS
+
+* idle
+
+```c
+// include/uapi/linux/sched.h
+
+#define SCHED_NORMAL	0
+#define SCHED_FIFO	1
+#define	SCHED_RR	2
+#define	SCHED_BATCH	3
+//      SCHED_ISO	4  保留但未实现
+#define SCHED_IDLE	5
+#define	SCHED_DEADLINE	6
+```
+
+### 3.2.1 权重计算
+* 内核使用0～139表示进程的优先级，数值越低优先级越高 
+> 0 ~ 99给实时进程使用
+
+> 100 ~ 139给普通进程使用
+
+> 用户空间有一个变量nice值（取值范围-20～19, 默认0）映射到普通进程的优先级(100 ~ 139)
+
+> pcb中有3个成员用于描述进程优先级 
+
+```c
+struct task_struct {
+	...
+	int prio;
+	int static_prio;
+	int normal_prio;
+	unsigned int rt_priority;
+	...
+	struct sched_entity se; // 调度实体
+	...
+};
+/* static_prio: 它是静态优先级，在程序启动时分配，内核不存储nice值，使用static_prio代替。内核宏NICE_TO_PRIO()实现由nice转换成static_prio; 
+ *  		它不会随时间改变，用户可通过系统调用nice、sched_setscheduler修改该值
+ *
+ * normal_prio: 普通进程时它与static_prio相等，实时进程时会根据rt_priority计算 
+ * prio: 保存进程的动态优先级，是调度类考虑的优先级
+ * rt_priority: 是实时进程优先级
+ */
+```
+
+#### 调度实体权重
+* 调度实体
+```c
+// include/linux/sched.h
+
+struct sched_entity {
+	struct load_weight 	load;
+	...
+	struct sched_avg	avg; //  多核CPU时有这个, 用于描述进程的负载, 我参考的内核版本(4.4.24)与书不同，书中此结构中有runnable_avg_sum
+	// 书中用的应当是4.0.x版的，今天下载一版4.0.5看看, 有!
+};
+```
+
+* 内核使用struct load_weight结构来记录调度实体的权重
+```c
+
+struct load_weight {
+	unsigned long weight;
+	u32 inv_weight;
+};
+```
+
+* 为了计算方便内核约定nice值为0的权重值为1024，其他nice值对应的权重值通过查表prio_to_weight[40]来获取
+> 另外还提供了一个表prio_to_wmult[40]
+
+* prio_to_wmult[]表的计算公式如下: inv_weight = 2^32 / weight;
+> 其中inv_weight是指权重被倒转了，作用是为后面计算方便, 内核提供函数set_load_weight()来查询这两个表，然后把值存在p->se.load结构中
+
+> prio_to_wmult[]表预先做了除法，因此实际的vruntime计算只有乘法和移位运算vruntime = (delta_exec * nice_0_wieght * inv_weight) >> shift;
+
+* CFS调度器的虚拟时间vruntime = delta_exec * nice_0_weight / weight
+> vruntime表示进程虚拟的运行时间
+
+> delta_exec表示实际运行时间
+
+> nice_0_weight表示nice为0的权重值
+
+> weight表示该进程的权重值
+
+> CFS调度器总是选择虚拟时间跑得慢的进程 ; 这有什么意义?本质上不还是与O(n)一样选择优先级高的吗?
+
+* calc_delta_fair()
+* CFS调度器抛弃以前固定的时间片和固定的调度周期算法，采用进程权重值的比重来量化和计算实际时间片（运行时间）
+> 引入虚拟时钟概念，每个进程的虚拟时间是实际运行时间相对nice值为0的权重的比例值
+
+> nice值越小的进程，优先级高权重大，对应的虚拟时间比实际的时钟跑得慢，因此可以得到更多的运行时间
+
+> nice值越大的进程，优先级低权重小，对应的虚拟时间比实际的时钟跑得快，因此得到的运行时间更少
+
+* 权重是与优先级nice值一一对应的，只有40个，其值固定, 由表prio_to_weight[]直接查出
+
+#### CPU的负载计算
+* 一个调度实体的平均负载和以下3个因素相关
+> 调度实体的权重值weight
+
+> 调度实体的可运行状态下的总衰减累计时间runnable_avg_sum
+
+> 调度实体在调度器中的总衰减累计时间runnable_avg_period
+
+* runnable_avg_sum越接近runnable_avg_period，则平均负载越大，表示该调度实体一直在占用CPU
+
+### 3.2.2 进程创建
 
 
 
