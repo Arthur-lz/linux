@@ -2457,11 +2457,204 @@ struct load_weight {
 * runnable_avg_sum越接近runnable_avg_period，则平均负载越大，表示该调度实体一直在占用CPU
 
 ### 3.2.2 进程创建
+* 进程的创建由do_fork()完成，在其执行过程中参与了进程调度相关的初始化
+* struct sched_entity 这是进程调度中一个非常重要的数据结构，称为调度实体
+> 它描述进程作为一个调度实体参与调度所需要的所有信息
 
+```c
+struct sched_entity {
+	struct load_weigth 	load;
+	struct rb_node		run_node;
+	struct list_head	group_node;
+	unsigned int		on_rq;
 
+	u64			exec_start;
+	u64			sum_exec_runtime;
+	u64			vruntime;
+	u64			prev_sum_exec_runtime;
 
+	u64			nr_migrations;
+	...
+#ifdef	CONFIG_SMP
+	struct sched_avg	avg;
+#endif
+};
+```
 
+> __sched_fork()函数会把新创建的进程的调度实体se相关成员初始化为0，因为这些值不能复用父进程，子进程将来要加入调度器中参与调度，和父进程分道扬镳
 
+> 每个调度类都定义了一套操作方法集，以CFS调度类const struct sched_class fair_sched_class = {...};为例,它定义在kernel/sched/fair.c
+
+```c
+const struct sched_class fair_sched_class = {
+	.next		= &idle_sched_class,
+	.enqueue_task	= enqueue_task_fair,
+	.dequeue_task	= dequeue_task_fair,
+	...
+	pick_next_task	= pick_next_task_fair,
+	...
+	task_fork	= task_fork_fair, // task_fork方法做一些fork相关的初始化
+	...
+	switched_to	= switched_to_fair,
+	...
+	update_curr	= update_curr_fair,
+	...
+};
+```
+
+> task_fork_fair()定义在kernel/sched/fair.c
+
+* 系统中每个CPU有一个就绪队列（runqueue）
+> 它是Per-CPU类型的，即每一个CPU有一个struct rq结构实例, this_rq()宏可以获取当前CPU的就绪队列数据结构struct rq
+
+* struct rq结构是描述CPU的通用就绪队列，rq结构中记录了一个就绪队列所需要的全部信息, 它包括：
+> 1. 一个CFS调度器就绪队列数据结构struct cfs_rq
+
+> 2. 一个实时进程调度器就绪队列数据结构struct rt_rq
+
+> 3. 一个deadline调度器就绪队列数据结构struct dl_rq
+
+> 4. 就绪队列的权重load等信息
+
+```c
+struct rq {
+	unsigned int 		nr_running;
+	struct load_weight 	load;
+	struct cfs_rq 		cfs;
+	struct rt_rq 		rt;
+	struct dl_rq 		dl;
+	struct task_struct 	*curr, *idle, *stop;
+	u64			clock;
+	u64			clock_task;
+	int 			cpu;
+	int 			online;
+	...
+};
+
+struct cfs_rq {
+	struct load_weight	load;
+	unsigned int 		nr_running, h_nr_running;
+	u64			exec_clock;
+	u64			min_vruntime; // 用于跟踪整个CFS就绪队列中红黑树里最小的vruntime，但它不等于vruntime
+	struct sched_entity 	*curr, *next, *last, *skip;
+	unsigned long		runnable_load_avg, blocked_load_avg;
+	...
+};
+```
+
+* 内核中调度器相关数据结构关系图
+```           ____________
+	CPU0 |__runqueue__|
+
+              ____________
+	CPU1 |__runqueue__|
+	           //
+	          //
+  每个CPU有一个  //
+   通用就绪队列 //                                                          调度实体
+               //                       CFS就绪队列                     struct sched_entity
+               V                       struct cfs_rq                 ----------------------- 
+          通用就绪队列	       ----------------------------         /|      load           |
+	    struct rq         /|          load            |        / -----------------------
+	 ------------------- / ----------------------------       /  |      rb_node        | 
+	 |struct cfs_rq cfs|/  |        exec_clock        |      /   -----------------------
+	 -------------------   ----------------------------     /    |      on_rq          | 
+	 |struct rt_rq rt  |   |       min_vruntime       |    /     -----------------------
+	 -------------------   ----------------------------   /      |      exec_start     |
+	 |     load        |   |         rb_root          |  /       -----------------------
+	 -------------------   ---------------------------- /        |       vruntime      |
+	 |     clock       |   |struct sched_entity *curr |/         -----------------------
+	 -------------------   ----------------------------          |  sum_exec_runtime   |
+	 |    clock_task   |   |          ...             |          -----------------------
+	 -------------------   ----------------------------          |        ...          |
+	 |       ...       |                                         -----------------------  
+	 -------------------
+```
+
+* task_cfs_rq()函数用于取出当前进程对应的CFS就绪队列
+```c
+static inline struct cfs_rq *task_cfs_rq(struct task_struct *p)
+{
+	return &task_rq(p)->cfs;
+}
+
+#define task_rq(p)	cpu_rq(task_cpu(p))
+#define cpu_rq(cpu)	(&per_cpu(runqueues, (cpu)))
+
+static inline unsigned int task_cpu(const struct task_struct *p)
+{
+	return task_thread_info(p)->cpu;
+}
+```
+
+* __set_task_cpu()把当前CPU绑定到该进程中
+
+* update_curr()函数是CFS调度器中比较核心的函数, 它里面包含了哪些逻辑？如下
+> 调用rq_clock_task()取当前就绪队列保存的clock_task值，该变量在每次时钟滴答(tick)到来时更新
+
+> delta_exec计算该进程从上次调用update_curr()函数到现在的时间差
+
+> calc_delta_fair()使用delta_exec时间差来计算该进程的虚拟时间vruntime
+
+* calc_delta_fair()
+> 函数首先判断调度实体的权重是否为NICE_0_LOAD，如果是则直接返回传入的delta
+
+> NICE_0_LOAD，是参考权重，__calc_delta()用参考权重来计算虚拟时间vruntime
+
+> CFS总是在红黑树中选择vruntime最小的进程进行调度，优先级高的进程会被优先选择，随着vruntime的增长，优先级低的进程也会有机会运行
+
+* place_entity()函数
+> fork新创建一个进程导致CFS运行队列的权重发生变化，所以要对新进程的vruntime做一些惩罚，惩罚多少由函数sched_vslice()计算
+
+> 函数最后，新进程调度实体的虚拟时间是在调度实体的实际虚拟时间和CFS运行队列中min_vruntime中取最大值, 见place_entity函数
+
+* sched_vslice()
+> sched_vslice->sched_slice->__sched_period()
+
+> __sched_period用于计算时一个周期的间片长度，它根据当前运行的进程数目来计算
+
+> CFS调度器有一个默认调度时间片，默认值为6毫秒，见sysctl_sched_latency变量; 当运行中的进程数目大于8时，按照进程最小的调度延时乘以进程数目来计算调度周期时间片，否则用系统默认的调度时间片
+
+> 进程最小的调度延时sysctl_sched_min_granularity, 0.75毫秒
+
+> sched_slice函数根据当前进程的权重来计算CFS就绪队列总权重中可以瓜分到的调度时间
+
+> sched_vlice()函数根据sched_slice()函数计算得到的时间来计算可以得到多少虚拟时间
+
+* wake_up_new_task()
+> 新进程创建完成后需要由wake_up_new_task()把它加入到调度器中
+
+> 在wake_up_new_task中会重新设置子进程的CPU，这样做是因为在fork新进程的过程中，cpus_allowed有可能发生变化，另外可能之前选择的CPU现在可能已经关闭了，因此重新选择CPU
+
+> select_task_rq()函数会调用CFS调度类的select_task_rq()方法来选择一个合适的调度域中最悠闲的CPU
+
+> activate_task()->enqueue_task()调用CFS的方法enqueue_task_fair()把新进程添加到CFS就绪队列中
+
+> enqueue_task_fair->enqueue_entity()把调度实体se添加到cfs_rq就绪队列中
+
+```c
+static void enqueue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
+{
+	if (!(flags & ENQUEUE_WAKEUP) || (flags & ENQUEUE_WAKING))
+		se->vruntime += cfs_rq->min_vruntime; // 在task_fork_fair中减去min_vruntime，这里又添加回来，是因为min_vruntime已经变化
+
+	update_curr(cfs_rq); // 更新当前进程的vruntime, 和该CFS就绪队列的min_vruntime
+	enqueue_entity_load_avg(cfs_rq, se, flags & ENQUEUE_WAKEUP);
+	account_entity_enqueue(cfs_rq, se); // 计算调度实体se的平均负载load_avg_contrib, 并添加到整个CFS就绪队列cfs_rq->runnable_load_avg中
+
+	if (flags & ENQUEUE_WAKEUP) {
+		place_entity(cfs_rq, se, 0); // 对唤醒的进程进行一定的补尝，最多可以补尝一个调度周期的一半(sysctl_sched_latency / 2)
+		enqueue_sleeper(cfs_rq, se);
+	}
+
+	if (se != cfs_rq->curr)
+		__enqueue_entity(cfs_rq, se); // 把调度实体添加到CFS就绪队列的红黑树中
+
+	se->on_rq = 1; // 表示已经在CFS就绪队列中
+}
+```
+
+### 3.2.3 进程调度
 
 
 
