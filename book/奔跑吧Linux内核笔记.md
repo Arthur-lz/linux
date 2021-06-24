@@ -2655,12 +2655,150 @@ static void enqueue_entity(struct cfs_rq *cfs_rq, struct sched_entity *se, int f
 ```
 
 ### 3.2.3 进程调度
+* __schedule()是调度器的核心函数，它的作用是让调度器选择并切换到一个合适的进程运行
+* 调度的时机可以分为如下3种：
+> 1、阻塞操作：互斥量、信号量、等待队列等
 
+> 2、在中断返回前、系统调用返回用户空间时
 
+> 3、将要被唤醒的进程不会马上调度，而是会被添加到CFS就绪队列
 
+#### 唤醒的进程什么时候被调度？根据内核是否具有抢占功能来分成两种情况：
+* 内核可抢占情况，进程在以下两种时机被调度 
+> 1、如果唤醒动作发生在系统调用或异常处理上下文中，则在下一次执行preempt_enable()时会检查是否需要抢占调度 
 
+> 2、如果唤醒动作发生在硬件中断上下文中，硬件中断处理返回前夕会检查是否需要抢占当前进程（中断的触发发生在内核或用户空间，这两种都会唤醒进程）
 
+* 内核不可以抢占，则有以下四种时机进程会被调度
+> 1、当前进程调用cond_resche()；这种是执行中的进程主动放弃CPU
 
+> 2、主动调用schedule();------------这种我理解也是与1同，即当前拥有CPU的正在执行中的进程主动放弃CPU
 
+> 3、系统调用返回用户空间时、异常处理返回用户空间时
+
+> 4、中断处理完成并返回用户空间时（即中断是由用户空间触发的才会唤醒;内核触发的中断不会唤醒）
+
+* __schedule()函数
+```c
+static void __sched __schedule(void)
+{
+	struct task_struct *prev, *next;
+	unsigned long *switch_count;
+	struct rq *rq;
+	int cpu;
+
+	preempt_disable();
+	cpu = smp_processor_id();
+	rq = cpu_rq(cpu);
+	prev = rq->curr; // prev是当前进程
+	...
+	if (prev->state && !(preempt_count() & PREEMPT_ACTIVE)) {//thread_info->preempt_count用于判断当前进程是否可以被抢占
+								 /* preempt_count低8位存放抢占引用计数，还有一个位用于PREEMPT_ACTIVE判断,
+								  * 该位只在内核抢占调度preempt_schedule()中会被置位
+								  */	
+	}
+
+	next = pick_next_task(rq, prev); // pick_next_task，让调度器从就绪队列选择一个最合适的进程next
+	...
+	if (likey(prev != next)) {
+		...
+		rq = context_switch(rq, prev, next); // context_switch负责切换到next
+	}
+}
+```
+
+* pick_next_task()函数
+> 调度类的优先级：stop_sched_class > dl_sched_class > rt_sched_class > fair_sched_class > idle_sched_class
+
+> stop_sched_class调度类用于关闭CPU
+
+> pick_next_task()会调用具体调度类的pick_next_task方法，该函数中首先会判断当前进程的调度类，如果是CFS，并且CPU的所有就绪队列rq中的进程总数等于CFS就绪队列中进程的总数，则说明该CPU就绪队列中只有普通进程没有其他调度类进程；如果有其他的调度类进程，则需要遍历多个调度类下的进程
+
+> 下面看一下CFS的pick_next_task方法pick_next_task_fair()
+
+```c
+static struct task_struct *pick_next_task_fair(struct rq *rq, struct task_struct *prev)
+{
+	struct cfs_rq *cfs_rq = &rq->cfs;
+	struct sched_entity *se;
+	struct task_struct *p;
+	int new_tasks;
+again:
+	if (!cfs_rq->nr_running) // 首先判断CFS就绪队列里的进程总数，如果为0，则说明CFS就绪队列是空的
+		goto idle;
+
+	put_prev_task(rq, prev);
+
+	do {
+		se = pick_next_entity(cfs_rq, NULL); // 选择CFS就绪队列中的红黑树中最左边进程
+		set_next_entity(cfs_rq, se);
+		cfs_rq = group_cfs_rq(se);
+	} while(cfs_rq);
+
+	p = task_of(se);
+	return p;
+idle:
+	new_tasks = idle_balance(rq);
+	return NULL;
+}
+```
+
+* context_switch(), 它负责进程切换, 与体系结构相关
+```c
+static inline struct rq *context_switch(struct rq *rq, struct task_struct *prev, struct task_struct *next)
+{
+	struct mm_struct *mm, *oldmm;
+
+	prepare_task_switch(rq, prev, next);
+	mm = next->mm;
+	oldmm = prev->active_mm;
+
+	if (!mm) { // mm == NULL说明这是一个内核线程，因为进程调度的需要，所以需要借用一个进程的地址空间，因此有了active_mm
+		next->active_mm = oldmm; // 内核线程借用当前进程的active_mm，而不是mm，因为当前进程也有可能是内核线程
+		atiomic_inc(&oldmm->mm_count); // 这里增加mm_count引用计数，防止mm的所有者释放mm
+		enter_lazy_tlb(oldmm, next);
+	}else
+		switch_mm(oldmm, mm, next); // 普通进程直接切换mm
+
+	if (!prev->mm) { // 这说明当前进程也是一个内核线程
+		prev->active_mm = NULL; // 因为当前进程马上就要被切换出去，所以设置active_mm为NULL
+		rq->prev_mm = oldmm; // 总就绪队列rq的prev_mm成员记录当前进程的mm，在后面的finish_task_switch()函数中会用到
+	}
+
+	switch_to(prev, next, prev); // 从prev切换到next进程,switch_to函数执行完成时，CPU运行next进程，prev进程被调度出去，俗称“睡眠”
+	barrier();
+	return finish_task_switch(prev);
+}
+```
+
+* switch_mm()负责把新进程的页表基地址设置到页目录表基地址寄存器中, 刷新TLB
+> 刷新TLB不是整个都刷新，而是只把当前进程的那部分TLB刷出去，这就引入了两类TLB（Gobal, Process-Specific）和ASID（Address Space ID）概念 
+
+> Gobal类型的TLB，内核空间是所有进程共享的空间，因此这部分的虚拟地址到物理地址的翻译不会变化，可以理解为Global的
+
+> Process-Specific类型的TLB，用户地址空间是每个进程独立的地址空间。prev进程切换到next进程时，TLB中缓存的prev进程的相关数据对于next进程是无用的，因此可以冲刷掉，这就是所谓的process-specific的TLB
+
+> ASID用支持process-specifi类型的TLB，这是ARM体系结构的一种硬件解决方案，使用ASID后TLB可以让每一个TLB entry有一个ASID号，本质上讲硬件上的ASID号标记了每个进程的地址空间，所以就算进程prev和next使用相同的虚拟地址，prev缓存的TLB entry也不会影响到next进程，因为ASID机制从硬件上保证了prev进程了next进程的TLB不会冲突
+
+> ARMv7-A架构的处理器，页表PTE entry的第11位nG为1时，表示该页对应的TLB是属于进程的，而不是全局（Gobal）的，在进程切换时，只需要切换属于该进程的TLB，不需要冲刷整个TLB
+
+> 由于short-descriptor格式的页表，硬件ASID只占用寄存器的低8位来存ASID值，那么ASID最多只有256个，当电脑上所有CPU的硬件ASID个数超过256时会发生溢出，此时需要刷掉全部TLB（这里指的应当是所有的ASID都清了），然后重新分配硬件ASID，这就需要引入软件ASID的概念
+
+> 软件ASID（ARM提出），存放在进程的mm->context.id中，它包括两个域，低8位是硬件ASID，剩余的比特位是软件generation计数，即硬件ASID超256发生溢出次数
+
+> 也说是说，prev进程和next进程的generation值如果相同，则说明目前还未出现ASID不够用，ASID还没有溢出，则此时不需要TLB冲刷操作；如果generation值不同，则说明ASID至少有一次不够用了，出现了至少一次溢出了，那么这时需要冲刷掉TLB（函数check_and_switch_context冲刷掉所有CPU上的TLB），重新分配ASID
+
+> 对于ARMv7-A处理器，最后会调用cpu_v7_switch_mm()函数，它会设置页表基地址TTB寄存器，还设置硬件ASID，即把进程mm->context.id存储的ASID设置到contextidr寄存器低8位中
+
+> 上述这些处理完成后，最后进行栈空间切换，如下context_switch->switch_to
+
+* switch_to()函数是新旧进程的切换点，所有进程在受到调度时的切入点都在switch_to()函数中
+> 即完成next进程堆栈切换后开始执行next进程。next进程一直运行，直到下一次执行switch_to()函数, 并且把next进程的堆栈保存到硬件上下文为止
+
+> 有个特殊情况：新创建的进程，它第一次执行的切入点是在copy_thread()函数中指定的ret_from_fork()汇编函数，当switch_to()切换到新创建的进程时，新进程从ret_from_fork汇编函数开始执行
+
+> __switch_to()负责把prev进程的相关寄存器上下文保存到该进程的thread_info->cpu_context中，然后把next进程的thread_info->cpu_context中的内容设置到物理CPU的寄存器中，这样就实现了进程堆栈的切换
+
+### 3.2.4 scheduler tick
 
 
