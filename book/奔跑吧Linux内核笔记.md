@@ -2504,7 +2504,7 @@ const struct sched_class fair_sched_class = {
 
 > task_fork_fair()定义在kernel/sched/fair.c
 
-* 系统中每个CPU有一个就绪队列（runqueue）
+* 系统中每个CPU都有一个就绪队列（runqueue）
 > 它是Per-CPU类型的，即每一个CPU有一个struct rq结构实例, this_rq()宏可以获取当前CPU的就绪队列数据结构struct rq
 
 * struct rq结构是描述CPU的通用就绪队列，rq结构中记录了一个就绪队列所需要的全部信息, 它包括：
@@ -2611,7 +2611,7 @@ static inline unsigned int task_cpu(const struct task_struct *p)
 * sched_vslice()
 > sched_vslice->sched_slice->__sched_period()
 
-> __sched_period用于计算时一个周期的间片长度，它根据当前运行的进程数目来计算
+> __sched_period用于计算时一个周期的时间片长度，它根据当前运行的进程数目来计算
 
 > CFS调度器有一个默认调度时间片，默认值为6毫秒，见sysctl_sched_latency变量; 当运行中的进程数目大于8时，按照进程最小的调度延时乘以进程数目来计算调度周期时间片，否则用系统默认的调度时间片
 
