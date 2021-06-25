@@ -2800,5 +2800,117 @@ static inline struct rq *context_switch(struct rq *rq, struct task_struct *prev,
 > __switch_to()负责把prev进程的相关寄存器上下文保存到该进程的thread_info->cpu_context中，然后把next进程的thread_info->cpu_context中的内容设置到物理CPU的寄存器中，这样就实现了进程堆栈的切换
 
 ### 3.2.4 scheduler tick
+* 翻译成滴哒调度器？看源码中的逻辑，可推断scheduler_tick的作用是用来检查当时钟到来时当前进程是否需要被调度出去
+
+```c
+void scheduler_tick(void)
+{
+	int cpu = smp_processor_id();
+	struct rq *rq = cpu_rq(cpu);
+	struct task_struct *curr = rq->curr;
+
+	sched_clock_tick();
+
+	raw_spin_lock(&rq->lock);
+	update_rq_clock(rq); // 更新当前CPU就绪队列中时钟计数clock, clock_task
+	curr->sched_class->task_tick(rq, curr, 0); // task_tick用于处理当时钟到来时与调度器相关的事情
+	update_cpu_load_active(rq); // 更新运行队列中的cpu_load[]
+	raw_spin_unlock(&rq->lock);
+
+#ifdef CONFIG_SMP
+	rq->idle_balance = idle_cpu(cpu);
+	trigger_load_balance(rq);
+#endif
+}
+
+// task_tick在CFS调度类中的实现函数是task_tick_fair()
+
+static void task_tick_fair(struct rq *rq, struct task_struct *curr, int queued)
+{
+	struct cfs_rq *cfs_rq;
+	struct sched_entity *se = &curr->se;
+
+	for_each_sched_entity(se) {
+		cfs_rq = cfs_rq_of(se);
+		entity_tick(cfs_rq, se, queued); // 查检是否需要调度
+	}
+	update_rq_runnable_avg(rq, 1);// 更新该就绪队列统计信息
+}
+
+static void entity_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr, int queued)
+{
+	update_curr(cfs_rq); // 更新vruntime, min_vruntime 
+	update_entity_load_avg(curr, 1); // 更新调度实体的平均负载load_avg_contrib, 和runnable_load_avg
+	if (cfs_rq->nr_running > 1)
+		check_preempt_tick(cfs_rq, curr); // 检查当前进程是否需要被调度出去
+}
+
+static void check_preempt_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr)
+{
+	unsigned long ideal_runtime, delta_exec;
+	struct sched_entity *se;
+	s64 delta;
+
+	ideal_runtime = sched_slice(cfs_rq, curr); // 计算理论运行时间，根据权重
+	delta_exec = curr->sum_exec_runtime - curr->prev_sum_exec_runtime;// 实际运行时间
+	if (delta_exec > ideal_runtime) { // 实际运行时间超过了理论运行时间, 那么把当前进程调度出去　
+		resched_curr(rq_of(cfs_rq));
+		clear_buddies(cfs_rq, curr);
+		return;
+	}
+	// sysctl_sched_min_granularity值默认为0.75毫秒
+	if (delta_exec < sysctl_sched_min_granularity) // 如果当前进程运行的时间小于进程运行的最小时间则当前进程继续运行不会被调度出去
+		return;
+
+	se = __pick_first_entity(cfs_rq); // 找到就绪队列红黑树中最左边的调度实体的虚拟时间
+	delta = curr->vruntime - se->vruntime; // 计算当前进程的vruntime和就绪队列红黑树中最小的调度实体的vruntime差值
+
+	if (delta < 0) // 如果当前进程的vruntime小于就绪队列红黑树调度实体的vruntime，则当前进程继续运行不会被调度出去
+		return;
+	if (delta > ideal_runtime) // 如果差值大于理论运行时间，则将当前进程调度出去
+		resched_curr(rq_of(cfs_rq));
+}
+```
+### 3.2.5 组调度
+* CFS调度器是以进程为单位来执行调度的
+* 以用户组为单位进行调度
+> 例如，在一台服务器中有N个用户登录，希望这N个用户都可以平均分配CPU时间
+
+* CFS调度器定义了struct task_group来抽象组调度
+* 组调度属于cgroup架构中的CPU子系统，在系统配置时需要打开CONFIG_CGROUP_SCHED和CONFIG_FAIR_GROUP_SCHED
+* sched_create_group()
+* 组调度的基本策略
+> 1.在创建组调度tg时，tg为每个CPU同时创建组调度内部使用的cfs_rq就绪队列
+
+> 2.组调度作为一个调度实体加入到系统的CFS就绪队列rq->cfs_rq中
+
+> 3.进程加入到一个组中后，进程就脱离了系统的CFS就绪队列，并且加入到组调度里的CFS就绪队列tg->cfs_rq[]中 
+
+> 4.在选择下一个进程时，从系统的CFS就绪队列开始，如果选中的调度实体是组调度tg, 那么还需要继续遍历tg中的就绪队列，从中选择一个进程来运行
+
+### 3.2.6 PELT算法
+
+### 3.2.7 小结
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
