@@ -3021,6 +3021,159 @@ struct sched_domain * build_sched_domain(struct sched_domain_topology_level *tl,
 ```
 
 ### 3.3.2 SMP负载均衡
+* SMP负载均衡机制从注册软中断开始, 每次系统调度tick时会检查当前是否需要处理SMP负载均衡
+* rebalance_domains函数是负载均衡的核心入口
+
+```c
+// start_kernel->sched_init->init_sched_fair_class
+
+__init void init_sched_fair_class(void)
+{
+#ifdef CONFIG_SMP
+	open_softirq(SCHED_SOFTIRQ, run_rebalace_domains);
+#endif
+}
+
+static void rebalance_domains(struct rq *rq, enum cpu_idle_type idle)
+{
+	int cpu = rq->cpu;
+	unsigned long interval;
+	struct sched_domain *sd;
+	unsigned long next_balance = jiffies + 60*HZ;
+	...
+	// 遍历当前CPU的调度域，找出需要做负载均衡的调度域并做负载均衡
+	for_each_domain(cpu, sd) {
+		...
+		if (!(sd->flags & SD_LOAD_BALANCE))
+			continue;
+		interval = get_sd_balance_interval(sd, idle != CPU_IDLE);
+		if (time_after_eq(jiffies, sd->last_balance + interval)) {
+			if (load_balance(cpu, rq, sd, idle, &continue_balancing)) {
+				idle = idle_cpu(cpu) ? CPU_IDLE : CPU_NOT_IDLE;
+			}
+			sd->last_balance = jiffies;
+			interval = get_sd_balance_interval(sd, idle != CPU_IDLE);
+		}
+	}
+}
+
+static int load_balance(int this_cpu, struct rq *this_rq, struct sched_domain *sd, enum cpu_idle_type idle, int *continue_balancing)
+{
+	...
+	struct rq *busiest;
+
+	struct lb_env env = {
+		.sd 		= sd,			// 当前调度域
+		.dst_cpu	= this_cpu,		// 当前CPU，后面可能把一些繁忙的进程迁移到该CPU上
+		.dst_rq		= this_rq,		// 当前CPU就绪队列
+		.dst_grpmask	= sched_group_cpus(sd->groups),		// 当前调度域里第一个调度组的CPU位图
+		.idle		= idle,
+		.loop_break	= sched_nr_migrate_break,	// 本次最多迁移的进程个数
+		.cpus		= cpus,				// cpus是cpu_active_mask位图
+		.fbq_type	= all,
+		.tasks		= LIST_HEAD_INIT(env, tasks),
+	};
+	...
+redo:
+	if (!should_we_balance(&env)) { // 判断当前CPU是否需要做负载均衡 
+		...
+	}
+
+	group = find_busiest_group(&env); // 查找该调度域里最繁忙的调度组
+	if (!group) {
+		schedstat_inc(sd, lb_nobusyg[idle]);
+		goto out_balance;
+	}
+
+	busiest = find_busiest_queue(&env, group); // 继续在最繁忙调度组中查找最繁忙的就绪队列
+	if (!busiest) {
+		schedstat_inc(sd, lb_nobusyq[idle]);
+		goto out_balance;
+	}
+	ld_moved = 0;
+	if (busiest->nr_running > 1) { // 找到最繁忙组中最繁忙的CPU后就可以开始迁移进程了
+		env.flags |= LBF_ALL_PINNED;
+		env.src_cpu = busiest->cpu; // src_cpu指最繁忙的CPU
+		env.src_rq = busiest;
+		...
+		
+more_balance:
+		...
+		cur_ld_moved = detach_tasks(&env); // 这里要从最繁忙的CPU迁移进程至当前CPU
+		...
+		if (cur_ld_moved) {
+			attach_tasks(&env); // 把迁移出的进程加入到迁移目标CPU上运行, 即，将进程添加到目标CPU的就绪队列中
+			ld_moved += cur_ld_moved;
+		}
+	}
+	...
+	if (!sds.busiest || busiest->sum_nr_running == 0) // 没有找到最繁忙的调度组或最繁忙的调度组没有正在运行的进程，则跳过该调度域
+		goto out_balance;
+
+	sds.avg_load = (SCHED_CAPACITY_SCALE * sds.total_load) / sds.total_capacity; // 计算当前调度域平均负载 
+
+	if (busiest->group_type == group_imbalanced) //如果最繁忙调度组的组类型是group_imbalanced则进行负载迁移操作
+		goto force_balance;
+
+	if (local->avg_load >= busiest->avg_load)
+		goto out_balanced;
+
+	if (local->avg_load >= sds.avg_load)
+		goto out_balanced;
+
+	if (env->idle == CPU_IDLE) { // 处理当前CPU是idle
+	
+	} else { // 处理当前CPU不是idle情况
+	
+	}
+
+force_balance:
+	calculate_imbalance(env, &sds); // 存在负载不平衡情况，需要调用calculate_imbalance函数计算需要迁移多少负载量才能达到均衡
+	return sds.busiest;
+
+out_balance:
+	env->imbalance = 0;
+	return NULL;
+}
+
+/* find_busiest_group()函数目的是查找出该调度域中最繁忙的调度组，并计算出负载不均衡值，分为如下步骤完成：
+ * 1.遍历该调度域中每个调度组，计算各个调度组中的平均负载等相关信息
+ * 2.根据平均负载，找出最繁忙调度组
+ * 3.获取本地调度组的平均负载和最繁忙调度组的平均负载，以及该调度域的平均负载
+ * 4.本地调度组的平均负载大于最繁忙组的平均负载，或本地调度组的平均负载大于调度域的平均负载，说明不适合做负载均衡，退出此次负载均衡处理
+ * 5.根据最繁忙组的平均负载、调度域的平均负载和本地调度组的平均负载来计算该调度域需要迁移的负载
+ */
+
+/* 
+ */
+static int detach_tasks(struct lb_env *env)
+{
+	...
+	while (!list_empty(tasks)) { // 遍历最繁忙就绪队列中所有进程
+		...
+		if (!can_migrage_task(p, env)) // 首先判断哪些进程可以迁移
+			goto next;
+		...
+		detach_task(p, env); // 让进程p退出运行队列
+		list_add(&p->se.group_node, &env->tasks);
+	}
+}
+
+static inline void calculate_imbalance(struct lb_env *env, struct sd_lb_stats *sds)
+{
+	/* 如果最繁忙调度组的平均负载小于等于该调度域的平均负载，或者本地调度组的平均负载大于等于该调度域的平均负载，说明该调度域处于平衡状态，跳到fix_small_imbalance()
+	  * 如果最繁忙调度组和本地调度组都出现group_overloaded情况，即运行中的进程数目大于该组能力指数，那么需要计算需要迁移负载数量来让该调度域实现平衡
+	 */	
+}
+
+/* load_balance函数总工作流程：
+ * 1.负载均衡以当前CPU开始，由下至上遍历调度域，从最底层的调度域开始做负载均衡
+ * 2.允许做负载均衡的首要条件是当前CPU是该调度域中第一个CPU或者当前CPU是idle CPU
+ * 3.在调度域中查找最繁忙的调度组，更新调度域和调度组的相关信息，最后计算出该调度域的不均衡负载值(imbalance)
+ * 4.在最繁忙调度组中找出最繁忙的CPU，然后把繁忙CPU中的进程迁移到当前CPU上，迁移的负载量为不均衡负载值
+ */
+```
+
 ### 3.3.3 唤醒进程
 ### 3.3.4 调试
 ### 3.3.5 小结
