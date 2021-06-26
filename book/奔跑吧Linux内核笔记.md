@@ -2892,6 +2892,140 @@ static void check_preempt_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr)
 
 ### 3.2.7 小结
 
+## 3.3 SMP负载均衡
+* 考虑这样一个问题
+> 使用内核提供的唤醒进程API，比如wake_up_process()来唤醒一个进程，那么进程唤醒后应该在哪个CPU上运行呢？是调用wake_up_process()的那个CPU，还是该进程之前运行的那个CPU，或者是其他CPU呢？
+
+### 3.3.1 CPU域初始化
+* 根据实际物理属性，CPU域分成以下三种
+|CPU分类|Linux内核分类|说明|
+|:-|:-|:-|:-|
+|超线程（SMT）| CONFIG_SCHED_SMT|一个物理核心可以有两个执行线程，被称为超线程技术。超线程使用相同CPU资源且共享L1 cache，迁移进程不会影响cache利用率|
+|多核（MC）| CONFIG_SCHED_MC|每个物理核心独享L1 cache，多个物理核心可以组成一个cluster，cluster里的CPU共享L2 cache|
+|处理器（SoC）|内核称为DIE|SoC级别|
+
+* struct sched_domain_topology_level结构用来描述CPU层次关系, 书中简称其为SDTL层级 
+* 内核默认定义了一个数组default_topology[]来概括CPU物理域的层次结构
+> DIE类型是标配，SMT和MC类型需要在内核配置时和实际硬件相匹配，从这里我想到一个问题，就是在替换kernel不同版本时，为什么要使用操作系统里原来的配置文件（/boot/config-4.0.5-2011.el7.x86_64）作为替换内核版本的配置文件了，因为旧的配置文件是与硬件相关的，里定义了像现在这种与实际物理硬件（体系结构相关的），是多核的、是不是支持超线程的，这些在旧的配置文件.config里都有，且必须用旧的，这样才可以保障编译出来的新内核能够与实际的硬件相匹配
+
+> 那现在出现另一个问题，在安装操作系统时，第一个安装的kernel版本是如何知道硬件的实际配置从而生成内核的.config文件的？从BIOS？不对不对，内核镜像在安装操作系统前已经存在了，它与硬件相关的配置都在config中，那么具体的这些CPU分类SMT、MC、SoC也是已经存在于内核镜像中了，雾水
+
+* ARM架构目前不支持SMT，ARM设备通常配置CONFIG_SCHED_MC
+
+* 内核管理CPU采用bitmap来管理，分为以下四类
+> cpu_possible_mask, 表示系统中有多少个可以运行的CPU核心
+
+> cpu_online_mask, 表示系统中有多少个正在处于运行状态的CPU核心
+
+> cpu_present_mask, 表示系统中有多少个具备online条件的CPU核心
+
+> cpu_active_mask, 表示系统中有多少个活跃的CPU核心 
+
+#### 创建CPU拓扑关系
+* start_kernel->rest_init->kernel_init->kernel_init_freeable->sched_init_smp->init_sched_domains
+```c
+// cpu_active_mask的初始化
+start_kernel->setup_arch->arm_dt_init_cpu_maps
+
+void __init arm_dt_init_cpu_maps(void)
+{
+	...
+	cpus = of_find_node_by_path("/cpus"); // 查询DTS来取CPU核心数量
+	...
+	for (i = 0; i < cpuidx; i++) {
+		set_cpu_possible(i, true); // 设置cpu_possible_bit，从而设置cpu_possible_mask
+		...
+	}
+}
+
+start_kernel->rest_init->kernel_init->kernel_init_freeable->smp_prepare_cpus->init_cpu_present, 初始化smp时，smp_prepare_cpus函数把cpu_possible_mask复制到cpu_present_mask
+
+
+start_kernel->rest_init->kernel_init->kernel_init_freeable->smp_init遍历cpu_present_mask中的CPU，并使能该CPU，并添加到cpu_active_mask中
+
+/* 经上面三步处理后，得到了cpu_active_mask
+ * 总结如下：
+ * 1、cpu_possible_mask是通查询系统DTS配置文件而得到的CPU数量
+ * 2、cpu_present_mask等同于cpu_possible_mask
+ * 3、cpu_active_mask是经过使能（cpu_on()函数操作后的CPU）后的CPU数量
+ */
+
+static int init_sched_domains(const struct cpumask *cpu_map) // 传入的cpu_map是cpu_active_mask
+{
+	int err;
+	ndoms_cur = 1;
+	doms_cur = alloc_sched_domains(ndoms_cur); // doms_cur是当前调度域
+	if (!doms_cur)
+		doms_cur = &fallback_doms;
+	cpumask_andnot(doms_cur[0], cpu_map, cpu_isolated_map);
+	err = build_sched_domains(doms_cur[0], NULL); // 真正开始建立CPU拓扑关系
+
+	return err;
+}
+
+static int build_sched_domains(const struct cpumask *cpu_map, struct sched_domain_attr * attr)
+{
+	enum alloc_state;
+	struct sched_domain *sd;
+	struct s_data d;
+
+	...
+	alloc_state = __visit_domain_allocaton_hell(&d, cpu_map); // 它调用__sdt_alloc()来创建Per-CPU类型的调度域、调度组、调度组能力
+	// 每个CPU在每个SDTL层级中都有对应的调度域、调度组及调度能力
+
+	...
+	// 调度域初始化
+	for_each_cpu(i, cpu_map) { // 首先遍历每个CPU
+		struct sched_domain_topology_level *tl;
+		sd = NULL;
+
+		for_each_sd_topology(tl) { // 然后对每个CPU遍历所有SDTL
+			sd = build_sched_domain(tl, cpu, attr, sd, i);
+			...
+		}
+	}
+
+	// 调度组初始化
+	for_each_cpu(i, cpu_map) {
+		for (sd = *per_cpu_ptr(d.sd, i); sd; sd = sd->parent) {
+			sd->span_weight = cpumask_weight(sched_domain_span(sd));
+			if (build_sched_groups(sd, i)) // 为调度域建立对应的调度组
+				goto error;
+		}
+	}
+
+	// 设置调度组能力
+	for (i = nr_cpumask_bits - 1;i >= 0; i--) {
+		if (!cpumask_test_cpu(i, cpu_map))
+			continue;
+		for (sd = *per_cpu_ptr(d.sd, i); sd; sd = sd->parent) {
+			claim_allocations(i, sd);
+			init_sched_groups_capacity(i, sd);
+		}
+	}
+
+	// 把调度域关联到就绪队列struct rq的root_domain中
+	for_each_cpu(i, cpu_map) {
+		sd = *per_cpu_ptr(d.sd, i);
+		cpu_attach_domain(sd, d.rd, i);
+	}
+}
+
+struct sched_domain * build_sched_domain(struct sched_domain_topology_level *tl, const struct cpumask *cpu_map, struct sched_domain_attr *attr,
+		struct sche_domain *child, int cpu)
+{
+	struct sched_domain *sd = sd_init(tl, cpu);
+	...
+	cpumask_and(sched_domain_span(sd), cpu_map, tl->mask(cpu)); // 把CPU对应SDTL层级的兄弟CPU位图复制到struct sched_domain结构中的span[]中
+}
+```
+
+### 3.3.2 SMP负载均衡
+### 3.3.3 唤醒进程
+### 3.3.4 调试
+### 3.3.5 小结
+
+## 3.4 HMP调度器
 
 
 
