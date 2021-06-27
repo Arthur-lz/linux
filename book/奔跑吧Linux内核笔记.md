@@ -3190,8 +3190,32 @@ static inline void calculate_imbalance(struct lb_env *env, struct sd_lb_stats *s
 ```
 
 ### 3.3.3 唤醒进程
+* wake_up_process()函数来唤醒进程，此函数由内核提供
+```c
+	wake_up_process->try_to_wake_up->select_task_rq选择一个CPU运行唤醒进程
+	select_task_rq会调用对应CFS调度类的select_task_rq_fair()方法
+	select_task_rq_fair->wake_affine希望把唤醒进程尽可能运行在wakeup cpu上，这样可以让一些有相关性的进程尽可能运行在具有cache共享的调度域中，获得一些cache-hit带来的性能提升
+			     select_idle_sibing函数优先选择idle CPU，如果找不到idle cpu，那么只能选择pre cpu或wakeup cpu
+
+```
+* wake affine会导致servie进程产生饥饿现象，因为所有的client都被吸引到CPU0上运行，而其他CPU处于空闲状态, 从而导致性能下降 
+> 在3.12版本内核中在struct task_struct中增加两个成员(last_wakee, wakee_flips)来解决该问题.当进程A每次唤醒另外一个进程B时，会调用record_wakee()函数来比较，如果发现进程A上次唤醒的进程不是进程B，那么wakee_flips++。wakee_flips表示waker在切换不同的唤醒进程(wakee)，这个值越大，说明waker唤醒了多个wakee，唤醒频率越高
+
+> wake_affine()函数返回true，表示建议使用wakeup CPU来唤醒进程，即建议进程B在进程A的CPU上运行，但是首先要通过wake_wide()
+
+> wake_wide()函数返回true，说明wakeup CPU已经频繁地去唤醒了好多进程，因此不适宜继续把唤醒进程拉到自己的CPU中
+
+> 如果一个wakee的wakee_filps值比较高，那么waker把这种wakee拉到自己的CPU中来运行是比较危险的事情，类似于引狼入室，这样会加剧waker的CPU竞争
+
+> 另外，waker的wakee_filps值比较高，说明有很多进程依赖它来唤醒，waker 调度延迟会增大，再把新的wakee拉进来显然不是好办法
+
 ### 3.3.4 调试
+* tracepoint: sched_migrage_task可以在进程迁移到不同CPU时给开发者提供跟踪信息，如：迁移进程名称、迁移进程PID、源CPU、目标CPU等
+* trace-cmd
+* kernelshark
+
 ### 3.3.5 小结
+* SMP负载均衡主要应用场景是PC和服务器 
 
 ## 3.4 HMP调度器
 
