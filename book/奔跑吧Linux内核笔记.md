@@ -3075,10 +3075,11 @@ static int load_balance(int this_cpu, struct rq *this_rq, struct sched_domain *s
 	};
 	...
 redo:
-	if (!should_we_balance(&env)) { // 判断当前CPU是否需要做负载均衡 
-		...
+	if (!should_we_balance(&env)) { // 判断当前CPU是否可以做负载均衡，让其他处于繁忙状态的CPU可以迁移负载到当前CPU
+		*continue_balancing = 0;
+		goto out_balanced;
 	}
-
+	// 执行到这，说明当前CPU有能力接收其他繁忙CPU上的负载到当前CPU
 	group = find_busiest_group(&env); // 查找该调度域里最繁忙的调度组
 	if (!group) {
 		schedstat_inc(sd, lb_nobusyg[idle]);
@@ -3107,6 +3108,28 @@ more_balance:
 		}
 	}
 	...
+out_balance:
+	...
+	
+}
+
+/* find_busiest_group()函数目的是查找出该调度域中最繁忙的调度组，并计算出负载不均衡值，分为如下步骤完成：
+ * 1.遍历该调度域中每个调度组，计算各个调度组中的平均负载等相关信息
+ * 2.根据平均负载，找出最繁忙调度组
+ * 3.获取本地调度组的平均负载和最繁忙调度组的平均负载，以及该调度域的平均负载
+ * 4.本地调度组的平均负载大于最繁忙组的平均负载，或本地调度组的平均负载大于调度域的平均负载，说明不适合做负载均衡，退出此次负载均衡处理
+ * 5.根据最繁忙组的平均负载、调度域的平均负载和本地调度组的平均负载来计算该调度域需要迁移的负载
+ */
+static struct sched_group *find_busiest_group(struct lb_env *env)
+{
+	struct sg_lb_stats *local, *busiest;
+	struct sd_lb_stats sds;
+
+	init_sd_lb_stats(&sds);
+
+	update_sd_lb_stats(env, &sds);
+	local = &sds.local_stat;
+	busiest = &sds.busiest_stat;
 	if (!sds.busiest || busiest->sum_nr_running == 0) // 没有找到最繁忙的调度组或最繁忙的调度组没有正在运行的进程，则跳过该调度域
 		goto out_balance;
 
@@ -3135,14 +3158,6 @@ out_balance:
 	env->imbalance = 0;
 	return NULL;
 }
-
-/* find_busiest_group()函数目的是查找出该调度域中最繁忙的调度组，并计算出负载不均衡值，分为如下步骤完成：
- * 1.遍历该调度域中每个调度组，计算各个调度组中的平均负载等相关信息
- * 2.根据平均负载，找出最繁忙调度组
- * 3.获取本地调度组的平均负载和最繁忙调度组的平均负载，以及该调度域的平均负载
- * 4.本地调度组的平均负载大于最繁忙组的平均负载，或本地调度组的平均负载大于调度域的平均负载，说明不适合做负载均衡，退出此次负载均衡处理
- * 5.根据最繁忙组的平均负载、调度域的平均负载和本地调度组的平均负载来计算该调度域需要迁移的负载
- */
 
 /* 
  */
