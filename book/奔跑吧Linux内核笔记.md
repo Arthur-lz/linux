@@ -3218,6 +3218,51 @@ static inline void calculate_imbalance(struct lb_env *env, struct sd_lb_stats *s
 * SMP负载均衡主要应用场景是PC和服务器 
 
 ## 3.4 HMP调度器
+* HMP（Heterogeneous Multi-Processing），big.LITTLE模型，ARM提出的大小核CPU模型用于省电的CPU模型
+> 因Cortex-A15功耗过大，ARM想出来的解决方案
+
+> Linux实现的CPU负载均衡算法基于SMP模型，没有big.LITTLE模型
+
+> Linaro组织开发了big.LITTLE负载均衡调度器，称为HMP
+
+> HMP调度器没有合并到Linux内核中
+
+> 本书内的HMP调度器采用Linaro组织开发的Linux内核，版本是Linux 3.10, https://release.linaro.org/components/kernel/linux-linaro-stable/16.03/linux-linaro-stable-3.10.100-2016.03.tar.bz2
+
+> HTC手机内核源码：http://www.htcdev.com/devcenter/downloads
+
+### 3.4.1 初始化
+### 3.4.2 HMP负载调度
+### 3.4.3 新创建的进程
+### 3.4.4 小结
+* HMP调度器的实现可以简单概括如下：
+> 1、把小核调度域上的“大活”迁移到大核调度域的空闲CPU上
+
+> 2、把大核调度域上的“小活”迁移到小核调度域的空闲CPU上
+
+* 大活是负载比较重的进程
+* 小活是负载比较轻的进程
+* 如何判断进程是大活还是小活？HMP采用load_avg_ratio来比较
+> CPU密集型的进程和长时间运行的进程容易理解为大活
+
+> 间隙性运行的进程就是小活，即使它的优先级高
+
+> 例如一个优先级高的进程，它只是间歇性地运行，那么它没机会到大核 ，因此这个设计有些不合理
+
+> 通常在大核上检查是否有小活，在小核上查是否有大活
+
+* HMP调度器只定义了两个调度域，没有调度组和调度能力概念
+
+* HMP调度器没有考虑调度域内和调度域之间的负载均衡
+
+* 假设小核上有进程突然持续使用CPU，那么load_avg_ratio变大表示这是个大活，可是大核上没有空闲CPU，怎么办？
+
+* 假设大小核调度域上都没有空闲CPU，如何保证负载均衡？
+
+* 是否可以让HMP与SMP同时工作？
+> 不可以，两套调度器一起运行会冲突，即HMP迁移了进程，又被SMP迁移回来
+
+## 3.5 NUMA调度器
 
 
 
