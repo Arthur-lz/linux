@@ -3452,6 +3452,84 @@ static inline void calculate_imbalance(struct lb_env *env, struct sd_lb_stats *s
 
 > up_write(), up_read()：如果等待队列中第一个成员是写者，那么唤醒该写者；否则唤醒排在等待队列中最前面的连续的几个读者
 
+## 4.6 RCU
+* RCU（Read Copy Update）
+* RCU机制要实现的目标：希望读者线程没有同步开销，或者同步开销很小，不需要额外的锁，不需要用原子操作指令和内存屏障，就可以畅通无阻访问；而把需要同步的任务交给写者线程，写者线程等待所有读者线程完成后才会把旧数据销毁
+
+* RCU机制的原理可概括为：RCU记录了所有指向共享数据的指针的使用者，当要修改该共享数据时，首先创建一个副本，在副本中修改。在所有读者线程都离开读临界区之后，指针指向新的修改后的副本的指针，并删除旧数据
+
+* 关键函数
+> rcu_read_lock() / rcu_read_unlock()
+
+> rcu_dereference()：用于获取被RCU保护的指针，读者线程要访问RCU保护的共享数据，需要使用该函数创建一个新指针，并且指向RCU被保护的指针
+
+> rcu_assign_pointer()：用在写者线程。在写者线程完成新数据修改后，调用该函数可以让被RCU保护的指针指向新创建的数据
+
+> call_rcu()：注册一个回调函数，当所有现存的读访问完成后，调用这个回调函数销毁数据
+
+* rcu实验
+> 见book/runlinuxkernel/code/4/4.6/rcu
+
+### 4.6.1 经典RCU和Tree RCU
+* kernel2.6.29前为经典rcu
+> 经典RCU在超级大系统中遇到问题（特别是CPU核心数超过了1024，甚至4096个时）, 经典RCU采用全局cpumask位图来判断是否完成一次GP（宽限期），当CPU核心数过多时，会导致很多CPU竞争保护全局cpumask的spinlock锁，相当惨烈
+
+* Kernel 2.6.29版本引入Tree RCU
+* RCU中的两个重要概念：宽限期（GP, Grace Period）、静止状态（QS, Quiescent State）
+* Tree RCU采用分层机制来管理CPU, 避免了修改CPU位图带来的锁竞争
+
+### 4.6.2 Tree RCU设计
+### 4.6.3 小结
+
+## 4.7 内存管理中的锁
+* Linux内核锁机制
+
+|锁|特点|使用规则|
+|:-|:-|:-|
+|原子操作|使用处理器的原子指令，开销小|临界区数据是变量、比特位等简单数据结构|
+|内存屏障|使得处理器内存屏障指令或GCC的屏障指令|读写指令时序的调整|
+|spinlock|自旋等待|中断上下文、短期持有锁，不可递归，临界区不可睡眠|
+|信号量|可睡眠的锁|可长时间持有锁|
+|读写信号量|可睡眠的锁，可以多个读者同时持有锁，同一时刻只能有一个写者，读和写不能同时存在|程序员必须界定出临界区|
+|mutex|可睡眠的互斥锁，比信号量快速和简洁，实现自旋等待机制|同一时刻只有一个线程可以持有mutex，由持有者负责解锁，不能递归持有锁，不适合内核和用户空间复杂的同上场景|
+|RCU|读者持有锁没有开销，多个读者和写者可以同时共存，写者必须等待所有读者离开临界区后才能销毁相关数据|受保护资源必须通过指针访问，例如链表|
+
+#### 内核中使用锁举例
+* mm->mmap_sem
+> mmap_sem是mm_struct中一个读写信号量，用于保护进程地址空间。在brk, mmap, mprotect等系统调用中都采用了down_write(&mm->mmap_sem)来保护VMA，防止多个进程同时修改进程地址空间
+
+> 在KSM中，ksmd内核线程会定期扫描进程中的VMA，然后从VMA中找出可用的匿名页面，假设CPU0正在扫描某个VMA时，另外一个进程在CPU1上恰巧释放了这个VMA，那么KSM是否有问题？事实上，这根本不会发生。每个进程的mm_struct中有一个读写信号量mm_sem锁，这个锁对于进程本身来说相当于一个全局的读写锁，内核中通常利用该锁来保护进程地址空间。在KSM扫描进程的VMA时会调用down_read(&mm->mmap_sem)来申请读者锁进程保护，另一方面，销毁VMA的函数需要申请down_write(&mm->mmap_sem)写者锁来保护，所以根本不会出现这个问题
+
+* mm->page_table_lock
+> page_table_lock是mm_struct中的一个spinlock成员，它用于保护进程的页表.在内存管理中，每当需要修改进程的页表时，都需要page_table_lock锁
+
+> 在设置进程页表set_pte_at()时，需要使用pte_offset_map_lock()来取得page_table_lock这把spinlock锁来防止其他CPU同时修改进程的页表
+
+* PG_Locked页面锁
+> struct page中的flags成员中有标志位PG_Locked用来操作页面锁。lock_page()用于给某个页面加锁，可以让进程在该锁中睡眠等待wait_on_page_locked()函数可以让进程睡眠等待该页面锁释放
+
+* anon_vma->rwsem
+> rmap系统有一个功能是从struct page数据结构中找出所有映射到该页的VMA，这个过程需要遍历anon_vma中的红黑树和VMA中的avc链表，这需要一个读者信号量来保护遍历过程
+
+* zone->lru_lock
+> struct zone中有一把spinlock锁用于保护zone的LRU链表
+
+* RCU
+> page_get_anon_vma
+
+> select_bad_process
+
+## 4.8 最新更新与展望
+### 4.8.1 Queued Spinlock
+* 它非常适合NUMA架构的机器，特别是有大量CPU核心且锁争用异常激烈的场景，Kernel 4.2开始该机制已经成为Linux x86内核spinlock的默认实现
+
+### 4.8.2 读写信号量优化
+* 4.0版本的内核中的rwsem中无法知道一个读者是否持有了锁，在4.8内核中增加了reader-owner状态
+
+### 4.8.3展望
+
+# 第5章中断管理
+
 
 
 
