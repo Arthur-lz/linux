@@ -3529,16 +3529,338 @@ static inline void calculate_imbalance(struct lb_env *env, struct sd_lb_stats *s
 ### 4.8.3展望
 
 # 第5章中断管理
+## 5.1 Linux中断管理机制
+* 从整个系统来看，Linux内核中核管理可以有以下4个部分
+> 硬件层，CPU和中断控制器的连接
 
+> CPU中断异常处理
 
+> 中断控制器，IRQ中断号映射
 
+> Linux内核通用中断处理层，负责中断注册、中断处理
 
+* 不同体系结构对中断控制器设计理念不同
+> ARM的是通用中断控制器GIC（Generic Interrupt Controller）
 
+> x86体系的中断控制器是APIC（Advanced Programmable Interrupt Controller）
 
+* 目前有GIC Version 3, GIC Version 4: 它们支持ARM v8架构，如Cortex-A53
 
+* 本书中以GIC Version 2为例，它应用在ARM v7架构上，例如：Cortex-A7, Cortex-A9
 
+### 5.1.1 ARM中断控制器
+* 首先要明确平台类型，例如ARM Vexpress V2P-CA15_CA7平台，明确平台类型就可以知道CPU型号，如这里对应的CPU是Cortex-A15, Cortex-A7两组，进而明确中断控制器，如这里对应的中断控制器是GIC-400，最终确定GIC规范，如这里的对应的是GIC Version 2技术规范
 
+* 接下来明确中断控制器技术规范，这里以GIC Version 2技术规范为例（中断控制器技术规范里会定义中断）
+> SGI软件触发中断，通常用于多核之间通讯。最多16个SGI中断，硬件中断号ID0～ID15
 
+> PPI私有外设中断，每个核心私有的中断。最多支持16个PPI中断，硬件中断号从ID16～ID31，应用场景有CPU本地时钟 
+
+> SPI外设中断，公用的外设中断。最多支持988个外设中断，硬件中断号从ID32～ID1019
+
+### 5.1.2 硬件中断号和Linux中断号映射
+* 注册中断API有两个, 它们的参数是使用Linux内核中的IRQ中断号，即Linux软件中断号，俗称软件中断号, 而不是硬件中断号
+> request_irq()
+
+> request_threaded_irq()
+
+```c
+int request_threaded_irq(unsigned int irq, 
+			 irq_handler_t handler, 
+			 irq_handler_t thread_fn, 
+			 unsigned long irqflags, 
+			 const char *devname, 
+			 void *dev_id);
+
+// 参数irq是Linux内核管理的虚拟中断号，并不是指硬件中断号，在Linux内核中称为IRQ number或interrupt line
+
+// N_IRQS宏表示系统支持中断数量最大值，它和平台相关
+```
+
+#### 下面以“串口0”设备为例说明硬件中断号是如何与Linux内核的IRQ中断号映射的
+* ARM平台的设备描述基本上都采用Device Tree模式（DTS）
+* 1.串口0设备DTS的定义
+```
+[arch/arm/boot/dts/vexpress-v2m.dtsi] // 该文件描述了主板上的外设
+	motherboard {
+		model ="V2M-P1";
+		arm,hbi = <0x190>;
+		arm,vexpress,site = <0>;
+		compatible = "arm,vexpress,v2m-p1", "simple-bus";
+		...
+		iofpga@7,00000000 {
+			compatible = "arm,amba-bus", "simple-bus";// 串口0设备是一个符合arm,amba-bus总线的外设; 系统初始化时，customize_machine()函数会枚举并初始化arm,amba-bus和simple-bus总线上的设备，最终解析DTS中相关信息，把信息添加到struct device中，向Linux内核注册一个新外设
+			...
+			v2m_serial0: uart@09000 { // 串口0外设定义
+				compatible = "arm,p1011", "arm,primecell"; // arm,p1011和arm,primecell是该外设兼容字符串，用于和驱动程序匹配
+				reg = <0x9000 0x1000>;
+				interrupts = <5>; // 5表示主板上的第5号中断
+				clocks = <&v2m_oscclk2>, <&smbclk>;
+				clock-names = "uartclk", "apb_pclk";
+			};
+			...
+		};
+	};
+```
+
+* 2.customize_machine()->of_platform_populate()->of_platform_bus_create()->of_amba_device_create()
+```c
+static struct amba_device *of_amba_device_create(struct device_node *node,
+						 const char *bus_id,
+						 void *platform_data,
+						 struct device *parent)
+{
+	...
+	for (i = 0; i < AMBA_NR_IRQS; i++) 
+		dev->irq[i] = irq_of_parse_and_map(node, i); // 解析DTS中串口0设备的硬件号，返回Linux内核的IRQ中断号
+	...
+}
+```
+
+* 硬件中断号是如何映射到Linux IRQ中断号的
+> 中断控制器使用struct irq_domain数据结构来描述
+
+> GIC中断控制器在初始化时解析的DTS信息，它定义在dts文件中。系统初始化会查找DTS中定义的中断控制器
+```
+[arch/arm/boot/dts/vexpress-v2p-ca15_a7.dts]
+	gic: interrupt-controller@2c001000 {
+		compatible = "arm,cortex-a15-gic", "arm,cortex-a9-gic"; // 定义中断控制器标识符
+		#interrupt-cells = <3>;
+		#address-cells = <0>;
+		interrupt-controller; // 这表示是一个中断控制器
+		reg = <0 0x2c001000 0 0x1000>,
+		      <0 0x2c002000 0 0x1000>,
+		      <0 0x2c004000 0 0x2000>,
+		      <0 0x2c006000 0 0x2000>;
+		interrupts = <1 9 0xf04>;
+	};
+
+[drivers/irqchip/irq-gic.c]
+IRQCHIP_DECLARE(cotex_a15_gic, "arm,cortex-a15-gic", gic_of_init); // 中断控制器标识符在GIC规范的驱动中会用到
+```
+* 3.irq_of_parse_and_map()
+```
+// 调用gic_irq_domain_xlate()函数生成硬件中断号
+// 调用irq_find_mapping()找到映射后的软件中断号，即IRQ 中断号
+// irq_domain_alloc_descs()函数返回allocated_irqs位图中第一个空闲的比特位，这是IRQ中断号
+// irq_domain_alloc_irqs_recursive()调用irq_domain中的alloc回调函数完成硬件中断号和软件中断号映射
+```
+
+* 硬件中断号和软件中断号的映射过程
+> 1.解析DTS计算硬件中断号
+
+> 2.从allocated_irq位图中取第一个空闲比特位作为IRQ中断号 
+
+> 3.由IRQ中断号得出中断描述符struct irq_desc数据结构
+
+> 4.设置struct irq_data结构体的irq=IRQ中断号，hwirq=硬件中断号
+
+> 5.设置desc->handle_irq指向handle_fasteoi_irq(), 对于SPI类型外设中断来说回调函数是handle_fasteoi_irq
+
+### 5.1.3 注册中断 
+* 当一个外设中断发生后，内核会执行一个函数来响应该中断，这个函数称为中断处理程序  
+> 基本工作是通知硬件设备中断已经被接收
+
+> 硬件中断处理程序要求快速完成并且退出中断；如果中断处理程序需要完成的任务比较复杂，就需要上下半部机制
+
+* 有两个函数可以注册中断
+> request_irq(), 函数较旧
+
+> request_threaded_irq()，在Linux 2.6.30引入, 也旧的可以.引入它的目的是可以让实时进程得到优先处理。时钟中断不可以线程化。
+
+```c
+int request_threaded_irq(unsigned int irq, // IRQ中断号
+			irq_handler_t handler, // primary handler
+			irq_handler_t thread_fn, // 中断线程化处理程序 
+			unsigned long irqflags, // 中断标志位, 用于申请中断时描述该中断的特性
+			const char *devname, // 中断名
+			void *dev_id) // 传递给中断处理程序的参数
+// 使用该函数注册中断时，如果没有指定primary handler，并且中断控制器不支持ONESHOT功能，那么必须要显式指定中断标志IRQF_ONESHOT，否则内核会报错 
+
+/* 总结使用request_threaded_irq函数来注册中断需要注意的地方
+ * 1.使用IRQ中断号，而不是硬件中断号
+ * 2.primary handler和thread_fn不能同时为NULL
+ * 3.当primary handler为NULL且硬件中断控制器不支持硬件ONESHOT功能时，应显式设置IRQF_ONESHOT标志位来确保不会产生中断风暴
+ * 4.启用了中断线程化，那么primary handler函数应该返回IRQ_WAKE_THREAD来唤醒中断线程
+ */
+
+```
+
+### 5.1.4 ARM底层中断处理
+* 当外设有事情要报告Soc时，它会通过和SoC连接的中断管脚发送中断信号，根据中断信号类型不同，发送不同的波形，例如上升沿触发、高电平触发等。SoC内部的中断控制器会感知到中断信号，中断控制器里的仲裁单元会在众多CPU核心中选择一个，并把该中断分发给CPU核心。GIC控制器和CPU核心之间通过一个IRQ信号来通知CPU。CPU核心感知到中断发生后，硬件会自动做如下动作：
+> 1. 保存中断发生时CPSR寄存器内容到SPSR_irq寄存器中
+
+> 2. 修改CPSR寄存器，让CPU进入处理器模式中的IRQ模式，即CPSR寄存器中的M域设置为IRQ Mode
+
+> 3. 硬件自动关闭中断IRQ或FIQ，即CPSR中的IRQ位或FIQ位置1
+
+> 4. 保存返回地址到LR_irq寄存器中
+
+> 5. 硬件自动跳转到中断向量表的IRQ向量中
+
+* 当从中断返回时需要软件实现如下操作
+> 1. 从SPSR_irq寄存器中恢复数据到CPSR寄存器中
+
+> 2. 从LR_irq中恢复内容到PC中，从而返回到中断点的下一条指令处继续执行
+
+* 软件需要做的事情从中断向量表开始
+> 中断向量表在哪里定义实现的？arch/arm/kernel/entry-armv.S中定义了ARM的7种异常向量； arch/arm/kernel/vmlinux.lds.S中定义了异常向量表存储位置
+
+* ARM中的系统调用使用r0～r3寄存器传递参数，返回值放入r0
+> 系统调用中使用ARM_ORIG_r0来传递系统调用号，在返回时用作返回值，以此来防止r0被覆盖
+
+> 中断处理里不需要ARM_ORIG_r0，所以将其赋值为-1
+
+### 5.1.5 高层中断处理
+* 软件负责的中断处理部分从哪里开始？arch/arm/kernel/etry-armv.S中定义的handle_arch_irq
+```
+	.macro irq_handler
+#ifdef CONFIG_MULTI_IRQ_HANDLER
+	ldr r1, =handle_arch_irq
+	mov r0, sp
+	adr lr, BSYM(9997f)
+	ldr pc, [r1]
+#else
+	arch_irq_handler_default
+#endif
+9997:
+	.endm
+```
+
+* handle_arch_irq, 在GIC-V2控制器初始化时gic_init_bases设置了handle_arch_irq指向gic_handle_irq
+
+* gic_handle_irq用于硬件中断号读取和后续中断处理
+```c
+static void __exeption_irq_entry gic_handle_irq(struct pt_regs *regs)
+{
+	u32 irqstat, irqnr;
+	struct gic_chip_data *gic = &gic_data[0];
+	void __iomem *cpu_base = gic_data_cpu_base(gic);
+
+	do {
+		irqstat = readl_relaxed(cpu_base + GIC_CPU_INTACK);
+		irqnr = irqstat & GICC_IAR_INT_ID_MASK; // 取到硬件中断号
+
+		if (likely(irqnr > 15 && irqnr < 1201)) { // 外设中断
+			handle_domain_irq(gic->domain, irqnr, regs); // 进入中断处理
+			continue;
+		}
+
+		if (irqnr < 16) { // SGI中断
+			writel_relaxed(irqstat, cpu_base + GIC_CPU_EOI);
+#ifdef CONFIG_SMP
+			handle_IPI(irqnr, regs);
+#endif
+			continue;
+		}
+		break;
+	} while (1);
+}
+```
+
+* handle_domain_irq()->__handle_domain_irq
+```c
+int __handle_domain_irq(struct irq_domain *domain, unsigned int hwirq, bool lookup, struct pt_regs *regs)
+{
+	struct pt_regs *old_regs = set_irq_regs(regs);
+	unsigned int irq = hwirq;
+	int ret = 0;
+
+	irq_enter(); // 显式告诉内核现在进入中断上下文了
+	...
+	if (unlikely(!irq || irq >= nr_irqs)) {
+		ack_bad_irq(irq);
+		ret = -EINVAL;
+	} 
+	else
+		generic_handle_irq(irq); // 对于SPI中断来说，generic_handle_irq会调用handle_fasteoi_irq()->handle_irq_event()
+
+	irq_exit(); // 显式告诉内核已经完成硬件中断处理
+	set_irq_regs(old_regs);
+	return ret;
+}
+/* irq_enter(), irq_exit()函数都是通过设置thead_info->preempt_count中的hardirq的增减来实现当前上下文是否在硬件中断上下文
+ */
+```
+> in_softirq()宏判断当前是否处于软中断处理过程中
+
+> in_interrupt()宏判断当前是否处于中断上下文中（包括硬件中断处理过程、软中断处理过程和NMI中断处理过程）
+
+* handle_irq_event()是中断处理的核心函数
+> 它开始真正处理硬件中断了
+
+> 它调用handle_irq_event_percpu()循环遍历中断描述符中的action链表，并执行每个action元素中的primary handler回调函数action->handler, 并根据回调函数返回值的不同，来决定是否执行__irq_wake_thread()函数去唤醒中断的内核线程
+
+> __irq_wake_thread()->irq_thread()->irq_wait_for_interrupt(), 唤醒后调用irq_thread_fn()函数注册中断时的thread_fn()函数
+
+* 同一个中断源的硬件上下文不可能同时在两个CPU上运行
+* 对于中断线程，IRQTF_RUNTHREAD, IRQS_INPROGRESS标志位的巧妙运用保证了中断线程的串行化运行，即函数__irq_wake_thread()中的无锁编程
+* IRQS_INPROGRESS标志位，表示硬件中断处理程序正在处理硬件中断，直到硬件中断处理完毕才会清除该标志
+* __irq_wake_thread()函数会将标志位IRQTF_RUNTHREAD置位, 而函数irq_wait_for_interrupt()会判断并清除该标志位, 并设置进程的状态为TASK_RUNNING
+> 只有当__irq_wake_thread()将IRQTF_RUNTHREAD置位，中断线程的执行函数irq_thread()中的轮询判断irq_wait_for_interrupt()才会停止其内部的循环判断
+
+```c
+handle_irq_event_percpu()->__irq_wake_thread()->唤醒中断线程
+
+void __irq_wake_thread(struct irq_desc *desc, struct irqacton *action)
+{
+	if (test_and_set_bit(IRQTF_RUNTHREAD, &action->thread_flags))
+		return;
+	desc->threads_oneshot |= action->thread_mask;
+	atomic_inc(&desc->threads_active);
+
+	wake_up_process(action->thread);
+}
+
+static int irq_thread(void *data)
+{
+	struct callback_head on_exit_work;
+	struct irqaction *action = data;
+	struct irq_desc *desc = irq_to_desc(action->irq);
+	irqreturn_t (*handler_fn)(struct irq_desc *desc, struct irqaction *action);
+
+	handler_fn = irq_thread_fn;
+
+	init_task_work(&on_exit_work, irq_thread_dtor);
+	task_work_add(current, &on_exit_work, false);
+
+	while (!irq_wait_for_interrupt(action)) {
+		irqreturn_t action_ret;
+
+		action_ret = handler_fn(desc, action);
+		if (action_ret == IRQ_HANDLED)
+			atomic_inc(&desc->threads_handled);
+
+		wake_threads_waitq(desc);
+	}
+	task_work_cancel(current, irq_thread_dtor);
+	return 0;
+}
+
+static int irq_wait_for_interrupt(struct irqaction *action)
+{
+	set_current_state(TASK_INTERRUPTIBLE);
+
+	while (!kthread_should_stop()) {
+		if (test_and_clear_bit(IRQTF_RUNTHREAD, &action->thread_flags)) {
+			__set_current_state(TASK_RUNNING);
+			return 0;
+		}
+		schedule();
+		set_current_state(TASK_INTERRUPTIBLE);
+	}
+	__set_current_state(TASK_RUNNING);
+	return -1;
+}
+```
+
+### 5.1.6 小结
+* 为什么中断上下文不能睡眠？
+> 睡眠就是调用schedule()函数让当前进程让出CPU，调用器选择另外一个进程继续运行，这个过程涉及进程栈空间切换
+
+> 虽然中断上下文可以使用current宏来取struct thread_info数据结构，但是内核栈中保存的内容是发生中断时该进程A的栈信息，而没有在中断上下文时调用schedule()时进程B的任何信息，因此这时如果调用schedule()，地就再也没有机会回到该中断上下文中了，未完成的中断处理将成为“亡命之徙”。另外中断源会一直等待下去，因为GIC中断控制器一直在等待一个EIO信号，但再也等不到了
+
+## 5.2 软中断和tasklet
 
 
 
