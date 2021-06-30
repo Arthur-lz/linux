@@ -4005,9 +4005,64 @@ static void tasklet_action(struct softirq_action *a)
 > in_serving_softirq()，判断是否在软中断处理中包括前面的三种软中断
 
 ## 5.3 workqueue 工作队列
+* 工作队列的原理是把work（需要推迟执行的函数）交给一个内核线程来执行，它总是在进程上下文中执行
+* 工作队列允许重新调度和睡眠（这是因为工作队列是利用进程上下文来执行中断下半部操作）
+* 工作队列是异步执行的进程上下文
+* CMWQ（concurrency managed workqueues）
+> 提出工作线程池worker_pool概念, 这种池有两种，BOUND和UNBOUND
 
+### 5.3.1 初始化工作队列
+### 5.3.6 小结
+* 使用默认的工作队列system_wq步骤：
+> 1.使用NIT_WORK()宏声明一个work和work的回调函数
 
+> 2.调度一个work: schedule_work()
 
+> 3.取消一个work: cancel_work_sync()
+
+* 自己创建一个workqueue
+> 1.使用alloc_workqueue()创建新的workqueue
+
+> 2.使用INIT_WORK()宏声明一个work和该work的回调函数
+
+> 3.在新workqueue上调度一个work: queue_work()
+
+> 4.flush workqueue上所有work: flush_workqueue()
+
+* CMWQ机制把workqueue分为BOUND类型和UNBOUND类型
+
+* BOUND类型workqueue
+> 1.每个新建的workqueue使用一个struct workqueue_struct结构来描述
+
+> 2.对于每个新建的workqueue, 每个cpu有一个pool_workqueue结构来连接workqueue和worker_pool
+
+> 3.每个cpu只有两个worker_pool结构描述工作池，一个用于普通优先级工作线程，一个用于高优先级工作线程
+
+> 4.worker_pool中可以有多个工作线程，动态管理工作线程
+
+> 5.worker_pool和workqueue是1:N的关系
+
+> 6.pool_workqueue是work_pool和workqueue之间的桥梁
+
+> 7.worker_pool和worker工作线程是1:N的关系
+
+* BOUND类型的work在哪个CPU上运行？
+> schedule_work()函数倾向于使用本地cpu（这有利于利用cpu局部性原理提高效率）
+
+> queue_work_on()可以指定cpu
+
+* UNBOUND类型的workqueue
+> 工作线程没有绑定到某个固定的cpu
+
+> 对于UMA机器，它可以在系统上的任何cpu上运行　
+
+> 对于numa机器，每个node节点创建一个work_pool. 
+
+> 驱动开发中UNBOUND类型的workqueue不常用
+
+> 对于长时间占用CPU资源的一些负载，Linux内核倾向于使用UNBOUND类型的workqueue, 这样可以利用系统进程调度器来优化选择哪个cpu上运行
+
+# 第6章 内核调试
 
 
 
