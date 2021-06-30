@@ -3861,6 +3861,162 @@ static int irq_wait_for_interrupt(struct irqaction *action)
 > 虽然中断上下文可以使用current宏来取struct thread_info数据结构，但是内核栈中保存的内容是发生中断时该进程A的栈信息，而没有在中断上下文时调用schedule()时进程B的任何信息，因此这时如果调用schedule()，地就再也没有机会回到该中断上下文中了，未完成的中断处理将成为“亡命之徙”。另外中断源会一直等待下去，因为GIC中断控制器一直在等待一个EIO信号，但再也等不到了
 
 ## 5.2 软中断和tasklet
+* 中断管理中有一个很重要的设计理念：上下半部机制
+* 软件中断、tasklet、workqueue属于下半部
+* 中断上半部有一个很重要的原则：硬件中断处理程序应该执行地越快越好，这是为什么？
+> 1. 硬件中断处理程序以异步方式执行，它会打断其他重要的代码执行，因此为了避免被打断的程序停止时间太长，硬件中断处理程序必须尽快执行完成
+
+> 2. 硬件中断处理程序通常在关中断情况下执行。关中断就是关闭本地CPU的所有中断响应。关中断之后，本地CPU不能再响应中断，因此硬件中断处理程序必须尽快执行完成。以ARM处理器为例，中断发生时，ARM处理器会自动关闭本地CPU的IRQ/FIQ中断，直到从中断处理程序退出时才打开本地中断
+
+* Linux内核没有严格规则约束究竟什么样的任务应该放到下半部执行，这需要驱动开发者来决定
+
+* 下半部执行时允许响应所有的中断
+* 下半部何时执行？没有确切的时间点，一般是从硬件中断返回后某个时间点内会被执行
+
+### 5.2.1 SoftIRQ软中断
+* 目前驱动中只有块设备和网络子系统使用了软中断
+* 系统定义了若干软中断类型，Linux内核开发者不建议用户扩充软中断类型，如果有需要可以使用tasklet
+* 描述软中断的数据结构
+```c
+struct softirq_action
+{
+	void (*action)(struct softirq_action*); // 当软中断触发时会调用这里定义的action回调函数来处理软中断
+};
+
+static struct softirq_action softirq_vec[NR_SOFTIRQS] __cachline_aligned_in_smp;
+
+typedef struct {
+	unsigned int __softirq_pending;
+} ____cacheline_aligne irq_cpustat_t;
+
+irq_cpustat_t irq_stat[NR_CPUS] ____cacheline_aligned; // 每个CPU有一个软中断状态信息，可以理解为每个CPU都有一个软中断状态寄存器
+
+// 可以通过open_softirq注册一个软中断
+// 使用raise_softirq()、raise_softirq_irqoff()来主动触发一个软中断, 两个函数的区别是是否主动关闭本地中断，后者不是，它可以在进程上下文调用
+
+```
+
+* 软中断在一个CPU上总是串行执行
+* irq_exit()->inoke_softirq()->__do_softirq()
+> __do_softirq()会循环遍历当前CPU上的所有软中断，并依次执行对应的软中断处理函数action()，直到所有软中断处理完成，这一过程是开中断的; 在对本地CPU执行完一轮循环，处理完所有软中断后，会再次检查当前CPU的__softirq_pending是否又产生了软中断。如果有产生软中断，且前一轮到目前为止软中断总的处理时间小于2毫秒且当前cpu没有需要调度的进程且这种循环次数小于10，则再来一轮前面的循环处理所有当前cpu上的软中断，如果这三个条件不满足，但当前cpu还有需要处理的软中断，那么唤醒ksoftirqd内核线程来处理软中断
+
+### 5.2.2 tasklet
+* tasklet是利用软中断实现的一种下半部机制，本质上是软中断的一个变种，运行在软中断上下文
+* tasklet_struct
+```c
+// include/linux/interrupt.h 
+struct tasklet_struct {
+	struct tasklet_struct *next; // 多个tasklet串成一个链表
+	unsigned long state;  // TASKLET_STATE_SCHED表示tasklet已经被调度，准备运行；TASKLET_STATE_RUN表示tasklet正在运行
+	atomic_t count; // 0表示tasklet处理激活状态；不为0表示该tasklet被禁止，不允许执行
+	void (*func)(unsigned long); // tasklet处理程序
+	unsigned long data;// 传递给tasklet处理函数的参数
+};
+/* 每个CPU维护两个tasklet链表tasklet_vec, tasklet_hi_vec，它们是Per-CPU类型变量。
+ * tasklet_vec使用软中断的TASKLET_SOFTIRQ类型，优先级是6
+ * tasklet_hi_vec使用软中断的HI_SOFTIRQ，优先是0
+ * 在系统启动时调用softirq_init()函数初始化这两个链表, 另外还会注册TASKLET_SOFTIRQ和HI_SOFTIRQ这两个软中断，它们的回调函数分别为tasklet_action, tasklet_hi_action。高优先级的tasklet_hi_action用在网络驱动中较多, 与普通优先级的tasklet实现机制相同
+ */
+```
+
+* 要想在驱动中使用tasklet，首先定义一个tasklet，可以静态申请，也可以动态初始化
+```c
+// include/linux/interrupt.h
+// 1.静态申请
+#define DECLARE_TASKLET(name, func, data) struct tasklet_struct name = {NULL, 0, ATOMIC_INIT(0), func, data}
+#define DECLARE_TASKLET_DISABLED(name, func, data) struct tasklet_struct name = {NULL, 0, ATOMIC_INIT(1), func, data}
+
+// 2.动态申请,调用tasklet_init()
+
+```
+
+* 在驱动中调度tasklet可以使用tasklet_schedule()函数, 它的作用是将tasklet挂到CPU的tasklet链表
+* 什么时候执行tasklet？是在调用tasklet_schedule()函数后马上执行吗？
+> 不会马上执行。因为tasklet是基于软中断机制的，要等到软中断被执行时才有机会运行tasklet，因此tasklet挂入哪个cpu的tasklet_vec链表，那么就由该cpu的软中断来执行。在tasklet挂入cpu的tasklet_vec链表时，会设置tasklet的state为TASKLET_STATE_SCHED，只有当tasklet在这个cpu上执行完毕并清除了TASKLET_STATE_SCHED标志位后，才有机会到其他cpu上执行
+
+> 软中断执行时会按照软中断状态__softirq_pending来依次执行pending状态的软中断，当轮到TASKLET_SOFTIRQ类型的软中断时，回调函数tasklet_action()会被调用
+
+```c
+static void tasklet_action(struct softirq_action *a)
+{
+	struct tasklet_struct *list;
+
+	local_irq_disable();
+	list = __this_cpu_read(tasklet_vec.head); // 在关中断状态下，读取tasklet_vec链表头到临时链表list中
+	__this_cpu_write(tasklet_vec.head, NULL);
+	__this_cpu_write(tasklet_vec.tail, this_cpu_ptr(&tasklet_vec.head));
+	local_irq_enable();
+
+	while (list) { // 依次执行tasklet_vec链表中所有的tasklet成员
+		struct tasklet_struct *t = list;
+
+		list = list->next;
+
+		if (tasklet_trylock(t)) { // 如果tasklet的state是SCHED状态，则继续，如果是RUN状态则跳过这个tasklet, 以此来保证同一个tasklet只能在一个cpu上执行
+			if (!atomic_read(&t->count)) { // 判断count是否为0，为0表示这个tasklet处于可执行状态
+				if (!test_and_clear_bit(TASKLET_STATE_SCHED, &t->state)) // 清除tasklet的SCHED状态, 这是为了在执行tasklet的func()时，也可以响应新调度的tasklet
+					BUG();
+				t->func(t->data); // 执行tasklet的处理函数
+				tasklet_unlock(t); // 清除tasklet的RUN标志
+				continue;
+			}
+			tasklet_unlock(t);
+		}
+		// 下面是处理tasklet已经在别的cpu上执行的情况
+		local_irq_disable();
+		t->next = NULL;
+		*__this_cpu_read(tasklet_vec.tail) = t;
+		__this_cpu_write(tasklet_vec.tail, &(t->next));
+		__raise_softirq_irqoff(TASKLET_SOFTIRQ);
+		local_irq_enable();
+	}
+}
+```
+
+### 5.2.3 local_bh_disable, local_bh_enable
+* 这两个函数用于关闭，打开软中断
+* 在关中断和硬件中断上下文中不使用这两个函数
+* 这两个函数用于进程上下文
+* 内核中网络子系统中大量使用这两个函数
+
+### 5.2.4 小结
+* 同一类型的软中断可以在多个cpu上并行执行
+* 软中断的回调函数不能睡眠
+* 软中断上下文总是抢占进程上下文
+* tasklet是串行执行的。一个tasklet在tasklet_schedult()时会绑定到某个cpu的tasklet_vec链表，它必须要在该cpu上执行完tasklet的回调函数才会和该cpu松绑
+* 软中断上下文优先级高于进程上下文，因此软中断、tasklet总是抢占进程的运行
+
+* 如果在执行软中断和tasklet过程时间太长，那么高优先级任务就长时间得不到运行，势必会影响系统的实时性，这也是RT Linux社区要求用workqueue机制替代tasklet机制的原因
+
+* 软中断上下文包括三个部分
+> 1. irq_exit()->invoke_softirq()
+
+> 2.ksoftirqd内核线程执行的软中断；另一种，软中断执行时间太长，在__do_softirq()中唤醒ksoftirqd内核线程
+
+> 3.进程上下文中调用local_bh_enable()->do_softirq()
+
+* Linux内核提供宏来判断上面这些情况
+> in_irq(), 判断是否在硬件中断上下文
+
+> in_softirq(), 判断是否在软件中断上下文、BH临界区
+
+> in_interrupt()，包括所有的硬件中断上下文、软中断上下文和BH临界区
+
+> in_serving_softirq()，判断是否在软中断处理中包括前面的三种软中断
+
+## 5.3 workqueue 工作队列
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
