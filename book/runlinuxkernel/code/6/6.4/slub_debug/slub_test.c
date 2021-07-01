@@ -2,6 +2,7 @@
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/slab.h>
+#include <linux/vmalloc.h>
 
 static char *buf;
 
@@ -33,15 +34,27 @@ static void create_slub_error3(void)
 		// BUG kmalloc-64 (Tainted: G    B      O   ): Object padding overwritten
 		buf[-1] = 0x88; // 这是另一个异常, 会写到Padding中; 
 		kfree(buf);
-		printk("double free memory\n");
+
+		printk("access free memory\n");
 		// BUG kmalloc-64 (Tainted: G    B      O   ): Object already free
-		kfree(buf); // 重复释放内存
+		memset(buf, 0x99, 16);// 访问已经被释放的内存
+	//	printk("double free memory\n");
+		// BUG kmalloc-64 (Tainted: G    B      O   ): Object already free
+	//	kfree(buf); // 重复释放内存
 	}
 }
+
+static void create_kmemleak(void)
+{
+	buf = kmalloc(120, GFP_KERNEL);
+	buf = vmalloc(4096);
+}
+
 static int __init my_test_init(void)
 {
 	printk("figo: my module init\n");
-	create_slub_error3();
+	//create_slub_error3();
+	create_kmemleak();
 	return 0;
 }
 

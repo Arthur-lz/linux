@@ -4098,6 +4098,9 @@ CONFIG_PEEMPT_TRACER=y        //Kernel hacking → Tracers->[*] Preemption-off L
 ## 6.4 内存检测
 ### 6.4.1 slub_debug
 * 实验代码见 book/runlinuxkernel/code/6/6.4/slub_debug
+* 实验需要将slub.ko拷贝到linux-4.0.5/_install目录，之后编译内核，即将slub.ko打包到内核的最小文件系统中，这样内核跑起来后，可以在根目录下看到slub.ko，之后就可以insmod slub.ko来测试了
+
+### 6.4.2 内存泄漏检测kmemleak
 
 
 
