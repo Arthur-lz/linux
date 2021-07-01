@@ -4063,8 +4063,41 @@ static void tasklet_action(struct softirq_action *a)
 > 对于长时间占用CPU资源的一些负载，Linux内核倾向于使用UNBOUND类型的workqueue, 这样可以利用系统进程调度器来优化选择哪个cpu上运行
 
 # 第6章 内核调试
+* 内存检测和死锁检测
 
+## 6.1 QEMU调试Linux内核
+* 个人学习没有必要购买arm开发板，完全可以通过qemu来模拟开发板
 
+### 6.1.1 QEMU运行ARM Linux内核
+* 1.用busybox编译最小文件系统
+* 2.编译内核
+
+### 6.1.2 QEMU调试ARM Linux内核
+* -S表示QEMU虚拟机会冻结cpu，直到远程gdb输入相应的控制命令
+* -s表示在1234端口接收gdb的调试连接
+
+### 6.1.3 QEMU运行ARM v8开发平台
+### 6.1.4 文件系统支持
+### 6.1.5 图形化调试
+### 6.1.6 实验进阶
+
+## 6.2 ftrace
+* 要正常使用ftrace中的跟踪器来跟踪内核中的一事函数，需要做对内核进程如下配置，否则最终在qemu中运行的内核不会包含/sys/kernel/debug/tracing目录
+```
+CONFIG_FTRACE=y
+CONFIG_HAVE_FUNCTION_TRACER=y
+CONFIG_HAVE_FUNCTION_GRAPH_TRACER=y
+CONFIG_HAVE_DYNAMIC_FTRACE=y
+CONFIG_FUNCTION_TRACER=y
+CONFIG_IRQSOFF_TRACER=y       // 打开这个才可使用irqs跟踪器 [*]   Interrupts-off Latency Tracer
+CONFIG_SCHED_TRACER=y
+CONFIG_ENABLE_DEFAULT_TRACERS=y
+CONFIG_FTRACE_SYSCALLS=y
+CONFIG_PEEMPT_TRACER=y        //Kernel hacking → Tracers->[*] Preemption-off Latency Tracer
+```
+## 6.4 内存检测
+### 6.4.1 slub_debug
+* 实验代码见 book/runlinuxkernel/code/6/6.4/slub_debug
 
 
 
