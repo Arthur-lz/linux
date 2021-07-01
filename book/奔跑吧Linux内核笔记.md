@@ -3858,7 +3858,7 @@ static int irq_wait_for_interrupt(struct irqaction *action)
 * 为什么中断上下文不能睡眠？
 > 睡眠就是调用schedule()函数让当前进程让出CPU，调用器选择另外一个进程继续运行，这个过程涉及进程栈空间切换
 
-> 虽然中断上下文可以使用current宏来取struct thread_info数据结构，但是内核栈中保存的内容是发生中断时该进程A的栈信息，而没有在中断上下文时调用schedule()时进程B的任何信息，因此这时如果调用schedule()，地就再也没有机会回到该中断上下文中了，未完成的中断处理将成为“亡命之徙”。另外中断源会一直等待下去，因为GIC中断控制器一直在等待一个EIO信号，但再也等不到了
+> 虽然中断上下文可以使用current宏来取struct thread_info数据结构，但是内核栈中保存的内容是发生中断时该进程A的栈信息，而没有在中断上下文时调用schedule()时进程B的任何信息，因此这时如果调用schedule()，就再也没有机会回到该中断上下文中了，未完成的中断处理将成为“亡命之徙”。另外中断源会一直等待下去，因为GIC中断控制器一直在等待一个EOI信号，但再也等不到了
 
 ## 5.2 软中断和tasklet
 * 中断管理中有一个很重要的设计理念：上下半部机制
@@ -3883,7 +3883,7 @@ struct softirq_action
 	void (*action)(struct softirq_action*); // 当软中断触发时会调用这里定义的action回调函数来处理软中断
 };
 
-static struct softirq_action softirq_vec[NR_SOFTIRQS] __cachline_aligned_in_smp;
+static struct softirq_action softirq_vec[NR_SOFTIRQS] __cacheline_aligned_in_smp;
 
 typedef struct {
 	unsigned int __softirq_pending;
@@ -3974,7 +3974,7 @@ static void tasklet_action(struct softirq_action *a)
 ```
 
 ### 5.2.3 local_bh_disable, local_bh_enable
-* 这两个函数用于关闭，打开软中断
+* 这两个函数用于关、闭打开软中断
 * 在关中断和硬件中断上下文中不使用这两个函数
 * 这两个函数用于进程上下文
 * 内核中网络子系统中大量使用这两个函数
@@ -3983,7 +3983,7 @@ static void tasklet_action(struct softirq_action *a)
 * 同一类型的软中断可以在多个cpu上并行执行
 * 软中断的回调函数不能睡眠
 * 软中断上下文总是抢占进程上下文
-* tasklet是串行执行的。一个tasklet在tasklet_schedult()时会绑定到某个cpu的tasklet_vec链表，它必须要在该cpu上执行完tasklet的回调函数才会和该cpu松绑
+* tasklet是串行执行的。一个tasklet在tasklet_schedule()时会绑定到某个cpu的tasklet_vec链表，它必须要在该cpu上执行完tasklet的回调函数才会和该cpu松绑
 * 软中断上下文优先级高于进程上下文，因此软中断、tasklet总是抢占进程的运行
 
 * 如果在执行软中断和tasklet过程时间太长，那么高优先级任务就长时间得不到运行，势必会影响系统的实时性，这也是RT Linux社区要求用workqueue机制替代tasklet机制的原因
@@ -4014,7 +4014,7 @@ static void tasklet_action(struct softirq_action *a)
 ### 5.3.1 初始化工作队列
 ### 5.3.6 小结
 * 使用默认的工作队列system_wq步骤：
-> 1.使用NIT_WORK()宏声明一个work和work的回调函数
+> 1.使用INIT_WORK()宏声明一个work和work的回调函数
 
 > 2.调度一个work: schedule_work()
 
