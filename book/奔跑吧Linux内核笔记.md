@@ -4095,12 +4095,153 @@ CONFIG_ENABLE_DEFAULT_TRACERS=y
 CONFIG_FTRACE_SYSCALLS=y
 CONFIG_PEEMPT_TRACER=y        //Kernel hacking → Tracers->[*] Preemption-off Latency Tracer
 ```
+
+## 6.3 SystemTap
+* SystemTap是一个提供诊断和性能测试的工具包
+* SystemTap需要用户编写脚本
+> https://sourceware.org/systemtap上有相关文档
+
 ## 6.4 内存检测
+* 一般的内存访问错误
+> 越界访问（out of bounds）
+
+> 访问已经释放的内存
+
+> 重复释放
+
+> 内存泄漏（memory leak）
+
+> 栈溢出（stack overflow）
+
 ### 6.4.1 slub_debug
 * 实验代码见 book/runlinuxkernel/code/6/6.4/slub_debug
 * 实验需要将slub.ko拷贝到linux-4.0.5/_install目录，之后编译内核，即将slub.ko打包到内核的最小文件系统中，这样内核跑起来后，可以在根目录下看到slub.ko，之后就可以insmod slub.ko来测试了
 
 ### 6.4.2 内存泄漏检测kmemleak
+* 配置内核如下
+```
+CONFIG_HAVE_DEBUG_KMEMLEAK=y
+CONFIG_DEBUG_KMEMLEAK=y
+CONFIG_DEBUG_KMEMLEAK_DEFAULT_OFF=y
+CONFIG_DEBUG_KMEMLEAK_EARLY_LOG_SIZE=4096
+```
+* 实验代码见book/runlinuxkernel/code/6/6.4/slub_debug
+
+### 6.4.3 kasan内核检测
+* kernel4.0不支持，需要到kernel4.4版本支持
+
+## 6.5 死锁检测
+* 利用内核中的lockdep功能，需要配置内核
+```
+CONFIG_LOCK_STAT=y
+CONFIG_PROVE_LOCKING=y
+CONFIG_DEBUG_LOCKDEP=y
+```
+* 实验代码book/rulinuxkernel/code/6/6.5 
+
+## 6.6 内核调试秘籍
+### 6.6.1 printk
+* CONFIG_MESSAGE_LOGLEVEL_DEFAULT=8, 设置默认打印等级为8表示打开所有的打印信息
+* __func__
+> 打印函数名
+
+* __LINE__
+> 打印代码行号
+
+* printk打印格式
+|数据类型|printk格式符|
+|:-|:-|
+|int|%d或%x|
+|unsigned int|%u, %x|
+|long|%ld, %lx|
+|long long|%lld, %llx|
+|unsigned long long|%llu, %llx|
+|size_t|%zu, %zx|
+|ssize_t|%zd, %zx|
+|函数指针|%pf|
+
+### 6.6.2 动态打印
+* 需要配置内核（打开CONFIG_DYNAMIC_DEBUG选项）并挂载debugfs文件系统
+* 内核里面的pr_debug(), dev_dbg()函数打印信息，这些函数就使用了动态打印技术
+* dubugfs文件系统有一个control节点（/sys/kernel/debug/dynamic_debug/control）中记录了系统中所有使用动态打印技术的文件名、打印行号、模块名等
+#### 如何使用动态打印技术
+* 打开svcsock.c文件中所有动态打印语句
+```
+echo 'file svcsock.c +p' > /sys/kernel/debug/dynamic_debug/control
+```
+
+* 打开usbcore模块所有动态打印语句
+```
+echo 'module usbcore +p' > /sys/kernel/debug/dynamic_debug/control
+```
+
+* 打开svc_process()函数中所有动态打印语句
+```
+echo 'func svc_process +p' > /sys/kernel/debug/dynamic_debug/control
+```
+
+* 关闭svc_process()函数中所有动态打印语句
+```
+echo 'func svc_process -p' > /sys/kernel/debug/dynamic_debug/control
+```
+
+* 打开文件路径中包含usb的文件里所有的动态打印语句
+```
+echo -n '*usb* +p' > /sys/kernel/debug/dynamic_debug/control
+```
+
+* 打开系统中所有动态打印语句
+```
+echo -n '+p' > /sys/kernel/debug/dynamic_debug/control
+```
+
+#### 动态打印系统启动方面的代码，如SMP初始化、USB核心初始化
+* 在内核启动时传递参数给内核来打开动态打印
+* 以打开SMP初始化代码的动态打印为例
+> 在内核commandline中增加smp.dyndbg=+plft
+
+* 也可以在内核的各个子系统的Makefile中添加ccflags来打开动态打印
+```
+ccflags-y	:= -DDEBUG
+ccflags-y	+= -DVERBOSE_DEBUG
+```
+
+### 6.6.3 RAM Console
+### 6.6.4 OOPS分析
+* 实验代码book/runlinuxkernel/code/6/6.6/6.6.4
+* 显式或隐式对指针进行非法取值或使用不正确的指针，会导致内核产生一个oops错误
+> 当处理器在内核空间访问一个非法指针时，因为虚拟地址到物理地址映射关系没有建立，触发一个缺页中断，在缺页中断中因为该地址是非法的，内核无法正确地为该地址建立映射关系，因此内核触发一个oops错误
+
+* 出现oops内核错误后，查看内核输出的信息
+> PC指向出错的位置, 如PC is at my_test_init+0x1c/0x24 [oopstest], 这表示出错的地址是my_test_init的0x1c字节处，该函数总大小是0x24字节
+
+> 分析oops错误有两种，一种是有源码情况，一种是没有
+
+> 有源码时可以使用objdump或gdb来确认源码中出错具体位置
+
+> 无源码时可以使用内核提供的decodecode脚本通过输入出错日志来定位到汇编代码的出错位置
+
+* 有源码时使用gdb来定位源码中出错位置
+```
+arm-linux-gnueabi-gdb oopstest.o　// 使用arm-gdb载入重定位文件oopstest.o
+
+(gdb) list *my_test_init+0x1c // 在gdb命令行中输入list *my_test_init+0x1c即可定位到源码中出错位置
+
+```
+
+* 有源码但出错位置是内核函数，此时需要使用vmlinux文件
+
+* 没有源码时
+```
+进入在内核源码目录
+执行: ./scripts/decodecode < oops.txt        // oops.txt是出错日志
+执行上面的脚本后，decodecode会把日志转化成汇编代码，并告知出错的汇编语句是在哪
+```
+
+### 6.6.5 BUG_ON(), WARN_ON()
+* BUG_ON()宏，当满足条件时会触发BUG()宏，它会使用panic()函数来主动让系统宕机。一般内核才会这样。商用项不用这个。
+
+* WARN_ON()会打印函数调用栈信息，不会调用panic()
 
 
 
