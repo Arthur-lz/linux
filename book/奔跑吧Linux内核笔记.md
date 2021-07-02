@@ -4114,18 +4114,121 @@ CONFIG_PEEMPT_TRACER=y        //Kernel hacking → Tracers->[*] Preemption-off L
 > 栈溢出（stack overflow）
 
 ### 6.4.1 slub_debug
+* SLUB DEBUG是被动的，不kfree就不会知道是否出现了对object的错误访问
 * 实验代码见 book/runlinuxkernel/code/6/6.4/slub_debug
 * 实验需要将slub.ko拷贝到linux-4.0.5/_install目录，之后编译内核，即将slub.ko打包到内核的最小文件系统中，这样内核跑起来后，可以在根目录下看到slub.ko，之后就可以insmod slub.ko来测试了
+* 实验步骤　
+> 1.代码编译好后，将.ko放到内核的_install文件夹中
+
+> 2.准备slabinfo工具, 并将slabinfo文件拷贝到kernel的_install文件夹中
+```
+cd linux-4.0.5/tools/vm
+make slabinfo CFLAGS=-static ARCH=arm CROSS_COMPILE=arm-linux-gnueabi-
+```
+
+> 3.配置内核并编译内核
+```
+CONFIG_SLUB=y
+CONFIG_SLUB_DEBUG_ON=y
+CONFIG_SLUB_STAT=y
+```
+
+> 4.启动内核参数commandline中增加slub_debug=UFPZ；启动内核
+
+> 5.在内核终端里安装.ko
+
+> 6../slabinfo -v查看出错信息, 源代码中有详细描述
+
+* 越界访问，如超前访问可能会进入Redzone, 反向访问可能会进入Padding，这两种都可以通过slabinfo来查看并定位到出错的信息
+
+* 释放后再访问，重复释放同样可以用slabinfo查看到出错信息
+
+* SLUB DEBUG原理就是利用特殊区域填充特殊的magic num，在每一次alloc/free的时候检查magic num是否被意外修改
+> magic num, SLUB 中有哪些magic num呢?所有使用的magic num都宏定义在include/linux/poison.h文件
+
+> 当SLUB allocator申请一块内存作为slab 缓存池的时候，会将整块内存填充POISON_INUSE.然后通过init_object()函数将相关的区域填充成free object的情况，并且建立单链表。注意freelist指针指向的位置，SLUB_DEBUG on和off的情况下是不一样的。
+
+> 刚分配slab缓存池和free object之后，系统都会通过调用init_object()函数初始化object各个区域，主要是填充magic num
+```
+    red_left_pad和Red zone填充了SLUB_RED_INACTIVE（0xbb）；
+
+    object填充了POISON_FREE（0x6b），但是最后一个byte填充POISON_END（0xa5）；
+
+    padding在allocate_slab的时候就已经被填充POISON_INUSE（0x5a），如果程序意外改变，当检测到padding被改变的时候，会output error syslog并继续填充0x5a。
+```
+
+> 当从SLUB allocator申请一个object时，系统同样会调用init_object()初始化成想要的模样
+```
+red_left_pad和Red zone填充了SLUB_RED_ACTIVE（0xcc）
+object填充了POISON_FREE（0x6b），但是最后一个byte填充POISON_END（0xa5）
+
+```
+
+```
+配置kernel选项CONFIG_SLUB_DEBUG_ON后，在创建kmem_cache的时候会传递很多flags（SLAB_CONSISTENCY_CHECKS、SLAB_RED_ZONE、SLAB_POISON、SLAB_STORE_USER）。针对这些flags，SLUB allocator管理的object对象的format将会发生变化
+SLUB DEBUG关闭时
+--------------------------
+|(FP)object size|obj align|
+--------------------------
+
+SLUB DEBUG打开后
+ -------------------------------------------------------------
+|object size|Red zone|FP|alloc/free track|padding|red_left_pad|
+ -------------------------------------------------------------
+
+SLUB DEBUG关闭的情况下，free pointer是内嵌在object之中的，但是SLUB DEBUG打开之后，free pointer是在object之外，并且多了很多其他的内存，例如red zone、trace和red_left_pad等。这里之所以将FP后移就是因为为了检测use-after-free问题,当free object时会在将object填充magic num(0x6b)。如果不后移的话，岂不是破坏了object之间的单链表关系。
+
+ Red zone有什么用
+ 从图中我们可以看到在object后面紧接着就是Red zone区域，那么Red zone有什么作用呢?既然紧随其后，自然是检测右边界越界访问（right out-of-bounds access）。原理很简单，在Red zone区域填充magic num，检查Red zone区域数据是否被修改即可知道是否发生right oob
+
+padding有什么用
+
+padding是sizeof(void *)  bytes的填充区域，在分配slab缓存池时，会将所有的内存填充0x5a。同样在free/alloc object的时候作为检测的一种途径。如果padding区域的数据不是0x5a，就代表发生了“Object padding overwritten”问题。这也是有可能，越界跨度很大。
+```
+* 重点来了，Red zone区域本来应该0xcc的地方被修改成了0x88。很明显这是一个Redzone overwritten问题。那么系统什么时候会检测到这个严重的bug呢？就在你kfree()之后。kfree()中会去检测释放的object中各个区域的值是否valid。Redzone区域的值全是0xcc就是valid，因此这里会检测0x88不是0xcc，进而输出errorsyslog。kfree()最终会调用free_consistency_checks()检测object。 
 
 ### 6.4.2 内存泄漏检测kmemleak
-* 配置内核如下
+* 实验步骤
+> 1.配置内核如下
 ```
 CONFIG_HAVE_DEBUG_KMEMLEAK=y
 CONFIG_DEBUG_KMEMLEAK=y
 CONFIG_DEBUG_KMEMLEAK_DEFAULT_OFF=y
 CONFIG_DEBUG_KMEMLEAK_EARLY_LOG_SIZE=4096
 ```
-* 实验代码见book/runlinuxkernel/code/6/6.4/slub_debug
+
+> 2.实验代码见book/runlinuxkernel/code/6/6.4/slub_debug, make 后将.ko文件拷贝到kernel源码目录中的_install文件夹中
+
+> 3.编译内核
+
+> 4.内核的启动commandline中增加kmemleak=on; 并启动内核
+
+> 5.内核启动后输入: echo scan > /sys/kernel/debug/kmemleak, 之后等一会，insmod slub_debug, 再等一会儿会出现因未释放内存而提示kmemleak
+
+> 6.cat /sys/kernel/dubug/kmemleak来查看出现的内存泄漏信息
+```
+unreferenced object 0xebc4c780 (size 128):
+  comm "insmod", pid 772, jiffies 25193 (age 661.200s)
+  hex dump (first 32 bytes):
+    6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b  kkkkkkkkkkkkkkkk
+    6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b  kkkkkkkkkkkkkkkk
+  backtrace: // 这里并没有出现明确的出错位置信息
+    [<c013e5b4>] kmem_cache_alloc_trace+0x1c4/0x2ec
+    [<bf002038>] 0xbf002038
+    [<c0008a98>] do_one_initcall+0xcc/0x218
+    [<c05b2adc>] do_init_module+0x70/0x1d0
+    [<c00a87c8>] load_module+0x1e7c/0x234c
+    [<c00a8d80>] SyS_init_module+0xe8/0x18c
+    [<c000f9c0>] ret_fast_syscall+0x0/0x54
+    [<ffffffff>] 0xffffffff
+```
+
+* 实验过程中发现kmemleak自身会出现获取mutex超时情况　
+```
+#0:  (scan_mutex){+.+.+.}, at: [<c0143b70>] kmemleak_scan_thread+0x80/0xd4
+```
+
+* 另外kmemleak测试的结果不够准确
 
 ### 6.4.3 kasan内核检测
 * kernel4.0不支持，需要到kernel4.4版本支持
@@ -4137,7 +4240,7 @@ CONFIG_LOCK_STAT=y
 CONFIG_PROVE_LOCKING=y
 CONFIG_DEBUG_LOCKDEP=y
 ```
-* 实验代码book/rulinuxkernel/code/6/6.5 
+* 实验代码book/runlinuxkernel/code/6/6.5 
 
 ## 6.6 内核调试秘籍
 ### 6.6.1 printk
@@ -4239,7 +4342,7 @@ arm-linux-gnueabi-gdb oopstest.o　// 使用arm-gdb载入重定位文件oopstest
 ```
 
 ### 6.6.5 BUG_ON(), WARN_ON()
-* BUG_ON()宏，当满足条件时会触发BUG()宏，它会使用panic()函数来主动让系统宕机。一般内核才会这样。商用项不用这个。
+* BUG_ON()宏，当满足条件时会触发BUG()宏，它会使用panic()函数来主动让系统宕机。一般内核才会这样。商用项目不用这个。
 
 * WARN_ON()会打印函数调用栈信息，不会调用panic()
 
