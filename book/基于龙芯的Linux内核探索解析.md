@@ -382,12 +382,106 @@ unsigned long kernelsp[NR_CPUS];
 > 每个逻辑cpu在处于内核态时都有一个当前内核栈，其栈指针就是kernelsp[]数组
 
 ### 2.2.2 第二入口：start_kernel
-> 原始版本内核: BIOS->kernel_entry->start_kernel
+* 原始版本内核: BIOS->kernel_entry->start_kernel
 
-> 压缩版本内核：BIOS->start->kernel_entry->start_kernel
+* 压缩版本内核：BIOS->start->kernel_entry->start_kernel
 
+#### start_kernel代码树
+```c
+start_kernel()
+	|---------smp_setup_processor_id();
+	|---------cgroup_init_early();
+	|---------local_irq_disable();
+	|---------boot_cpu_init();
+			|-------------cpu = smp_processor_id();
+			|-------------set_cpu_online(cpu, ture);
+			|-------------set_cpu_active(cpu, true);
+			|-------------set_cpu_present(cpu, true);
+			|-------------set_cpu_possible(cpu, true);
+			\-------------__boot_cpu_id = cpu;
+	|---------page_address_init();
+	|---------setup_arch(&command_line);
+	|---------setup_command_line(command_line);
+	|---------setup_nr_cpu_ids();
+	|---------smp_prepare_boot_cpu();
+	|---------boot_cpu_hotplug_init();
+	|---------build_all_zonelists(NULL, NULL);
+	|---------page_alloc_init();
+	|---------parse_early_param();
+	|---------vfs_caches_init_early();
+	|---------trap_init();
+	|---------mm_init();
+			|-------mem_init();
+			|-------kmem_cache_init();
+			|-------kmemleak_init();
+			\-------vmalloc_init();
+	|---------sched_init();
+			|-------for_each_possible_cpu(i) {
+					rq = cpu_rq(i);
+					init_cfs_rq(&rq->cfs);
+					init_rt_rq(&rq->rt);
+					init_dl_rq(&rq->dl);
+					...
+				}
+			|-------set_load_weight(&init_task);
+			|-------init_idle(current, smp_processor_id());
+			\-------init_sched_fair_class();
+	|---------radix_tree_init();
+	|---------workqueue_init_early();
+	|---------rcu_init();
+	|---------early_irq_init();
+	|---------init_IRQ();
+	|---------tick_init();
+	|---------rcu_init_nohz();
+	|---------init_timers();
+	|---------hrtimers_init();
+	|---------softirq_init();
+	|---------timekeeping_init();
+	|---------boot_init_stack_canary();
+	|---------time_init();
+	|---------perf_event_init();
+	|---------profile_init();
+	|---------call_function_init();            // 这之前是第一阶段，单线程关中为阶段
+	|---------local_irq_enable();              // 第二阶段从这里开始
+	|---------console_init();
+	|---------setup_per_cpu_pageset();
+	|---------numa_policy_init();
+	|---------acpi_early_init();
+	|---------sched_clock_init();
+	|---------calibrate_delay();
+	|---------pid_idr_init();
+	|---------anon_vma_init();
+	|---------thread_stack_cache_init();
+	|---------fork_init();
+	|---------proc_caches_init();
+	|---------buffer_init();
+	|---------key_init();
+	|---------security_init();
+	|---------vfs_caches_init();
+	|---------pagecache_init();
+	|---------signals_init();
+	|---------proc_root_init();
+	|---------cpuset_init();
+	|---------cgroup_init();
+	|---------acpi_subsystem_init();
+	\---------arch_call_reset_init();         // 第二阶段到这里结束，开中断单线程阶段
+			\-------------rest_init();      // 第三阶段从这里开始，开中断、多线程阶段
+					|---------kernel_thread(kernel_init, NULL, CLONE_FS);
+					|---------numa_default_policy();
+					|---------kernel_thread(kthreadd, NULL, CLONE_FS | CLONE_FILES);
+					\---------cpu_startup_entry(CPUHP_ONLINE);
+							\--------while (1) do_idle();
+									\-------cpuidle_idle_call();
+											\-------default_idle_call();
+												   \--------arch_cpu_idle();
+												        	\--------cpu_wait();
+```
 
+* 大致可以将整个start_kernel()过程分为3个大的阶段：关中断单线程阶段、开中断单线程阶段、开中断多线程阶段
 
+* 第一阶段：关中断单线程阶段 
+* 第二阶段：开中断单线程阶段
+* 第三阶段：开中断多线程阶段
 
 
 
