@@ -232,7 +232,159 @@ git am kernel_patch_dir/*.patch
 > 前面说的启动核或主核实际上指的就是启动逻辑cpu和非启动逻辑cpu
 
 ## 2.2 内核启动过程：主核视角
+* vmlinux, vmlinuz说明
+> vmlinux是编译内核产生的ELF可执行内核文件，它是非压缩版本的原始内核
 
+> vmlinuz是将vmlinux压缩以后再加上一个新的ELF头而得到的压缩版本内核
+
+> BIOS即可以启动压缩版本内核，也可以启动原始内核
+
+> 如果启动的是压缩版本内核，在解压前真正的入口是arch/mips/boot/compressed/head.S中的start标号；压缩版本内核在start标号处开始执行时通过decompress_kernel()进行自解压，解压内容释放到内存里形成一个原始内核。解压完毕后，执行流程跳转到原始内核的kernel_entry入口
+
+* 主核的入口点是编译内核时确定的
+> 根据内核是否压缩，主核的入口点分成两种
+
+```c
+/* 1、未压缩版本的原始内核vmlinux对应的内核的初始入口位于arch/mips/kernel/head.S中的Kernel_entry
+ * 
+ * 2、压缩版本内核vmlinuz，在解压缩之前真正的入口是arch/mips/boot/compressed/head.S中的start标号
+ */
+```
+
+### 2.2.1 第一入口：kernel_entry
+```
+# MIPS汇编写的第一入口kernel_entry
+
+NESTED(kernel_entry, 16, sp)                    # 函数头, 函数名：kernel_entry，栈帧大小16字节，返回地址为SP寄存器的内容
+	kernel_entry_setup			# CPU具体类型相关初始化
+	setup_c0_status_pri			# 设置主核处理器0的初始Status寄存器
+	PTR_LA t0,	0f		        # 宏指令PTR_LA用于将一个变量的地址加载到寄存器；在32位时宏展开为la, 在64位配置下宏展开为dla
+	jr		t0
+
+0:
+	PTR_LA		t0, __bss_start
+	LONG_S		zero, (t0)
+	PTR_LA		t1, __bss_stop - LONGSIZE
+
+1:
+	PTR_ADDIU	t0, LONGSIZE
+	LONG_S		zero, (t0)
+	bne		t0, t1, 1b
+	LONG_S		a0, fw_arg0        #保存寄存器a0的内容到内存变量fw_arg0中，作用：保存a1中命令行参数中包含的参数个数
+	LONG_S		a1, fw_arg1        #命令行参数, commandline; a0~a3中保存的是BIOS或引导程序传递给内核的参数
+	LONG_S		a2, fw_arg2        #龙芯3号以前是key=value；龙芯3号时是一个指向BIOS中一片数据区的地址，数据区有丰富的数据结构，有丰富的接口信息见arch/mips/include/asm/mach-loongson64/boot_param.h是UEFI的LEFI接口规范, 其中有cpu和内存分布图定义
+	LONG_S		a3, fw_arg3
+	MTC0		zero, CP0_CONTEXT
+	PTR_LA		$28, init_thread_union #用init_thread_union的地址来初始化GP，GP也叫全局指针，用于访问全局数据，$28代表28号通用寄存器
+	PTR_LI		sp, _THREAD_SIZE - 32 - PT_SIZE     # 宏指令PTR_LI用于将一个立即数加载到寄存器; 使用宏指令是为了兼容32,64位内核
+	PTR_ADDU	sp, $28
+	back_to_back_c0_hzard
+	set_saved_sp 	sp, t0, t1
+	PT_SUBU		sp, 4 * SZREG
+	j		start_kernel		# 跳转到第二入口start_kernel
+	END(kernel_entry)                  # 标识函数结尾
+```
+
+#### 重要步骤：kernel_entry_setup, setup_c0_status_pri, PTR_LI sp, _THREAD_SIZE - 32 - PT_SIZE说明
+* kernel_entry_setup
+```
+// arch/mips/include/asm/mach-loongson64/kernel-entry-init.h
+
+	.macro	kernel_entry_setup
+#ifdef CONFIG_CPU_LOONGSON3
+	.set	push
+	.set	mips64
+	/* 设置*/
+	mfc0	t0, CP0_CONFIG3
+	or 	t0, (0x1 << 7)
+	mtc0	t0, CP0_CONFIG3
+	/* 打开ELPA（Enable Large Physical Address, 48位地址空间）功能 */
+	...
+	/* 如果是龙芯3A2000或更新的处理器就打开SFB功能 */
+	...
+2:
+	_ehb
+	.set	pop
+#endif
+	.endm
+```
+
+* setup_c0_status_pri
+> 用于设置主核（启动核，或称为启动逻辑cpu）协处理器0（协处理器0是个什么东西？）中Status寄存器的初始状态
+
+> 龙芯协处理器0的Status寄存器各bit位定义
+
+|31～28|27|26|25～24|23|22|21|20|19|18～16|15～8|7|6|5|4～3|2|1|0|
+|:-|:-|:-|:-|:-|:-|:-|:-|:-|:-|:-|:-|:-|:-|:-|:-|:-|:-|
+|CU3~CU0|0|FR|0|PX|BEV|0|SR|NMI|0|IM7~IM0|KX|SX|UX|KSU|ERL|EXL|IE|
+
+> 源码
+```
+// arch/mips/kernel/head.S
+```
+
+* init_thread_union相关（PTR_LI sp, _THREAD_SIZE - 32 - PT_SIZE）
+> 在Linux中，进程和线程都是运行的程序实体，区别是进程有独立的地址空间，线程共享进程的地址空间，也就是说线程是一种特殊的进程；在Linux中线程的容器不是进程，而是线程组。例如，一个运行中的多线程程序是一个线程组，里面包含多个线程；一个运行中的单线程程序也是一个线程组，里面包含一个线程。
+
+> 在windows操作系统中，进程是运行的程序实体，而线程是进程中的独立执行路径，也就是说，进程是容器，线程是容器中的执行体 
+
+> 内核本身也可以视为一个特殊的进程，它可以派生出很多共享地址空间的内核线程，因此这个拥有很多线程的内核又可以视为一个特殊的线程组
+
+> 一些重要的数据结构
+
+```c
+union thread_union {
+	struct task_struct task;
+	struct thread_info thread_info; // 不同的体系结构可以选择使用task_struct或是thread_info中的一个, MIPS选择的是thread_info
+	unsigned long stack[THREAD_SIZE/sizeof(long)];
+};
+
+struct task_struct init_task = {
+	.state		= 0,
+	.stack		= init_stack,
+	.tasks		= LIST_HEAD_INIT(init_task.tasks),
+	.comm		= INIT_TASK_COMM,
+	.thread		= INIT_THREAD,
+	...
+};
+
+#define INIT_TASK_DATA(align)			\
+	. = ALIGN(align)			\
+	__start_init_task = .;			\
+	init_thread_union = .;			\
+	init_stack = .;				\
+	KEEP( *(.data..init_task))		\          // KEEP(后面的空格完全是为了适应markdown, 不加空格时文件内容显示的状态不对
+	KEEP( *(.data..init_thread_info))	\
+	. = __start_init_task + THREAD_SIZE;	\
+	__end_init_task = .;
+	
+
+unsigned thread_union init_thread_union; 	// 0号进程的thread_union
+struct thread_info init_thread_info __init_thread_info = INIT_THREAD_INFO(init_task);
+unsigned long init_stack[THREAD_SIZE / sizeof(unsigned long)];
+unsigned long kernelsp[NR_CPUS];
+```
+
+> 每个进程用一个进程描述符struct task_struct表示
+
+> 每一个进程都有一个和体系结构相关的线程信息描述符struct thread_info 
+
+> 每一个进程都有一个内核栈，用于处理异常、中断或者系统调用
+
+> Linux内核为每一个进程分配一个大小为THREAD_SIZE（一般为一页大小）的内存区，用thread_union结构把task_struct, thread_info, 内核栈三个东西放在一起保存
+
+> 0号进程一开始就是内核自身，在完成启动、初始化之后，变成idle进程
+
+> 对于多核或多处理器系统，每个逻辑cpu都有一个0号进程, 那我就要问了，每个0号进程都相同吗？因为上面定义的全局的init_thread_union只有一个, init_thread_info也只有一个
+
+> 0号进程的thread_union是init_thread_union; thread_info是init_thread_info;内核栈是init_stack
+
+> 每个逻辑cpu在处于内核态时都有一个当前内核栈，其栈指针就是kernelsp[]数组
+
+### 2.2.2 第二入口：start_kernel
+> 原始版本内核: BIOS->kernel_entry->start_kernel
+
+> 压缩版本内核：BIOS->start->kernel_entry->start_kernel
 
 
 
