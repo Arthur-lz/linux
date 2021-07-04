@@ -391,57 +391,58 @@ unsigned long kernelsp[NR_CPUS]; // 存放栈指针？
 start_kernel()
 	|---------smp_setup_processor_id();
 	|---------cgroup_init_early();
-	|---------local_irq_disable();
-	|---------boot_cpu_init();
+	|---------local_irq_disable();  // 关中断
+	|---------boot_cpu_init(); // 设置cpu的存在性状态（有四种possible, present, online, active）
 			|-------------cpu = smp_processor_id();
-			|-------------set_cpu_online(cpu, ture);
-			|-------------set_cpu_active(cpu, true);
-			|-------------set_cpu_present(cpu, true);
-			|-------------set_cpu_possible(cpu, true);
+			|-------------set_cpu_online(cpu, ture);  // 在线
+			|-------------set_cpu_active(cpu, true);  // 在线并处于活动状态
+			|-------------set_cpu_present(cpu, true); // 表示物理上确实存在
+			|-------------set_cpu_possible(cpu, true);// 表示物理上可能存在
 			\-------------__boot_cpu_id = cpu;
 	|---------page_address_init();
-	|---------setup_arch(&command_line);
-	|---------setup_command_line(command_line);
+	|---------setup_arch(&command_line); 		// 根据体系结构进行相关的初始化
+	|---------setup_command_line(command_line);	// 建立内核命令行参数
 	|---------setup_nr_cpu_ids();
-	|---------smp_prepare_boot_cpu();
-	|---------boot_cpu_hotplug_init();
+	|---------setup_per_cpu_areas();		// 建立每CPU变量区
+	|---------smp_prepare_boot_cpu();		// 体系结构相关函数，用于把0号逻辑CPU设置成possible、present状态
+	|---------boot_cpu_hotplug_init();		// 将启动核，即当前核设置成online状态
 	|---------build_all_zonelists(NULL, NULL);
 	|---------page_alloc_init();
 	|---------parse_early_param();
 	|---------vfs_caches_init_early();
-	|---------trap_init();
-	|---------mm_init();
-			|-------mem_init();
-			|-------kmem_cache_init();
-			|-------kmemleak_init();
-			\-------vmalloc_init();
-	|---------sched_init();
-			|-------for_each_possible_cpu(i) {
+	|---------trap_init();				// 异常初始化, 与体系结构相关，非常重要
+	|---------mm_init();				// 内存管理初始化
+			|-------mem_init();		// 建立内存分布图（将BootMem/MemBlock内存分布图转换为伙伴系统内存分布图，对每个页帧调用set_page_count()设置引用计数为0
+			|-------kmem_cache_init(); 	// 完成slab内存对象管理器初始化
+			|-------kmemleak_init();	// 内核内存泄漏扫描器初始化
+			\-------vmalloc_init();		// 非连续内存区管理器初始化
+	|---------sched_init();		// 调度器初始化，完成后主核就可以进行任务调度了
+			|-------for_each_possible_cpu(i) { // 循环初始化每个CPU的运行队列rq（用于进程组织和调度，包括cfs, rt, dl这3个子队列）
 					rq = cpu_rq(i);
 					init_cfs_rq(&rq->cfs);
 					init_rt_rq(&rq->rt);
 					init_dl_rq(&rq->dl);
 					...
 				}
-			|-------set_load_weight(&init_task);
-			|-------init_idle(current, smp_processor_id());
+			|-------set_load_weight(&init_task); // 设置init_task的负荷权重
+			|-------init_idle(current, smp_processor_id());		// 将内核自己进程化，从现在开始内核也是一个“进程”了，即0号进程
 			\-------init_sched_fair_class();
 	|---------radix_tree_init();
-	|---------workqueue_init_early();
-	|---------rcu_init();
-	|---------early_irq_init();
-	|---------init_IRQ();
+	|---------workqueue_init_early();	// 工作队列初始化，第一部分创建7个系统级工作队列
+	|---------rcu_init();			// 初始化RCU子系统
+	|---------early_irq_init();		// 初始化中断描述符（irq_desc[NR_IRQS]数组, 包含中断号的芯片数据irq_data和中断处理程序irqaction）
+	|---------init_IRQ();		// 这是真正的设置中断描述符中的数据，它与体系结构相关；early_irq_init是将数据设置成no_irq_chip, 处理程序设置成handle_bad_irq()
 	|---------tick_init();
 	|---------rcu_init_nohz();
-	|---------init_timers();
-	|---------hrtimers_init();
-	|---------softirq_init();
-	|---------timekeeping_init();
+	|---------init_timers();	// 基本定时器初始化
+	|---------hrtimers_init();	// 高分辨率定时器初始化
+	|---------softirq_init();	// 软中断初始化
+	|---------timekeeping_init();	// 初始化各种时间变量，如jiffies, xtime
 	|---------boot_init_stack_canary();
-	|---------time_init();
-	|---------perf_event_init();
-	|---------profile_init();
-	|---------call_function_init();            // 这之前是第一阶段，单线程关中为阶段
+	|---------time_init();		// 与体系结构相关，进一步初始化计时系统
+	|---------perf_event_init();	// PerfEvents性能剖析工具初始化
+	|---------profile_init();	// OProfile性能剖析工具初始化
+	|---------call_function_init();            // 这之前是第一阶段，单线程关中为阶段 ; 到这里为止，中断相关的初始化都已经完成，可以开中断了 
 	|---------local_irq_enable();              // 第二阶段从这里开始
 	|---------console_init();
 	|---------setup_per_cpu_pageset();
@@ -480,6 +481,34 @@ start_kernel()
 * 大致可以将整个start_kernel()过程分为3个大的阶段：关中断单线程阶段、开中断单线程阶段、开中断多线程阶段
 
 * 第一阶段：关中断单线程阶段 
+> 为什么要关中断？启动初期中断处理的基础设施尚未准备好。关中断是一个体系结构相关的操作，对于MIPS就是将协处理器0中Status寄存器中的IE位清0
+
+> kernel_entry将控制权移交给start_kernel时就是关中断状态的，这也解释了为什么start_kernel函数不是第一句就执行local_disable_irq来关中断
+
+> boot_cpu_init()用于设置启动cpu的存在性状态，有四种存在性状态：possible, present, online, active
+
+> present与possible的区别：这与cpu物理热插拔有关，默认这两个值相关，当物理上移除一个cpu时，present数目会减少一个
+
+> present与online的区别：这与cpu的逻辑热插拔有关，在不改变硬件的情况下，可以对/sys/devices/system/cpu/cpuN/online写0来关闭一个cpu，写1打开一个cpu
+
+> online表示这个cpu可以调度任务了
+
+> active表示可以往这个cpu迁移任务了
+
+> online与active的区别：在通过逻辑热插拔关闭一个cpu的过程中，被关闭的cpu首先必须退出active状态，然后才能退出online状态
+
+> setup_command_line()用于建立命令行参数。内核命令行参数可以写在启动配置文件（boot.cfg或grub.cfg）中，由BIOS或启动器（Bootloader, 如grub）传递给内核；也可以在编译内核时指定为缺省参数。该函数会将各个来源的参数综合在一起，处理成最终状态
+
+> 普通数组中每个元素在内存中是相邻的
+
+> 每cpu数组在内存中不相邻，每CPU数组中的每个元素位于不同的Cache行
+
+> 把每cpu数组设计成跨cache line的作用：修改某个CPU的元素不会让另一个CPU的元素因为同在一个cache line而被污染，因而可以更有效利用cache; 这是典型的空间换时间
+
+> 时间变量jiffies记录了系统启动以来的经历的节拍数；xtime记录的时间可以精确到纳秒
+
+> 对于龙芯平台来说，第一阶段除了关中断以外，还有一大特点是：显示器上没有任何输出信息。因为龙芯内核使用哑控制台作为初始控制台，没有从BIOS继承任何可以显示的控制台信息
+
 * 第二阶段：开中断单线程阶段
 * 第三阶段：开中断多线程阶段
 
