@@ -444,34 +444,34 @@ start_kernel()
 	|---------profile_init();	// OProfile性能剖析工具初始化
 	|---------call_function_init();            // 这之前是第一阶段，单线程关中为阶段 ; 到这里为止，中断相关的初始化都已经完成，可以开中断了 
 	|---------local_irq_enable();              // 第二阶段从这里开始
-	|---------console_init();
+	|---------console_init();			// 控制台初始化
 	|---------setup_per_cpu_pageset();
-	|---------numa_policy_init();
+	|---------numa_policy_init();		// NUMA内存分配策略初始化
 	|---------acpi_early_init();
 	|---------sched_clock_init();
-	|---------calibrate_delay();
+	|---------calibrate_delay();		// 计算loops_per_jiffy（每个时钟节拍对应的循环次数，这个值用于实现各种delay()函数）
 	|---------pid_idr_init();
 	|---------anon_vma_init();
 	|---------thread_stack_cache_init();
-	|---------fork_init();
+	|---------fork_init();			// 初始化fork()函数用到的一些数据结构, 如创建名为“task_struct”的slab对象
 	|---------proc_caches_init();
 	|---------buffer_init();
 	|---------key_init();
 	|---------security_init();
 	|---------vfs_caches_init();
 	|---------pagecache_init();
-	|---------signals_init();
+	|---------signals_init();		// 与信号相关的数据结构初始化。
 	|---------proc_root_init();
 	|---------cpuset_init();
-	|---------cgroup_init();
+	|---------cgroup_init();		// CGroup相关数据结构初始化，并创建sysfs, procfs节点
 	|---------acpi_subsystem_init();
 	\---------arch_call_reset_init();         // 第二阶段到这里结束，开中断单线程阶段
 			\-------------rest_init();      // 第三阶段从这里开始，开中断、多线程阶段
-					|---------kernel_thread(kernel_init, NULL, CLONE_FS);
+					|---------kernel_thread(kernel_init, NULL, CLONE_FS); // 创建1号进程kernel_init和2号进程kthreadd
 					|---------numa_default_policy();
 					|---------kernel_thread(kthreadd, NULL, CLONE_FS | CLONE_FILES);
-					\---------cpu_startup_entry(CPUHP_ONLINE);
-							\--------while (1) do_idle();
+					\---------cpu_startup_entry(CPUHP_ONLINE); 
+							\--------while (1) do_idle(); // 内核现在主要工作是休息
 									\-------cpuidle_idle_call();
 											\-------default_idle_call();
 												   \--------arch_cpu_idle();
@@ -510,10 +510,34 @@ start_kernel()
 > 对于龙芯平台来说，第一阶段除了关中断以外，还有一大特点是：显示器上没有任何输出信息。因为龙芯内核使用哑控制台作为初始控制台，没有从BIOS继承任何可以显示的控制台信息
 
 * 第二阶段：开中断单线程阶段
+> 现在已经是开中断，尽管现在是单线程，但一旦产生中断就会切换控制流
+
+> 这一阶段除了按顺序执行代码流程外，还可能以交错方式执行中断处理程序代码
+
+> console_init()，控制台初始化。在内核中，控制台基于“键盘 + 鼠标 + 显示器”的VTConsole, 基于串口的SericalConsole，基于IP网络的NetConsole三类。console_init()要完成上述三类控制台的初始化，该函数执行完成后显示器上依然没有输出信息，但是所有的准备工作都已经做好了，包括启动徽标已经在内存VTConsole的屏幕缓冲区中绘制好了，只要显卡初始化一完成，基于FrameBuffer的FBConsole就会代替DummyConsole，从而输出显示信息（将显示内容从VTConsole的屏幕缓冲区复制到显卡的帧缓存FrameBuffer）
+
+> 信号之于进程，好比中断之于内核。信号用于打断当前的执行流程，去完成一些更重要的工作
+
+> CGroup全称Control Group（控制组），是内核中一种控制资源分配的机制
+
+> 第二阶段完成所有调度有关的子系统初始化，这样在下一阶段就可以创建内核线程了，可以以并发的方式继续内核启动了
+
+> 因显卡还未初始化，所以第二阶段显示器上无输出
+
 * 第三阶段：开中断多线程阶段
+> 1号、2号进程实际上是两个内核线程
 
+> 2号进程是除0、1、2号进程以外其他所有内核线程的祖先
 
+> 1号进程和2号进程创建以后，内核自己的初始化工作就基本完成了，余下的工作交给1号进程和2号进程
 
+> 内核初始化的最后一步是执行cpu_startup_entry，通过执行do_idle()函数让0号进程（内核）休息，（如果别的进程有事要做，就调度别的进程，反之意味着系统空闲，回到0号进程，而0号进程本身就是idle进程，内核本身）
+
+> 在SMP系统上，1号进程会打开所有其他CPU／核，让后面的内核启动真正并行起来。包括显卡驱动在内的各种设备驱动都在1号进程里完成
+
+> 在这一阶段，显示器上在部分时间是有输出信息的
+
+### 2.2.3 重要函数：setup_arch()
 
 
 
