@@ -257,7 +257,7 @@ git am kernel_patch_dir/*.patch
 
 NESTED(kernel_entry, 16, sp)                    # 函数头, 函数名：kernel_entry，栈帧大小16字节，返回地址为SP寄存器的内容
 	kernel_entry_setup			# CPU具体类型相关初始化
-	setup_c0_status_pri			# 设置主核处理器0的初始Status寄存器
+	setup_c0_status_pri			# 设置主核协处理器0中Status寄存器的初始状态
 	PTR_LA t0,	0f		        # 宏指令PTR_LA用于将一个变量的地址加载到寄存器；在32位时宏展开为la, 在64位配置下宏展开为dla
 	jr		t0
 
@@ -272,7 +272,7 @@ NESTED(kernel_entry, 16, sp)                    # 函数头, 函数名：kernel_
 	bne		t0, t1, 1b
 	LONG_S		a0, fw_arg0        #保存寄存器a0的内容到内存变量fw_arg0中，作用：保存a1中命令行参数中包含的参数个数
 	LONG_S		a1, fw_arg1        #命令行参数, commandline; a0~a3中保存的是BIOS或引导程序传递给内核的参数
-	LONG_S		a2, fw_arg2        #龙芯3号以前是key=value；龙芯3号时是一个指向BIOS中一片数据区的地址，数据区有丰富的数据结构，有丰富的接口信息见arch/mips/include/asm/mach-loongson64/boot_param.h是UEFI的LEFI接口规范, 其中有cpu和内存分布图定义
+	LONG_S		a2, fw_arg2        #龙芯3号以前是key=value；龙芯3号开始是一个指向BIOS中一片数据区的地址，数据区有丰富的数据结构，有丰富的接口信息(见arch/mips/include/asm/mach-loongson64/boot_param.h是UEFI的LEFI接口规范), 其中有cpu和内存分布图定义
 	LONG_S		a3, fw_arg3
 	MTC0		zero, CP0_CONTEXT
 	PTR_LA		$28, init_thread_union #用init_thread_union的地址来初始化GP，GP也叫全局指针，用于访问全局数据，$28代表28号通用寄存器
@@ -360,9 +360,9 @@ struct task_struct init_task = {
 	
 
 unsigned thread_union init_thread_union; 	// 0号进程的thread_union
-struct thread_info init_thread_info __init_thread_info = INIT_THREAD_INFO(init_task);
+struct thread_info init_thread_info __init_thread_info = INIT_THREAD_INFO(init_task); // ???
 unsigned long init_stack[THREAD_SIZE / sizeof(unsigned long)];
-unsigned long kernelsp[NR_CPUS];
+unsigned long kernelsp[NR_CPUS]; // 存放栈指针？
 ```
 
 > 每个进程用一个进程描述符struct task_struct表示
@@ -375,7 +375,7 @@ unsigned long kernelsp[NR_CPUS];
 
 > 0号进程一开始就是内核自身，在完成启动、初始化之后，变成idle进程
 
-> 对于多核或多处理器系统，每个逻辑cpu都有一个0号进程, 那我就要问了，每个0号进程都相同吗？因为上面定义的全局的init_thread_union只有一个, init_thread_info也只有一个
+> 对于多核或多处理器系统，每个逻辑cpu都有一个0号进程； 请问每个0号进程都相同吗？因为上面定义的全局的init_thread_union只有一个, init_thread_info也只有一个
 
 > 0号进程的thread_union是init_thread_union; thread_info是init_thread_info;内核栈是init_stack
 
