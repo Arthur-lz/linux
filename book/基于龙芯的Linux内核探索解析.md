@@ -697,13 +697,85 @@ struct plat_smp_ops loongson3_smp_ops = {
 |0x0000 0000 0000 0000|XUSEG(4EB)|||用户态唯一可访问的地址段；内核当然也可以|
 
 ### 2.2.4 重要函数：trap_init()
+* trap_init()的主要工作是CPU异常的初始化，大致可分为
+> 准备工作
 
+> 每CPU配置
 
+> 建立异常向量表
 
+```c
+trap_init()
+	|-----check_wait(); 		// 设置cpu_wait函数指针
+	|-----ebase = CAC_BASE; / ebase = CKSEG0ADDR(ebase_pa);
+	|-----if (board_ebase_setup) board_ebase_setup();
+	|-----per_cpu_trap_init(true);
+		|-----configure_status(); 			// 配置Status寄存器
+		|-----configure_hwrena();			// 配置HWREna寄存器
+		|-----configure_exception_vector();		// 配置异常向量的入口地址（主要是EBase寄存器）
+		|-----if (!is_boot_cpu) cpu_cache_init();
+		|-----tlb_init(); 	// 内核使用微汇编器动态生成TLB异常处理函数；因为TLB异常调用频率高，所以性能要求也非常高，所以。。
+			\---build_tlb_refill_handler(); // 设置第一层次的向量0（TLB重填异常）、向量1（XTLB重填异常）
+		\-----TLBMISS_HANDLER_SETUP();
+			\---TLBMISS_HANDLER_SETUP_PGD(swapper_pg_dir);
+	|------set_handler(0x180, &except_vec3_generic, 0x80); /* 设置向量3的处理函数，即except_vec3_generic(), 这个函数根据异常号查询第二层次的异常向量表exception_handlers[32]数组，如果匹配，则调用相应的处理函数*/
+	|------for (i = 0; i <= 31; i++) set_except_vector(i, handle_reserved);
+	|------set_except_vector(EXCCODE_INT, using_rollback_handler()?rollback_handle_init:handle_int);
+	|-----/* 用set_except_vector()设置其他异常向量，方法同上 */
+	|------board_nmi_handler_setup();
+		\---mips_nmi_setup();
+			\---memcpy(base, &except_vec_nmi, 0x80);
+	|------board_cache_error_setup();
+		\---r4k_cache_setup();
+			\---set_uncached_handler(0x100, &except_vec2_generic, 0x80);
+	\------local_flush_icache_range(ebase, ebase + vec_size); // 刷新EBase地址开始的一段内存，保证动态生成的代码被真正写入了内存，并且保证I-Cache里的内容不是过期的代码
+```
 
+> MIPS指令集中定义了WAIT指令，用作暂停流水线，降低空闲时CPU功耗。类似于x86的HLT指令。龙芯3A1000以前的CPU没有实现WAIT指令；龙芯3A2000以后的CPU实现了真正的WAIT指令，此时cpu_wait被设置成标准的r4k_wait()；其他龙芯处理器保持为空
 
+> EBase寄存器，重定位寄存器：协处理器0中的EBase寄存器。EBase寄存器中的地址默认为CKSEG0（0xffff ffff 8000 0000）
 
+> 龙芯处理器异常分类
 
+|异常类型|异常入口（BEV=0）|异常入口（BEV=1）|
+|:-|:-|:-|
+|硬复位、软复位、NMI|0xffff ffff bfc0 0000|0xffff ffff bfc0 0000|
+|TLB重填|0xffff ffff 8000 0000|0xffff ffff bfc0 0200|
+|XTLB重填|0xffff ffff 8000 0080|0xffff ffff bfc0 0200|
+|Cache错误|0xffff ffff a000 0100|0xffff ffff bfc0 0300|
+|其他通用异常（包括陷阱、断点、系统调用、保留指令、地址错误、中断等）|0xffff ffff 8000 0180|0xffff ffff bfc0 0200|
+|EJTAG调试（ProbeEn =0）|0xffff ffff bfc0 0480|0xffff ffff bfc0 0480|
+|EJTAG调试（ProbeEn =1）|0xffff ffff ff20 0200|0xffff ffff ff20 0200|
+
+> BEV是协处理器0中Status寄存器的BEV位，处理器刚上电时BEV＝1，但在内核刚刚开始的时候，在kernel_entry入口开始就把BEV清0了, 所以对于上表只需关心BEV=0的情况
+
+> 硬复位、软复位和NMI是非常紧急或致命的异常，它们的异常处理程序入口地址永远是0xffff ffff bfc0 0000，这个地址也是所有MIPS处理器上电以后PC的初始值
+
+> TLB重填和XTLB重填是调用频率非常高的异常，因此设置了专门的异常入口
+
+> Cache错误发生时，cache本身不可用，因此cache错误的入口默认在CKSEG1段偏移为0x100的地方
+
+> 其他各种通用异常共享同一个中断入口，默认在CKSEG0段偏移为0x180的地方
+
+> 龙芯处理器在0xffff ffff bfc0 0000开始的1MB空间实际上不是内存空间，而是映射到BIOS的ROM芯片。因此当BEV＝1时，实际上所有异常均在BIOS里面处理，当操作系统启动过程中清BEV以后，TLB重填、XTLB重填、Cache错误和其他通用异常才会转由内核进行处理，其余几种异常依旧在BIOS里进行
+
+#### per_cpu_trap_init()进行每CPU配置, 顾名思义，每CPU配置就是每个逻辑CPU都需要执行一次的配置
+* config_status()执行的结果是：
+> 协处理器0可用, 其他协处理器不可用
+
+> 32个双精度浮点寄存器可用
+
+> 64位核心地址空间段、管理地址空间段、用户地址空间段均被启用
+
+> 异常向量入口地址使用运行时向量（BEV＝0），因为异常向量表马上就要建立起来了
+
+#### 建立异常向量表set_handler函数开始到trap_init结束
+* 异常向量有两个层次
+> 第一层次：向量0（TLB重填异常），向量1（XTLB重填异常），向量2（高速缓存错误），向量3（其他通用异常）；这一层次一共有4个向量，每个向量有不同的入口地址，由硬件负责分发；
+
+> 第二层次：向量3实际上是一个共享入口，必须做一个分发；这个层次共32个向量，它们的入口地址相同但有不同的编号，由软件负责分发
+
+### 2.2.5 重要函数： init_IRQ()
 
 
 
