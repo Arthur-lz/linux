@@ -799,7 +799,7 @@ init_IRQ()
 ```
 
 * 龙芯电脑的中断传递路径
-![avatar](./pic/loogson_interrup_transmit.jpeg)
+![avatar](./pic/loogson_interrupt_transmit.jpeg)
 
 
 
