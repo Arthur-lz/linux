@@ -776,6 +776,30 @@ trap_init()
 > 第二层次：向量3实际上是一个共享入口，必须做一个分发；这个层次共32个向量，它们的入口地址相同但有不同的编号，由软件负责分发
 
 ### 2.2.5 重要函数： init_IRQ()
+```c
+// arch/mips/kernel/irq.c
+
+init_IRQ()
+	\-----arch_init_irq();
+		\---mach_init_irq();
+			|-----irqchip_init();
+				|---mips_cpu_irq_init();
+					\---__mips_cpu_irq_init();
+				\---CaseA: ls2h_irq_of_init();
+				    CaseB: ls7a_irq_of_init();
+				    CaseC: i8259_of_init();
+				    	\---__init_i8259_irqs();
+			|-----loongson_pch->init_irq();
+				\---CaseA: ls2h_init_irq();
+				    CaseB: ls7a_init_irq();
+				    CaseC: rs780_init_irq();
+			|-----irq_set_chip_and_handler(LOONGSON_UART_IRQ, &loongson_irq_chip, handle_percpu_irq);
+			|-----irq_set_chip_and_handler(LOONGSON_BRIDGE_IRQ, &loongson_irq_chip, handle_percpu_irq);
+			\---set_c0_status(STATUSF_IP2 | STATUSF_IP3 | STATUSF_IP6);
+```
+
+* 龙芯电脑的中断传递路径
+![avatar](./pic/loogson_interrup_transmit.png)
 
 
 
