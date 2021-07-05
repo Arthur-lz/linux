@@ -538,6 +538,171 @@ start_kernel()
 > 在这一阶段，显示器上在部分时间是有输出信息的
 
 ### 2.2.3 重要函数：setup_arch()
+```c
+// arch/mips/kernel/setup.c
+setup_arch()
+	|---------cpu_probe();	// 探测CPU类型, 依据32位PRID寄存器（高8位保留，次高8位存公司ID，第三个8位存处理器ID，最后一个8位存修订号）
+			|---CaseA: cpu_probe_legacy(c, cpu); 		// 无公司ID时用 legacy
+			|---CaseB: cpu_probe_loongson(c, cpu);		// 龙芯3A2000后有公司ID，用loonsgon
+			|---CaseC: others
+	|---------prom_init(); 					// P Rom , 指BIOS芯片，通过BIOS传递来的信息来初始化
+			|---prom_init_cmdline(); 		// 处理fw_arg0（参数个数）, fw_arg1（字符串数组）
+			|---prom_init_env(); 			// 用fw_arg2初始化环境变量
+			|---loongson_pch->early_config(); 	// 龙芯芯片组（ls2h, ls7a, rs780）相关初始化
+				\---ls2h_early_config()/ls7a_early_config();/rs780_early_config();
+			|---prom_init_memory(); / prom_init_numa_memory(); 	// 内存分配图初始化（根据是否为numa来选择这两个函数之一）
+			|---prom_init_uart_base();				// 初始化CPU串口的基地址
+			|---register_smp_ops(&loongson3_smp_ops);		// 初始化龙芯多核支持的SMP操作函数集
+			|---board_ebase_setup = mips_ebase_setup;
+			\---board_nmi_handler_setup = mips_nmi_setup;
+	|---------arch_mem_init(cmdline_p);
+			|---plat_mem_setup();		// 设置系统控制台（如果配置了VGA控制台，那么系统控制台就是vga_con，否则是哑控制台）
+			|---bootmem_init();		// 建立boot_mem_map内存映射图
+			|---device_tree_init();		// 校验解析并初始化设备树 
+			|---sparse_init();		// 稀疏型内存模型初始化 
+			\---plat_swiotlb_setup();	// DMA地址-物理地址的软件中转站SWIOTLB初始化
+	|---------plat_smp_setup();
+			\---mp_ops->smp_setup();
+				\---loongson3_smp_setup();
+	|---------prefill_possible_map();
+	|---------cpu_cache_init();
+			|---r4k_cache_init();
+			\---setup_protection_map();
+	\---------paging_init();			// 初始化各内存页面管理区(zone)
+```
+
+> prom_init_memory()完成内存分布图初始化。以numa版本的内存分布图初始化函数prom_init_numa_memory()来说，它首先初始化NUMA节点的距离矩陈，然后逐个解析内存分布图并将最终结果保存于loonson_memmap中，最后建立逻辑CPU和节点的映射关系（即CPU拓扑图）。非numa版本是一个简化版本只解析节点0的内存映射
+
+> NUMA节点距离矩陈用于描述跨节点访问内存的代价。在linux系统里可以使用numactl --hardware来查看节点距离矩陈
+
+> CPU拓扑图和节点距离矩陈是紧密相关的，节点距离矩陈只描述了各节点之间的距离，并没有描述各个核（逻辑CPU）之间的距离。因此有了CPU拓扑图，就知道哪个核属于哪个节点，哪个节点包括哪些核，这样才能知道任意两个核之间的距离
+
+> boot_mem_map是BootMem内存分布图，它主要是给BootMem内存分配器使用，只包含系统内存
+
+> loonson_memmap是BIOS内存分布图，记录了包括NUMA节点和多种内存类型在内的更多信息
+
+> 如果启动时配置了initrd/initramfs，那么bootmem_init()还有一个功能就是通过init_initrd()处理initrd/initramfs的起始地址、结束地址和设备节点，再通过finalize_initrd()将initrd/initramfs所在的内存段设备为保留。Linux5.4已经淘汰BootMem而全面使用MemBlock
+
+> 内存模型指的是物理地址空间分布的模型，Linux内核支持3种内存模型：平坦型、非连续型、稀疏型内存模型
+
+> 包括龙芯在内的现代体系结构大多采用了比较自由的稀疏型内存模型
+
+> SWIOTLB，这是一种DMA API。龙芯3号的访存能力是48位，但是由于芯片组或者设备本身的限制，设备的访存能力往往没有这么大。比如龙芯的顶级I/O总线（HT总线）位宽只有40位，一部分PCI设备的访存能力只有32位，百ISA/LPC设备的访存能力甚至只有24位。为了让任意设备能够对任意内存地址发起DMA访问，就必须在硬件上设置一个“DMA地址－物理地址”的翻译表，或者由内核在设备可访问的地址范围内预行准备一块内存做中转站。许多X86处理器在硬件上提供翻译表（IOMMU）；龙芯没有IOMMU，于是提供了软件中转站，也就是SWIOTLB
+
+> plat_swiotlb_setup()初始化SWIOTLB元数据并注册DMA API操作集loonson_dma_map_ops, DMA API与芯片组相关
+
+> LS2H芯片组：物理地址转DMA地址使用loonson_ls2h_phys_to_dma()；DMA地址转物理地址使用loongson_ls2h_dma_to_phys()
+
+> LS7A：物理地址转DMA地址使用loongson_ls7a_phys_to_dma(); DMA地址转物理地址使用loongson_ls7a_dma_to_phys()
+
+> RS780E: 物理地址转DMA地址使用loongson_rs780_phys_to_dma(); DMA地址转物理地址使用loongson_rs780_dma_to_phys()
+
+> plat_smp_setup()
+
+```c
+struct plat_smp_ops loongson3_smp_ops = {
+	.send_ipi_single = loongson3_send_ipi_single, 	// 用于核间通讯
+	.send_ipi_mask = loongson3_send_ipi_mask,
+	.smp_setup = loongson3_smp_setup,		// 在主核上执行，用于启动辅核
+	.prepare_cpus = loongson3_prepare_cpus,		// 在主核上执行, 用于启动辅核
+	.boot_secondary = loongson3_boot_secondary,	// 在主核上执行, 用于启动辅核
+	.init_secondary = loongson3_init_secondary,	// 在辅核上执行
+	.smp_finish = loongson3_smp_finish,		// 在辅核上执行
+#ifdef CONFIG_HOTPLUG_CPU
+	.cpu_disable = loongson3_cpu_disable,		// 用于CPU热插拔
+	.cpu_die = loongson3_cpu_die,			// 用于CPU热插拔
+#endif
+};
+```
+
+> smp_setup()->loongson3_smp_setup()建立CPU逻辑编号与物理编号对应关系；初始化IPI寄存器的地址和操作函数；确定主核的封装编号和核编号
+
+> 为什么会有CPU逻辑编号和物理编号？这与保留掩码是否为0有关，当所有核都投入使用时保留掩码为0；当一部分核不使用时，保留掩码非0，这意味着投入使用的核不一定从0开始也不一定编号连续，但是Linux内核的很多数据结构和核心代码假定逻辑CPU的编号从0开始并且连续，所以需要区分物理编号和逻辑编号。内核提供了两个数组来管理：__cpu_number_map[]（用于物理编号到逻辑编号的映射）, __cpu_logical_map[]（用于逻辑编号到物理编号的映射）
+
+> IPI（处理器间中断，Inter-Processor Interrupt）是核间通信的机制。每个CPU核对应有8个IPI寄存器（IPI_Status, Enable, Set, Clear, Mailbox0~3），前4个寄存器是32位，分别表示32种IPI，Mailbox寄存器64位，用于传递中断以外的更多信息。
+
+> IPI_Status是状态寄存器（只读），某一位为1表示收到了某种IPI
+
+> IPI_Enable是使能寄存器，往某一位写1表示允许某种IPI
+
+> IPI_Set是触发寄存器，往某一位写1表示触发某种IPI
+
+> IPI_Clear是清除寄存器，往某一位写1表示清除某种IPI
+
+> prefill_possible_map()建立合理的逻辑CPU的possible值，它依据在启动参数nr_cpus和编译配置NR_CPUS中取最小值。获取到合理的possible值后，会调用set_cpu_possible()来更新cpu_possible_mask，最后将possible值赋给全局变量nr_cpu_ids
+
+> paging_init()，初始化各个内存页面管理区。在初始化每个zone时，会调用init_page_count()将每个页帧的初始引用计数设置为1。因为此时此刻内存还处于BootMem管理器控制，这些页帧尚未转交到伙伴系统（内存页帧管理器），不是自由页帧，不可以被伙伴系统的页帧分配函数分配
+
+#### 各种地址的定义
+* 虚拟地址
+> 也叫逻辑地址或程序地址，是从CPU角度看到的地址，也是写在代码里的那个地址。引入虚拟地址的主要原因是支持多任务。因为有了虚拟地址及其地址空间的隔离，多个任务才能使用同样的程序地址并发地跑在同一个CPU上（实际每个任务占用的是不同的物理内存）。
+
+* 线性地址
+> 在x86里，表示虚拟地址经过段转换得到的地址，实模式下等于物理地址，保护模式下需要经过页转换才能得到物理地址。在龙芯里，不需要经过页转换的虚拟地址即为线性地址，如32位地址空间里的KSEG0、KSEG1地址以及64位地址空间里的XKPHYS地址
+
+* 物理地址
+> 表示虚拟地址或线性地址（x86）经过页转换得到的地址。龙芯的线性地址不需要页转换，直接去掉类型前缀就可以得到物理地址。值得注意的是，此处的物理地址是“初始物理地址”，是CPU核的地址总线发出的地址；其要经过各级交叉开关的转换才能得到“最终物理地址”，即内存条上的地址
+
+* 总线地址
+> 也叫DMA地址，是从设备角度看到的地址，在没有IOMMU时等于物理地址，在有IOMMU时经过简单转换可以得到物理地址
+
+#### 页面管理区zone 
+* ZONE_DMA
+> 包括所有物理地址小于16MB的页面
+
+> 设置这个区的目的：为ISA/LPC等DMA能力只有24位地址的设备服务
+
+* ZONE_DMA32
+> 包括所有ZONE_DMA区之外的物理地址小于4GB的页面
+
+> 设置这个区的目的：是为DMA能力只有32位地址的PCI设备服务
+
+* ZONE_HIGHMEM
+> 设置这个区的目的：是为物理地址超过线性地址表达能力的内存服务
+
+> 对于32位的MIPS内核，线性地址表达能力只有512MB，因此512MB以外的页面被放置到ZONE_HIGHMEM区
+
+> 对于64位的MIPS内核，物理地址暂时还没有超过线性地址表达能力，因此通常不设置ZONE_HIGHMEM区 
+
+* ZONE_NORMAL
+> 该区包含了前面几个区以外的所有页面
+
+#### MIPS的虚拟地址分成3类
+* 不缓存并且不分页的，这种虚拟地址既不需要Cache也不需要TLB
+
+* 缓存但不分页的，这类地址需要Cache但不需要TLB
+
+* 缓存并且分页的，这类地址既需要Cache也需要TLB
+
+#### MIPS的虚拟地址空间划分
+* 32位地址空间
+|起始地址|空间名称|缓存吗？|分页吗？|
+|0xC000 0000|KSEG2(1GB)|缓存|分页|
+|:-|:-|:-|:-|
+|0xA000 0000|KSEG1(512MB)|不缓存|不分页|
+|0x8000 0000|KSEG0(512MB)|缓存|不分页|
+|0x0000 0000|USEG(2GB)|缓存|分页|
+
+* 64位地址空间
+> 下图表中给出的是64位地址空间划分的最大能力，不是当前状态
+
+|起始地址|空间名称|缓存吗？|分页吗？|权限|
+|0xFFFF FFFF C000 0000|CKSEG2(1GB)||||
+|:-|:-|:-|:-|:-|
+|0xFFFF FFFF A000 0000|CKSEG1(512MB)||||
+|0xFFFF FFFF 8000 0000|CKSEG0(512MB)||||
+|0xC000 0000 0000 0000|XKSEG(4EB-2GB)|缓存|分页|只有内核可访问|
+|0x8000 0000 0000 0000|XKPHYS(4EB)|是否缓存由地址的59～61位决定|不分页||
+|0x4000 0000 0000 0000|XSSEG(4EB)||||
+|0x0000 0000 0000 0000|XUSEG(4EB)|||用户态唯一可访问的地址段；内核当然也可以|
+
+### 2.2.4 重要函数：trap_init()
+
+
+
+
+
+
 
 
 
