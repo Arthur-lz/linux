@@ -571,7 +571,7 @@ setup_arch()
 	\---------paging_init();			// 初始化各内存页面管理区(zone)
 ```
 
-> prom_init_memory()完成内存分布图初始化。以numa版本的内存分布图初始化函数prom_init_numa_memory()来说，它首先初始化NUMA节点的距离矩陈，然后逐个解析内存分布图并将最终结果保存于loonson_memmap中，最后建立逻辑CPU和节点的映射关系（即CPU拓扑图）。非numa版本是一个简化版本只解析节点0的内存映射
+> prom_init_memory()完成内存分布图初始化。以numa版本的内存分布图初始化函数prom_init_numa_memory()来说，它首先初始化NUMA节点的距离矩陈，然后逐个解析内存分布图并将最终结果保存于loongson_memmap中，最后建立逻辑CPU和节点的映射关系（即CPU拓扑图）。非numa版本是一个简化版本只解析节点0的内存映射
 
 > NUMA节点距离矩陈用于描述跨节点访问内存的代价。在linux系统里可以使用numactl --hardware来查看节点距离矩陈
 
@@ -579,19 +579,19 @@ setup_arch()
 
 > boot_mem_map是BootMem内存分布图，它主要是给BootMem内存分配器使用，只包含系统内存
 
-> loonson_memmap是BIOS内存分布图，记录了包括NUMA节点和多种内存类型在内的更多信息
+> loongson_memmap是BIOS内存分布图，记录了包括NUMA节点和多种内存类型在内的更多信息
 
-> 如果启动时配置了initrd/initramfs，那么bootmem_init()还有一个功能就是通过init_initrd()处理initrd/initramfs的起始地址、结束地址和设备节点，再通过finalize_initrd()将initrd/initramfs所在的内存段设备为保留。Linux5.4已经淘汰BootMem而全面使用MemBlock
+> 如果启动时配置了initrd/initramfs，那么bootmem_init()还有一个功能就是通过init_initrd()处理initrd/initramfs的起始地址、结束地址和设备节点，再通过finalize_initrd()将initrd/initramfs所在的内存段设置为保留。Linux5.4已经淘汰BootMem而全面使用MemBlock
 
 > 内存模型指的是物理地址空间分布的模型，Linux内核支持3种内存模型：平坦型、非连续型、稀疏型内存模型
 
 > 包括龙芯在内的现代体系结构大多采用了比较自由的稀疏型内存模型
 
-> SWIOTLB，这是一种DMA API。龙芯3号的访存能力是48位，但是由于芯片组或者设备本身的限制，设备的访存能力往往没有这么大。比如龙芯的顶级I/O总线（HT总线）位宽只有40位，一部分PCI设备的访存能力只有32位，百ISA/LPC设备的访存能力甚至只有24位。为了让任意设备能够对任意内存地址发起DMA访问，就必须在硬件上设置一个“DMA地址－物理地址”的翻译表，或者由内核在设备可访问的地址范围内预行准备一块内存做中转站。许多X86处理器在硬件上提供翻译表（IOMMU）；龙芯没有IOMMU，于是提供了软件中转站，也就是SWIOTLB
+> SWIOTLB，这是一种DMA API。龙芯3号的访存能力是48位，但是由于芯片组或者设备本身的限制，设备的访存能力往往没有这么大。比如龙芯的顶级I/O总线（HT总线）位宽只有40位，一部分PCI设备的访存能力只有32位，而ISA/LPC设备的访存能力甚至只有24位。为了让任意设备能够对任意内存地址发起DMA访问，就必须在硬件上设置一个“DMA地址－物理地址”的翻译表，或者由内核在设备可访问的地址范围内预先准备一块内存做中转站。许多X86处理器在硬件上提供翻译表（IOMMU）；龙芯没有IOMMU，于是提供了软件中转站，也就是SWIOTLB
 
 > plat_swiotlb_setup()初始化SWIOTLB元数据并注册DMA API操作集loonson_dma_map_ops, DMA API与芯片组相关
 
-> LS2H芯片组：物理地址转DMA地址使用loonson_ls2h_phys_to_dma()；DMA地址转物理地址使用loongson_ls2h_dma_to_phys()
+> LS2H芯片组：物理地址转DMA地址使用loongson_ls2h_phys_to_dma()；DMA地址转物理地址使用loongson_ls2h_dma_to_phys()
 
 > LS7A：物理地址转DMA地址使用loongson_ls7a_phys_to_dma(); DMA地址转物理地址使用loongson_ls7a_dma_to_phys()
 
@@ -676,9 +676,10 @@ struct plat_smp_ops loongson3_smp_ops = {
 
 #### MIPS的虚拟地址空间划分
 * 32位地址空间
+
 |起始地址|空间名称|缓存吗？|分页吗？|
-|0xC000 0000|KSEG2(1GB)|缓存|分页|
 |:-|:-|:-|:-|
+|0xC000 0000|KSEG2(1GB)|缓存|分页|
 |0xA000 0000|KSEG1(512MB)|不缓存|不分页|
 |0x8000 0000|KSEG0(512MB)|缓存|不分页|
 |0x0000 0000|USEG(2GB)|缓存|分页|
@@ -687,8 +688,8 @@ struct plat_smp_ops loongson3_smp_ops = {
 > 下图表中给出的是64位地址空间划分的最大能力，不是当前状态
 
 |起始地址|空间名称|缓存吗？|分页吗？|权限|
-|0xFFFF FFFF C000 0000|CKSEG2(1GB)||||
 |:-|:-|:-|:-|:-|
+|0xFFFF FFFF C000 0000|CKSEG2(1GB)||||
 |0xFFFF FFFF A000 0000|CKSEG1(512MB)||||
 |0xFFFF FFFF 8000 0000|CKSEG0(512MB)||||
 |0xC000 0000 0000 0000|XKSEG(4EB-2GB)|缓存|分页|只有内核可访问|
@@ -749,7 +750,7 @@ trap_init()
 
 > BEV是协处理器0中Status寄存器的BEV位，处理器刚上电时BEV＝1，但在内核刚刚开始的时候，在kernel_entry入口开始就把BEV清0了, 所以对于上表只需关心BEV=0的情况
 
-> 硬复位、软复位和NMI是非常紧急或致命的异常，它们的异常处理程序入口地址永远是0xffff ffff bfc0 0000，这个地址也是所有MIPS处理器上电以后PC的初始值
+> 硬复位、软复位和NMI是非常紧急或致命的异常，它们的异常处理程序入口地址永远是0xffff ffff bfc0 0000（BEV=0或BEV=1都是），这个地址也是所有MIPS处理器上电以后PC的初始值; 也就是说这几个异常的处理一直在BIOS里
 
 > TLB重填和XTLB重填是调用频率非常高的异常，因此设置了专门的异常入口
 
@@ -769,7 +770,7 @@ trap_init()
 
 > 异常向量入口地址使用运行时向量（BEV＝0），因为异常向量表马上就要建立起来了
 
-#### 建立异常向量表set_handler函数开始到trap_init结束
+#### 建立异常向量表（set_handler函数开始到trap_init结束）
 * 异常向量有两个层次
 > 第一层次：向量0（TLB重填异常），向量1（XTLB重填异常），向量2（高速缓存错误），向量3（其他通用异常）；这一层次一共有4个向量，每个向量有不同的入口地址，由硬件负责分发；
 
@@ -800,6 +801,16 @@ init_IRQ()
 
 * 龙芯电脑的中断传递路径
 ![avatar](./pic/loogson_interrupt_transmit.jpeg)
+
+> 从最核心的CPU核来看，所有的MIPS处理器在这个层面都有8个中断源（IP0～IP7）
+
+> MSI中断：消息中断
+
+> 龙芯总共定义了256个中断号（IRQ）
+
+> 龙芯推荐的中断路由配置中，内部LPC中断（包括CPU串口）路由到0号核的IP2（即INT0）
+
+> 中断路由配置时只允许0号核直接处理中断，这就有可能导致0号核的中断负担过重; 为了实现中断负载均衡，可以通过处理器间中断来完成外部中断的软件转发，因此需要一个IRQ->IPI_OFFSET的映射表
 
 
 
