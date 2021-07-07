@@ -859,7 +859,53 @@ init_IRQ()
 
 * 中断路由配置时只允许0号核直接处理中断，这就有可能导致0号核的中断负担过重; 为了实现中断负载均衡，可以通过处理器间中断来完成外部中断的软件转发，因此需要一个IRQ->IPI_OFFSET的映射表
 
+* IRQ相关的数据结构
+```c
+struct irq_desc { // 用来描述IRQ
+	struct irq_data		irq_data;
+	irq_flow_handler_t	handle_irq; /* 高层中断处理函数，它针对IRQ，与之对应的还有一个针对底层设备的irqaction.handler处理函数；高层中断处理函数可能会被设置成handle_percpu_irq()、handle_level_irq(), handle_edge_irq()*/
+	struct irqaction	*action;    /* irqaction组成一个链表，当某个IRQ被触发，handle_irq()就会被调用，然后handle_irq()会遍历irqaction链表，逐个调用action里的handler()*/
+	...
+	const char		*name;
+};
 
+struct irq_data {
+	unsigned int		irq;
+	struct irq_chip		*chip;
+	...
+	struct irq_common_data	*common;
+};
+
+struct irq_chip {
+	const char		*name;
+	unsigned int	(*irq_startup)(struct irq_data *data);
+	void 		(*irq_shutdown)(struct irq_data *data);
+	void 		(*irq_enable)(struct irq_data *data);
+	void 		(*irq_disable)(struct irq_data *data);
+	void 		(*irq_ack)(struct irq_data *data);
+	void 		(*irq_mask)(struct irq_data *data);
+	void 		(*irq_unmask)(struct irq_data *data);
+	void 		(*irq_eoi)(struct irq_data *data);
+	int		(*irq_set_affinity)(struct irq_data *data, const struct cpumask *dest, bool force);
+	...
+};
+
+struct irq_common_data {
+	cpumask_var_t		affinity;
+	...
+
+};
+
+struct irqaction {
+	irq_handler_t		handler; /* 底层中断处理函数，它针对具体的设备；它被称为中断服务例程ISR（Interrupt Service Rountine）；底层中断处理函数需要到具体注册中断时才能设置 */
+	struct irqaction	*next;
+	struct task_struct	*thread;
+	irq_handler_t		thread_fn;
+	...
+};
+```
+
+### 2.2.6 重要函数：time_init()
 
 
 
