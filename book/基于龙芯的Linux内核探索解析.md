@@ -969,10 +969,161 @@ time_init()
 * 由于一些限制因素（CPU热恋插拔、动态调频、中断路由），单纯使用内部时钟或外部时钟源的计时方法很难做到精确，所以龙芯采用了混合时钟源计时方法
 
 ### 2.2.7 1号进程：kernel_init()
+* 内核在sched_init()完成后化身为0号进程，在rest_init()中创建1号进程、2号进程，然后就化身为空闲进程，休息去了。后续的系统启动步骤，由1号进程接管，1号进程的执行函数是kernel_init()
 
+```c
+// init/main.c
 
+kernel_init()
+	|-----kernel_init_freeable();
+		|-----smp_prepare_cpus(setup_max_cpus);
+			|-----init_new_context(current, &init_mm);	// 初始化1号进程地址空间, 因为1号进程现在还是内核线程，所以它共享0号进程地址空间init_mm
+			|-----current_thread_info()->cpu = 0;		// 现在投入运行的只有0号核
+			|-----mp_ops->prepare_cpus(max_cpus);
+				\---loongson3_prepare_cpus();		// 将cpu_present_mask设置成与cpu_possible_mask相同 
+			|-----set_cpu_sibling_map(0);			// 设置0号CPU的线程映射图
+			\---set_cpu_core_map(0);			// 设置0号逻辑CPU的核映射图
+		|-----workqueue_init();			// 创建初始的工作者线程(kworker)
+		|-----do_pre_smp_initcalls();		// 执行所有用early_initcall()定义的initcall函数
+		|-----smp_init();		  	// 启动多核 
+			|-----idle_threads_init();	// 给每个辅核创建0号进程
+			|-----for_each_present_cpu(cpu) cpu_up(cpu);	// 循环把每个present状态的CPU都启动起来
+				\---do_cpu_up(cpu);
+					\---_cpu_up(cpu);
+						|-----idle = idle_thread_get(cpu);
+						\---cpuhp_up_callbacks(cpu, st, CPUHP_BRINGUP_CPU);
+							\---bringup_cpu(cpu);
+								\---__cpu_up(cpu, idle);
+									|-----mp_ops->boot_seondary(cpu, tidle);
+										\---loongson3_boot_secondary(cpu, tidle);
+									\---synchronise_count_master(cpu);
+			\---smp_cpus_done(setup_max_cpus);
+		|-----sched_init(smp);
+			|-----sched_init_numa();
+			\---sched_init_domains(cpu_active_mask);
+		\---do_basic_setup();
+			|-----driver_init();
+				|-----devtmpfs_init();
+				|-----devices_init();
+				|-----buses_init();
+				|-----classes_init();
+				|-----firmware_init();
+				|-----hypervisor_init();
+				|-----of_core_init();
+				|-----platform_bus_init();
+				|-----cpu_dev_init();
+				|-----memory_dev_init();
+				\---container_dev_init();
+			\---do_initcalls();
+				\---for (level = 0; level < 8; level++) do_initcall_level(level);
+	|-----numa_default_policy();
+	|-----CaseA: run_init_process(ramdisk_execute_command);
+	|-----CaseB: run_init_process(execute_command);
+	|-----CaseC: run_init_process("/sbin/init");
+	|-----CaseD: run_init_process("/etc/init");
+	|-----CaseE: run_init_process("/bin/init");
+	|-----CaseF: run_init_process("/bin/sh");
+```
 
+> 1号进程的生命周期分成两个阶段：内核态阶段和用户态阶段
 
+> 1号进程刚创建出来的时候是一个内核线程，它的工作是接管0号进程的内核启动过程；当这一阶段完成，它就装载用户态的init程序，变身为一个用户进程，成为所有其他用户态进程的鼻祖；
+
+> 1号进程在内核态阶段主要执行kernel_init_freeable()
+
+> 到现在为止，整个系统依然只有一个CPU在运行，但1号进程会负责把所有逻辑CPU都启动
+
+#### 单处理器阶段
+* kernel_init_freeable()的第一步：准备工作
+* kernel_init_freeable()的第二步：smp_prepare_cpus() 
+
+* kernel_init_freeable()的第三步：workqueue_init()
+* kernel_init_freeable()的第四步：do_pre_smp_initcalls()
+> 该函数用于执行所有用early_initcall()定义的initcall函数 
+
+> Linux内核初始化段一览表 
+
+|段名|标记方法|功能描述|
+|:-|:-|:-|
+|.init.text|__init|初始化代码|
+|.init.data|__initdata|初始化数据|
+|.init.setup|early_param/__setup/__setup_param|启动参数|
+|.initcallearly.init|early_initcall|早期initcall函数|
+|.initcall0.init|pure_initcall|第0级initcall函数|
+|.initcall1.init/.initcall1s.init|core_initcall/core_initcall_sync|第1级initcall函数|
+|.initcall2.init/.initcall2s.init|postcore_initcall/postcore_initcall_sync|第2级initcall函数|
+|.initcall3.init/.initcall3s.init|arch_initcall/arch_initcall_sync|第3级initcall函数|
+|.initcall4.init/.initcall4s.init|subsys_initcall/subsys_initcall_sync|第4级initcall函数|
+|.initcall5.init/.initcall5s.init|fs_initcall/fs_initcall_sync|第5级initcall函数|
+|.initcallrootfs.init|rootfs_initcall|Rootfs级initcall函数|
+|.initcall6.init/.initcall6s.init|device_initcall/device_initcall_sync|第6级initcall函数|
+|.initcall7.init/.initcall7s.init|late_initcall/late_initcall_sync|第7级initcall函数|
+
+> 这些初始化段按表中的顺序放在相邻的内存中，所有初始化段的起始地址是__init_begin, 结束地址是__init_end;启动参数段的起始地址是__setup_start, 结束地址是__setup_end；所有initcall函数的起始地址是__initcall_start, 结束地址是__initcall_end 
+
+> rootfs_initcall用于建立初始化内存盘（initrd/initramfs）中的根文件系统
+
+> module_init()定义的函数分两个应用场景：此类函数被直接编译到内核，那么它等价于device_initcall；如果此类函数被编译到模块里，则在内核启动完成后，由1号进程间接调用
+
+* kernel_init_freeable()的第五步：smp_init()
+> 龙芯的主核是通过Mailbox寄存器来启动辅核的。自BIOS或Bootloader把控制权交给内核以后，主核一始执行内核代码，而辅核一直在轮询各自的Mailbox寄存器。loongson3_boot_secondary()通过Mailbox寄存器来传递辅核启动需要的信息。启动信息包括：入口地址，初始的SP和GP。辅核的入口地址是smp_bootstrap;SP和GP的计算方法跟主核一样，都是用0号进程的thread_info算出来的，只不过主核自己算，而辅核是主核算好然后直接通过Mailbox传递给辅核。
+
+> 龙芯的每个核有4个Mailbox寄存器，Mailbox0用于传递入口地址，Mailbox1用于传递SP，Mailbox2用于传递GP（辅核自己的0号进程的thread_info），Mailbox3暂时未用
+
+* kernel_init_freeable()的第六步：sched_init_smp()
+> sched_init_numa()，根据NUMA结构建立节点间的拓扑信息
+
+> sched_init_domains()，建立节点内的拓扑信息
+
+> 到这里为止，所有的辅核都已经启动，kernel_init_freeable正式进入多处理器并行状态
+
+#### 多核处理器阶段
+* do_basic_setup->driver_init(), 早期Linux使用devfs来创建/dev目录下的设备结节，但从Linux-2.6.13版本开始采用udev后，从此绝大部分设备节点都是在运行时候动态创建的。但是有一些基本设备节点非常重要，必须在内核启动的过程中创建，比如/dev/console, /dev/zero, /dev/null等
+
+* do_basic_setup->do_initcalls(), 用于处理Early后面的8个级别的initcall；对应每个级别会调用do_initcall_level->initcall
+> 重要的initcall函数
+|函数名|级别|功能描述|
+|:-|:-|:-|
+|loongson_cu2_setup()|early_initcall|注册协处理器2的异常处理函数|
+|cpu_stop_init()|early_initcall|创建停机迁移内核线程（migration）|
+|spawn_ksoftirqd()|early_initcall|创建软中断内核线程（ksoftirqd）|
+|init_hpet_clocksource()|core_initcall|注册HPEI的ClockSource|
+|pm_init()|core_initcall|电源管理初始化|
+|cpuidle_init()|core_initcall|CPUIdle核心初始化|
+|cpufreq_core_init()|core_initcall|CPUFreq核心初始化|
+|init_per_zone_wmark_min()|core_initcall|计算每个内存管理区的水位线和保留量|
+|isa_bus_init()|postcore_initcall|ISA总线驱动初始化|
+|pci_driver_init()|postcore_initcall|PCI总线驱动初始化|
+|loongson3_platform_init()|arch_initcall|执行龙芯3号的platform_controller_hub中的pch_arch_initcall()函数指针|
+|loongson3_clock_init()|arch_initcall|初始化龙芯3号CPU的频率表|
+|loongson_cpufreq_init()|arch_initcall|注册龙芯2号和龙芯3号的CPUFreq设备|
+|loongson_pm_init()|arch_initcall|注册龙芯2号和龙芯3号的平台睡眠操作函数集|
+|pcibios_init()|arch_initcall|注册PCI控制器|
+|pcibios_init()|subsys_initcall|枚举所有PCI设备|
+|alsa_sound_init()|subsys_initcall|声卡驱动核心初始化|
+|md_init()|subsys_initcall|MD（RAID与LVM）初始化|
+|usb_init()|subsys_initcall|USB驱动核心初始化|
+|init_pipe_fs()|fs_initcall|PIPE（管道）文件系统初始化|
+|inet_init()|fs_initcall|因特网协议族初始化|
+|cfg80211_init()|fs_initcall|CFG80211（WIFI）核心初始化|
+|populate_rootfs()|rootfs_initcall|建立initrd/initramfs中的根文件系统|
+|loongson3_device_init()|device_initcall|执行龙芯3号的platform_controller_hub中的pch_device_initcall()函数指针|
+|pty_init()|device_initcall|伪终端设备（PTY）驱动初始化|
+|kswapd_init()|module_init|创建kswapd内核线程|
+|cpufreq_init()|module_init|龙芯CPU的CPUFreq驱动初始化|
+|loongson_hwmon_init()|module_init|龙芯CPU温度传感器驱动初始化|
+|lemote3a_laptop_init()|module_init|Leote（龙梦）笔记本电脑平台驱动初始化|
+|ahci_init()|module_init|AHCI（SATA控制器）驱动初始化|
+|ohci_hcd_mod_init()|module_init|注册USB1.0主机驱动（OHCI）|
+|ehci_hcd_init()|module_init|注册USB2.0主机驱动（EHCI）|
+|xhi_hcd_init()|module_init|注册USB3.0主机驱动（EHCI）|
+|usb_stor_init()|module_init|USB存储设备（U盘）驱动初始化|
+|drm_core_init()|module_init|DRM（显卡驱动）核心初始化|
+|radeon_init()|module_init|AMD Radeon显卡驱动初始化|
+
+> 当各个initcall函数执行完毕，1号进程的内核态阶段也即将结束。接下来它将先通过numa_default_policy()将1号进程自己的NUMA内存分配策略改成MPOL_DEFAULT；然后通过run_init_process()->do_execve()来装入用户态的init程序，变身为普通进程。一旦用户态的init程序装入并开始执行，内核的启动过程就结束了
+
+## 2.3  内核启动过程：辅核视角
 
 
 
