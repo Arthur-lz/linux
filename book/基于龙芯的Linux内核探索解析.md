@@ -1082,6 +1082,7 @@ kernel_init()
 
 * do_basic_setup->do_initcalls(), 用于处理Early后面的8个级别的initcall；对应每个级别会调用do_initcall_level->initcall
 > 重要的initcall函数
+
 |函数名|级别|功能描述|
 |:-|:-|:-|
 |loongson_cu2_setup()|early_initcall|注册协处理器2的异常处理函数|
