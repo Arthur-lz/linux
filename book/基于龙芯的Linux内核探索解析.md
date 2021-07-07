@@ -906,12 +906,69 @@ struct irqaction {
 ```
 
 ### 2.2.6 重要函数：time_init()
+> 该函数用于计时系统初始化，它与体系结构相关
 
+```c
+time_init()
+	|-----plat_time_init();
+		\---setup_hpet_timer(); 	// 建立HPET的ClockEvent
+	|-----mips_clockevent_init();
+		\---r4k_clockevent_init();	// 建立MIPS的ClockEvent
+	\-----init_mips_clocksource();
+		\---init_r4k_clocksource();	// 建立MIPS的ClockSource
 
+/* 问题
+ * 1. HPET的ClockSource为何不建立？
+ *    答：ClockEvent是不能运行时切换的，只能在初始化时决定，因此这里HPET, MIPS的ClockEvent都进行了初始化;
+ *        ClockSource是可以运行时切换的，因此这里只初始化了MIPS的，而HPET的ClockSource被延后了
+ *
+ * 2. MIPS时钟源和HPET时钟源都初始化了，在运行时选择哪一个？
+ *    答：
+ *        根据时钟源的评分值来决定选择哪一个时钟源。每个时钟源都有一个rating值，它表示时钟源的评分值，它的取值范围是1～500，分越高越会被选用。
+ * 	  因为只有0号核能收到外部中断，那么也只有0号核能使用HPET时钟源当ClockEvent，其他核使用MIPS当ClockEvent;
+ */
+```
 
+#### 背景知识
+* TimeKeeping, 时间维护、或称为计时；计时最基本的功能是：获取当前时间（Time Of Day，TOD）；进程调度、软件定时、电源管理、性能采样统计、网络时间协议（NTP）都建立在TOD概念之上
 
+* 计时功能的实现依赖硬件上的时钟源，硬件上的时钟源分成两类：周期性时钟源和无节拍时钟源
+> 周期性时钟源，也叫固定节拍时钟源。这类硬件时钟源周期性地发射时钟中断，作为计时的主要依据; 周期的单位是HZ；SMP系统中，周期性时钟源由0号CPU维护
 
+> 无节拍时钟源，它的硬件时钟源根据需要选择性发射时钟中断，以此作为计时的主要依据。SMP系统中，无节拍时钟源由各个CPU轮流维护
 
+* ClockEvent时钟源
+> 它是基于中断的时钟源
+
+> 是本地的，每个逻辑CPU都有一个
+
+* ClockSource时钟源 
+> 它由CPU主动读取它的计数器值，是一般意义上的时钟源
+
+> 它是全局的，所有逻辑CPU共用一个
+
+* 内部时钟源
+> 每个核都有一个，在每个核上都能产生中断
+
+> 例如在龙芯CPU上，CP0的Count/Compare这一对寄存器就是一种内部时钟源（一般称为MIPS时钟源），Count寄存器是一个计数器，随着时间的流逝而增长，其增长频率与CPU主频成正比关系；当Count寄存器的值增长到与Compare寄存器的值相同时，就产生一次时钟中断
+
+> MIPS内部时钟源可以作为ClockEvent, 或ClockSource；不过因为ClockSource是全局的，所以在多核环境下需要保证每个核的Count寄存器是同步的
+
+* 外部时钟源
+> 在CPU外部，如：PIT（可编程间隔定时器）、HPET（高精度事件定时器）
+
+> 外部时钟源的中断不一定能路由到任意一个CPU核
+
+> 外部时钟源的中断与CPU频率无关
+
+> 可作为ClockEvent或ClockSource，不过因为ClockEvent基于中断，所以如果在中为路由上有所限制，那么只有在单核时才能作为ClockEvent
+
+#### 计时的基本方式
+* ClockEvent时钟源每隔固定长度时间给系统发送一个时钟中断，每次中断称为一个节拍（tick），记录节拍的总数就可以得到粗粒度的当前时间x（毫秒级）；通过亚节拍修正，即，在x加上一个ClockSource计算得到的时间偏移量，就可以得到微秒级的当前时间
+
+* 由于一些限制因素（CPU热恋插拔、动态调频、中断路由），单纯使用内部时钟或外部时钟源的计时方法很难做到精确，所以龙芯采用了混合时钟源计时方法
+
+### 2.2.7 1号进程：kernel_init()
 
 
 
