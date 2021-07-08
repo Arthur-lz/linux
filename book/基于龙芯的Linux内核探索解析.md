@@ -1125,10 +1125,72 @@ kernel_init()
 > 当各个initcall函数执行完毕，1号进程的内核态阶段也即将结束。接下来它将先通过numa_default_policy()将1号进程自己的NUMA内存分配策略改成MPOL_DEFAULT；然后通过run_init_process()->do_execve()来装入用户态的init程序，变身为普通进程。一旦用户态的init程序装入并开始执行，内核的启动过程就结束了
 
 ## 2.3  内核启动过程：辅核视角
+* 辅核主要完成本地CPU相关的初始化，之后执行自己的0号进程进入idle循环，之后辅核就能进行任务调度了
+* 辅核的启动也包括第一入口和第二入口
 
+### 2.3.1 第一入口：smp_bootstrap
+* 主核的入口地址是BIOS或BootLoader给出的
+* 辅核的入口则是主核在执行smp_init()时传递的
+```c
+// arch/mips/kernel/head.S
 
+NESTED(smp_bootstrap, 16, sp)
+	smp_slave_setup			// 类似主核的kernel_entry_setup，对于龙芯来说完全一样
+	setup_c0_status_sec		// 类似于主核的setup_c0_status_pri，只是增加了对BEV的清0，因为主核里已经建立好异常向量表，辅核直接用即可
+	j	start_secondary		// 跳转到第二入口
+	END(smp_bootstrap)
+```
 
+### 2.3.2 第二入口：start_secondary()
+* 功能上类似主核的start_kernel()
+```c
+// arch/mips/kernel/smp.c
 
+start_secodary()
+	|-----cpu_probe();
+	|-----per_cpu_trap_init(false);		// 辅核这里传的参数是false，主核是true, 这个值的不同会导致在per_cpu_trap_init中是否执行cpu_cache_init
+		|-----configure_status();
+		|-----configure_hwrena();
+		|-----configure_exception_vector();
+		|-----if (!is_boot_cpu) cpu_cache_init();
+		|-----tlb_init();
+			\---build_tlb_refill_handler();
+		\---TLBmiSs_HANDlER_SETUP();
+			\---TLBMISS_HANDLER_SETUP_PGD(swapper_pg_dir);
+	|-----mips_clockevent_init();		// ClockEvent不是全局的，所以每个核都需要注册 
+	|-----mp_ops->init_secondary();
+		\---loongson3_init_secondary();	// SMP启动中mp_ops的第一个辅核步骤
+	|-----calibrate_delay();		// 计算loops_per_jiffy（它的用途是确定delay()的时候每个节拍需要多少空操作指令）
+	|-----notify_cpu_starting(cpu);
+	|-----synchronise_count_slave(cpu);	// 与主核进行Count寄存器同步
+	|-----set_cpu_online(cpu, true);	// 辅核把自己设置成online
+	|-----set_cpu_sibling_map(cpu);		// 设置线程映射图
+	|-----set_cpu_core_map(cpu);		// 设置核映射图
+	|-----mp_ops->smp_finish();
+		\---loongson3_smp_finish();	// SMP启动中mp_ops的第二辅核个步骤
+	\---cpu_startup_entry(CPUHP_AP_ONLINE_IDLE);	// 辅核开始执行0号进程 
+		\---while (1) do_idle();
+			\---cpuidle_idle_call();
+				\---default_idle_call();
+					\---arch_cpu_idle();
+						\---cpu_wait();
+```
+
+> SMP启动中mp_ops的第一个辅核步骤mp_ops->init_secondary()->loongson3_init_secondary()首先设置Status寄存器的IP位；然后把所有possible核的IPI_Enable寄存器的所有位置1，这意味着允许任意核上任意类型的IPI中断。接下来，计算辅核自己的封装编号与核编号。最后Count寄存器同步
+
+> SMP启动中mp_ops的第二个辅核步骤mp_ops->smp_finish()->loongson3_smp_finish()
+
+```c
+static void loongson3_smp_finish(void)
+{
+	int cpu = smp_processor_id();
+	write_c0_compare(read_c0_count() + mips_hpt_frequency / HZ);	// 在1个节拍后产生一次中断；mip_hpt_frequency是Count寄存器的增长频率，通常是CPU主频的一半
+	local_irq_enable();		// 开中断，只有开了中断才有可能处理时钟
+	loongson3_ipi_write64(0, (void*)(ipi_mailbox_buf[cpu_logical_map(cpu)] + 0x0)); 	/* 清空mailbox寄存器 */
+}
+```
+
+# 第3章 异常与中断解析
 
 
 
