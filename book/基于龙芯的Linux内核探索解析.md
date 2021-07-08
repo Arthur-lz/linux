@@ -467,9 +467,9 @@ start_kernel()
 	|---------acpi_subsystem_init();
 	\---------arch_call_reset_init();         // 第二阶段到这里结束，开中断单线程阶段
 			\-------------rest_init();      // 第三阶段从这里开始，开中断、多线程阶段
-					|---------kernel_thread(kernel_init, NULL, CLONE_FS); // 创建1号进程kernel_init和2号进程kthreadd
+					|---------kernel_thread(kernel_init, NULL, CLONE_FS); // 创建1号进程kernel_init
 					|---------numa_default_policy();
-					|---------kernel_thread(kthreadd, NULL, CLONE_FS | CLONE_FILES);
+					|---------kernel_thread(kthreadd, NULL, CLONE_FS | CLONE_FILES);// 创建2号进程kthreadd
 					\---------cpu_startup_entry(CPUHP_ONLINE); 
 							\--------while (1) do_idle(); // 内核现在主要工作是休息
 									\-------cpuidle_idle_call();
@@ -961,7 +961,7 @@ time_init()
 
 > 外部时钟源的中断与CPU频率无关
 
-> 可作为ClockEvent或ClockSource，不过因为ClockEvent基于中断，所以如果在中为路由上有所限制，那么只有在单核时才能作为ClockEvent
+> 可作为ClockEvent或ClockSource，不过因为ClockEvent基于中断，所以如果在中断路由上有所限制，那么只有在单核时才能作为ClockEvent
 
 #### 计时的基本方式
 * ClockEvent时钟源每隔固定长度时间给系统发送一个时钟中断，每次中断称为一个节拍（tick），记录节拍的总数就可以得到粗粒度的当前时间x（毫秒级）；通过亚节拍修正，即，在x加上一个ClockSource计算得到的时间偏移量，就可以得到微秒级的当前时间
