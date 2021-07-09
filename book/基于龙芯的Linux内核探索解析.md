@@ -1359,6 +1359,64 @@ static void loongson3_smp_finish(void)
 > 软件精简举例，TLB重填异常处理只有快速路径，没有慢速路径，这并不是表示出现TLB重填异常时一定存在有效的页表项且权限正确，而是在发生TLB重填异常就把页表项装到TLB，不管页表项是有效是否有权限。如果有效有权则后面的执行一切正常；如果填到TLB的页表项是无效的，那么触发TLB重填异常的指令将再次触发TLB无效异常，在新的异常里面再进入慢速路径来建立有效页表项；如果填到TLB的页表项是无权限的，那么触发重填异常的指令会再次触发TLB修改异常，在新的异常里再进入慢速路径来处理权限问题
 
 ### 3.2.4 其他通用异常
+* 通用异常有统一的入口except_vec3_generic，定义在arch/mips/kernel/genex.S中
+> CAUSE寄存器的第2～6位标识了异常种类（异常编码）
+
+> except_vec3_generic中先取出异常编码，以其为索引在exception_handler[]数组中找到正确的处理函数，然后跳转到处理函数
+
+> exception_handler数组就是第二层次异常向量
+
+* MIPS第二层次异常向量表
+
+|异常编码|助记符|异常名称|处理函数|备注|由微汇编器动态生成|
+|:-|:-|:-|:-|:-|:-|
+|0|Int|中断|handle_init()|龙芯3A2000开始使用rollback_handle_init()|no, 单独定义|
+|1|Mod|TLB修改异常|handle_tlbm()||yes|
+|2|TLBL|TLB无效异常（读）|handle_tlbl()||yes|
+|3|TLBS|TLB无效异常（写）|handle_tlbs()||yes|
+|4|AdEL|地址错误异常（读）|handle_adel()|||
+|5|AdES|地址错误异常（写）|handle_ades()|||
+|6|IBE|总线错误异常（指令）|handle_ibe()|||
+|7|DBE|总线错误异常（数据）|handle_dbe()|||
+|8|Sys|系统调用异常|handle_sys()||no, 单独定义|
+|9|Bp|断点异常|handle_bp()|||
+|10|RI|保留指令异常|handle_ri()|龙芯3号系列使用handle_ri_rdhwr_tlbp()||
+|11|CpU|协处理器不可用异常|handle_cpu()|||
+|12|Ov|算术溢出异常|handle_ov()|||
+|13|Tr|陷阱异常|handle_tr()|||
+|14|MSAFPE|MSA向量浮点异常|handle_msa_fpe()|龙芯3A4000新增||
+|15|FPE|浮点异常|handle_fpe()|||
+|16|FTLB|FTLB异常|handle_ftlb()|龙芯3A2000新增||
+|19|TLBRI|TLB抗读异常|tlb_do_page_fault_0|龙芯3A2000新增||
+|20|TLBXI|TLB抗执行异常|tlb_do_page_fault_0|龙芯3A2000新增||
+|21|MSA|MSA向量模块异常|handle_msa()|龙芯3A4000新增||
+|22|MDMX|MDMX向量模块异常|handle_mdmx()|龙芯不支持||
+|23|WATCH|观察点异常|handle_watch()|龙芯不支持||
+|24|MCheck|机器检查异常|handle_mcheck()|龙芯不支持||
+|25|Thread|SMT线程异常|handle_mt()|龙芯不支持||
+|26|DSP|DSP模块异常|handle_dsp()|龙芯3A2000新增||
+|27|GE|客户机退出异常|handle_guest_exit()|龙芯3A4000新增||
+|30|CacheError|高速缓存错误异常|不属于通用异常|||
+
+* 以系统调用异常为例说明
+> Glibc中的INLINE_SYSCALL_CALL宏会根据系统调用参数个数展开成__INLINE_SYSCALL0()~__INLINE_SYSCALL7()中的一个，之后再进一步展开成INLINE_SYSCALL()宏，直至INTERNAL_SYSCALL宏，再展开成internal_syscall0()~internal_syscall7()中的一个
+
+> 系统调用的总入口是handle_sys()
+
+> 为了处理整数的符号扩展问题，从Linux-2.6.29引入了“系统调用包装器”并从Linux-3.10版全面启用。如今，系统调用函数使用专门的包装器宏来定义
+
+```c
+#define SYSCALL_DEFINE0(name)	\
+	SYSCALL_METADATA(_##name, 0);	\
+	asmlinkage long sys_##sname(void)
+
+// 使用包装器的系统调用sys_fork()定义如下
+SYSCALL_DEFINE0(fork);
+
+// 实际结果相当于如下定义
+asmlinkage unsigned long sys_fork(void);
+```
+## 3.3 中断处理解析
 
 
 
