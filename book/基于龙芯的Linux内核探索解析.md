@@ -1417,10 +1417,115 @@ SYSCALL_DEFINE0(fork);
 asmlinkage unsigned long sys_fork(void);
 ```
 ## 3.3 中断处理解析
+### 3.3.1 中断处理入口
+* 中断处理的入口在第二层次异常向量表里面，其初级中断处理函数是handle_ini()或rollback_handle_int()
 
+### 3.3.2 中断处理的分派
+* 第一级分派：plat_irq_dispatch()
+> 这级分派是龙芯2号和3号共用的
 
+* 第二级分派：mach_irq_dispatch()
 
+* 第三级分派之“处理器间中断”
+> 每个核都有一组IPI寄存器，都是全局可访问的，也就是说每个核即可以访问自己的IPI寄存器，也可以访问其他核的IPI寄存器
 
+> 直接以地址的方式访问IPI寄存器的方式叫MMIO方式
+
+> 龙芯3A4000引入了CSR方式，它使用另一套寄存器，在功能上与MMIO方式相同（状态、使能、置位、清0），只能操作本核，跨核发送IPI和传递消息必须使用CSR_IPI_Send寄存器
+
+> IPI中断由一个CPU发往另一个CPU，在功能上相当于CPU1请求目标CPU2完成某项工作，让目标CPU2干什么事，由IPI类型来决定
+
+> MIPS定义了4种IPI类型，SMP_RESCHEDULE_YOURSELF要求目标CPU进行一次进程调度；SMP_CALL_FUNCTION要求目标CPU调用一个函数；SMP_ICACHE_FLUSH要求目标CPU刷新一次指令cache；SMP_ASK_C0COUNT询问0号核的Count寄存器值
+
+> 理论上一个SMP_CALL_FUNCTION就可以实现任意IPI功能，这里设计成专门的IPI主要是性能上更有优势
+
+> 龙芯处理器的外部中断路由是在内核初始化时确定的（路由到了0号核），不允许运行时修改。为了实现中断负载均衡，可以通过IPI来完成外部中断的软件转发，这里需要IPI->IRQ_OFFSET映射表;32个IPI位域里，第0～3位已经被内核定义；从第4位开始都用作IRQ转发的IPI_OFFSET（因此最多可以转发28种IRQ）
+
+> IPI中断是CPU与CPU之间的互动，内核中设计了IPI发送函数和IPI处理函数
+
+```c
+// IPI发送函数一共有3个，定义在arch/mips/loongson64/loongson-3/smp.c
+static void loongson3_send_ipi_single(int cpu, unsigned int action)       // 往单个目标CPU发送IPI
+static void loongson3_send_ipi_mask(const struct cpumask *mask, unsigned int action)       // 往多个目标CPU发送IPI
+
+// IPI处理函数就是loongson3_ipi_interrupt()，它完成IPI的第三级分派
+```
+
+* 第三级分派之“外部设备中断”
+> 外部设备中断也需要地行第三级分派，它的第三级分派是一个函数指针loongson_pch->irq_dispatch()，它在使用不同芯片组的机型中有不同定义 
+
+> LS2H芯片组的第三级分派函数为ls2h_irq_dispatch()
+
+> LS7A芯片组的第三级分派函数有两个，一个是Legacy版本ls7a_irq_dispatch()，一个是MSI版本ls7a_msi_irq_dispatch()
+
+> RS780芯片组的第三级分派函数同样是两个，一个是Legacy版本rs780_irq_dispatch(), 一个是MSI版本rs780_msi_irq_dispatch()
+
+> 由于硬件平台的限制，龙芯的外部中断只能使用静态路由，而通常的做法是把外部中断全部路由到0号核。于是当外部中断过于频繁的时候，可能会导致0号核非常忙，中断处理效率低下甚至丢失中断。中断负载均衡就是用于解决这个问题，它可以将中断均匀地转发到每一个核，提高处理效率
+
+> 并不是每一种IRQ都会进行中断负载均衡，只有高速设备才会做此处理，如可配置的PCI/PCIE设备以及PATA磁盘控制器。
+
+> loongson_ipi_irq2pos[]记录了IRQ->IPI_OFFSET的映射关系，取值为-1的IRQ就是那些在本地处理的IRQ，它们不会进行中断转发
+
+* 第四级分派：generic_handle_irq()
+> 它由do_IRQ()函数调用，第三级分派会调用do_IRQ()
+
+> 以I8259中断为例最终会调用__handle_irq_event_percpu，该函数会遍历action链表，每循环一次，就执行当前action里面的handler()函数
+
+> 每个irqaction结构体中的handler()函数返回值有3种：IRQ_NONE, IRQ_HANDLED, IRQ_WAKE_THREAD
+
+> IRQ_NONE表示这不是我的中断
+
+> IRQ_HANDLED表示这是我的中断并且已经处理完毕
+
+> IRQ_WAKE_THREAD表示这是我的中断并且需要唤醒中断线程（当前irqaction中的thread成员）；它用于支持线程化中断，这是从2.6.30版本内核引入的特性。因为irqaction:handler()需要关中断执行，而关中断上下文是一种非常影响效率的上下文，应当尽可能避免。线程化中断本质上是将irqaction:handler()一分为二：非常紧急并且需要关中断的操作依旧在irqaction:handler()中执行；其他比较耗时并且不需要关中断的操作放到irqaction:thread_fn()中去执行。如果irqaction:handler()返回IRQ_WAKE_THREAD，则中断线程irqaction:thread将被唤醒，用于执行irqaction:thread_fn()
+
+* 以MIPS时钟中断为例来讲解中断分派工作流程 
+> MIPS时钟中断是内部中断，并未完整经历四级分派，但ISR的基本原理和外部中断相同
+
+> 1. 关联IRQ和ISR
+
+```c
+// 有3个函数可以完成关联
+int request_irq(unsigned int irq, irq_handler_t handler, unsigned long flags, const char *name, void *dev);
+
+int request_threaded_irq(unsigned int irq, irq_handler_t handler, irq_handler_t thread_fn, unsigned long flags, const char *name, void *dev);
+
+int setup_irq(unsigned int irq, struct irqaction *act); // 用于关联一个IRQ和一个已经设置好的ISR的irqaction
+
+///////////////////////////////////////////////
+/* 以时钟中断为例，缺省MIPS时钟事件源的初始化函数中调用setup_irq注册一个irqaction，如下*/
+struct irqaction c0_compare_irqaction = {
+	.handler = c0_compare_interrupt,
+	.flags = IRQF_PERCPU | IRQF_TIMER | IRQF_SHARED,
+	.name = "timer",
+};
+
+irqreturn_t c0_compare_interrupt(int irq, void *dev_id)
+{
+	...
+}
+```
+
+> 2. 时钟中断产生以后，调用链如下
+
+```c
+except_vec3_generic()
+	->handle_int()/rollback_handle_int()
+		->plat_irq_dispatch()
+			->mach_irq_dispatch()
+				->do_IRQ()
+					->generic_handle_irq()
+						->generic_handle_irq_desc()
+							->irq_desc::handle_irq()
+								->handle_percpu_irq()
+									->handle_irq_event_percpu()
+										->__handle_irq_event_percpu()
+											->irqaction::handler()
+												->c0_compare_interrupt()
+													->hrtimer_interrupt()
+```
+
+## 3.4 软中断、小任务与工作队列
 
 
 
