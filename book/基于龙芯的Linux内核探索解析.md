@@ -1452,7 +1452,7 @@ static void loongson3_send_ipi_mask(const struct cpumask *mask, unsigned int act
 ```
 
 * 第三级分派之“外部设备中断”
-> 外部设备中断也需要地行第三级分派，它的第三级分派是一个函数指针loongson_pch->irq_dispatch()，它在使用不同芯片组的机型中有不同定义 
+> 外部设备中断也需要第三级分派，它的第三级分派是一个函数指针loongson_pch->irq_dispatch()，它在使用不同芯片组的机型中有不同定义 
 
 > LS2H芯片组的第三级分派函数为ls2h_irq_dispatch()
 
@@ -1551,7 +1551,7 @@ except_vec3_generic()
 
 > 2.内核线程ksoftirqd/n中（每个逻辑CPU有一个ksoftirqd线程，n为CPU编号，线程的执行体函数run_ksoftirqd()）
 
-> 不管上在哪一种，最终都是执行__do_softirq()来处理待决的软中断
+> 不管是哪一种，最终都是执行__do_softirq()来处理待决的软中断
 
 ### 3.4.2 小任务tasklet
 * 软中断是静态定义的，不能动态分配，而内核中很多时候有执行动态小任务的需求，因此设立专门针对小任务的软中断
@@ -1572,7 +1572,7 @@ except_vec3_generic()
 
 > 一个池队列关联一个工作者线程池
 
-> 一个工作者线程池包括一系统工作者线程和一系列工作项
+> 一个工作者线程池包括一系列工作者线程和一系列工作项
 
 # 第4章 内存管理解析
 
