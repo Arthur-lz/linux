@@ -1749,6 +1749,257 @@ void flush_cache_vunmap(unsigned long start, unsigned long end);	/* vfree()、vu
 ```
 
 ### 4.1.2 龙芯3号的TLB
+* TLB和Cache非常相似，同样是为了加速内存的访问，只不过cache是普通内存的缓存，而TLB是页表的缓存
+* 龙芯3号的TLB分为4种：ITLB、DTLB、VTLB、FTLB
+> ITLB（指令TLB）
+
+> DTLB（数据TLB）
+
+> VTLB（可变页面大小TLB），指任意时候可以使用任意合法大小的页面，其页面大小由CP0的PageMask寄存器指定
+
+> FTLB（固定页面大小TLB），大小固定并不是完全不可变，而是可以通过配置CP0的Config4寄存器来确定页面大小，只不过Config4寄存器只允许内核在启动时配置一次，一旦配置好，在运行时就再允许改变
+
+* ITLB和DTLB统称为uTLB，即微型TLB
+> uTLB基本上是软件透明的
+
+* VTLB和FTLB统称为JTLB，即混合TLB
+> JTLB不是软件透明的，需要软件来管理
+
+* TLB总是核内私有的，不存在核间共享 
+
+* TLB相关的指令主要有4条: tlbp、tlbr、tlbwi、tlbwr
+* TLB从来不回写，因此刷新TLB的意思就是作废TLB
+* 内核提供的刷新TLB的API，常见的如下
+```c
+// 刷新全部TLB
+void flush_tlb_all(void);
+void local_flush_tlb_all(void);
+
+// 刷新特定进程的TLB
+void flush_tlb_mm(struct mm_struct *mm);
+void local_flush_tlb_mm(struct mm_struct *mm);
+
+// 刷新特定进程地址段的TLB
+void flush_tlb_range(struct vm_area_struct *vma, unsigned long start, unsigned long end);
+void local_flush_tlb_range(struct vm_area_struct *vma, unsigned long start, unsigned long end);
+
+// 刷新内核自己特定的地址段的TLB
+void flush_tlb_kernel_range(unsigned long start, unsigned long end);
+void local_flush_tlb_kernel_range(unsigned long start, unsigned long end);
+
+// 刷新特定进程特定地址所在的页的TLB
+void flush_tlb_page(struct vm_area_struct *vma, unsigned long page);
+void local_flush_tlb_page(struct vm_area_struct *vma, unsigned long page);
+
+// 刷新内核自己管理地址所在页的TLB
+void flush_tlb_one(unsigned long vaddr);
+void local_flush_tlb_one(unsigned long vaddr);
+
+/*  上面这些API都有一个全局版本和一个本地版本（函数前带local_），本地版本只在当前CPU上做刷新，而全局版本会通过IPI在所有的CPU上做刷新操作
+ */
+```
+
+### 4.1.3 龙芯的虚拟地址空间
+
+## 4.2 物理内存页帧管理 
+* Linux内核把页面当作物理内存管理的基本单位
+> 一般情况下，虚拟页面也叫页面，而物理页面叫页帧，一个页帧可以映射到多个页面
+
+> 跟内存页面相关的最重要的数据结构是页描述符，这是一个体系结构无关的数据结构
+
+* 系统中的每个物理页帧都需要一个页描述符
+> 页描述符主要成员字段
+
+|字段类型|字段名称|说明|
+|:-|:-|:-|
+|unsigned long|flags|一组描述页帧状态的标志|
+|atomic_t|_refcount|页帧的引用计数|
+|atomic_t|_mapcount|页帧映射的进程页表项数目（负值表示没有）|
+|unsigned int|page_type|利用_mapcount用于区分页帧类型|
+|struct address_space*|mapping|描述页面映射。文件映射的mapping指向文件的索引节点且最低位为0；匿名映射页的mapping指向一个struct anon_vma结构且最低位为1|
+|pgoff_t|index|该页帧在mapping中的偏移，或者是换出标志|
+|struct list_head|lru|该页帧最少使用（LRU）双向链表的指针，LRU链表主要的用途是内存回收|
+|unsigned long|private|私有数据，可由不同子系统用作多种用途|
+|void *|freelist|在内存对象管理秕（SLAB/SLUB/SLOB）中指向slab第一个空闲对象的指针|
+
+* struct page 中的_refcount是页帧的引有计数器，计数器为0表示该页帧空闲；如果计数大于0，则意味着该页被分配给了一个或多个教唆（或内核本身）
+> page_count()返回计数器_refcount的值，也就是该页面使用者个数
+
+> 引用计数_refcount值的变化会出现在哪些地方？
+
+```
+1.在内核启动早期，内存还属于BootMem/MemBlock管理器管理的时候，会将所有页帧的初始引用计数设为1
+
+2.然后内核继续启动，在BootMem/MemBlock管理器向伙伴系统移交控制权的时候，所有已经被BootMem/MemBlock管理器分配占用的页帧保持_refcount为1，而将所有可用的空闲页帧的_refcount重设为0
+
+3.每当页帧通过alloc_page()等函数从伙伴系统分配出来时，就会将_refcount设为1
+
+4.如果已分配的页帧是内核自己使用，则_refcount一般维持为1；如果已经分配的页帧被一个或多个进程映射到它们的地址空间，那么第一次映射时_refcount为1，后续每增加一个页表项，_refcount就加1
+
+5.如果页帧从一个或多个进程的地址空间删除映射，那么每删除一个页表项，_refcount就减1；free_page()等页帧释放函数对_count减1，引用计数是否为0是这些函数能否真正把一个页帧释放回伙伴系统的依据
+
+6.在一些关键的内核执行路径上，为了防止页帧被释放，会通过get_page()之类的函数临时对_refcount加1，等到关键路径执行完成时再通过put_page()之类的函数对_refcount减1
+```
+
+* struct page 中的_mapcount敢是页帧的一种引用计数，它精确反映一个页帧映射的进程页表数目（不包括内核自己的页表项），也没有临时增减的行为
+> page_mapcount()返回值为_mapcount + 1，也就是映射的进程页表数目
+
+> 在Linux 4.18版本以前，内核定义了一个特殊的_mapcount值为-128（即PAGE_BUDDY_MAPCOUNT_VALUE），用来表示页帧处于伙伴系统
+
+> 从4.18版本开始，页描述符里面的page_type字段以联合体的方式复用了_mapcount，当_mapcount取值为大于0或大于-128的负数时，表示页表映射数；当_mapcoun取值小于-128时，取page_type字段的含义
+
+> 页帧类型有以下几种
+
+```c
+#define PG_buddy	0x00000080	// 常用，PageBuddy()用于判断页帧是否处于伙伴系统中
+#define PG_offline	0x00000100
+#define PG_kmemcg	0x00000200
+#define PG_table	0x00000400
+#define PG_guard	0x00000800
+```
+
+* _mapcount值的变化会出现在哪些地方？
+> 1.在内核启动的早期，内存还属于BootMem/MemBlock管理器管理时，会将所有页帧的_mapcount设为-1
+
+> 2.然后内核继续启动，在BootMem/MemBlock管理器向伙伴系统移交控制权的时候，所有已经被BootMem/MemBlock管理器分配和占用的页帧保持_mapcount为-1，而将所有可用的空闲页帧引用计数器重设为PAGE_BUDDY_MAPCOUNT_VALUE（在4.18版本前是-128，从4.18版本起是~PG_buddy）
+
+> 3.每当页帧通过alloc_page()等函数从伙伴系统分配出来时，就会再次将_mapcount设为-1
+
+> 4.如果已经分配的页帧是内核自己傅，则_mapcount维持为-1；如果已经分配的页帧被一个或多个进程映射到它自己的地址空间，那么每增加一个页表项，_mapcount就加1
+
+> 5.如果页帧从一个或多个进程的地址空间删除映射，那么每删除一个页表项，_mapcount就减1
+
+* _refcount和_mapcount两个引用计数器，当不考虑关键内核路径上对_refcount临时改变，也不考虑复合页的话，它们有如下关系
+> 1.初始状态的页帧： _refcount = 1, _mapcount = -1
+
+> 2.伙伴系统中的页帧：_refcount = 0, _mapcount = PAGE_BUDDY_MAPCOUNT_VALUE
+
+> 3.内核使用中的页帧：_refcount = 1, _mapcount = -1, page_count() = page_mapcount() + 1
+
+> 4.进程使用中的页帧：_refcount >= 1, _mapcount >= 0, page_count() = page_mapcount()
+
+* 如果考虑_refcount的临时改变以及复合页，则总体上有：page_count() >= page_mapcount()
+
+* 页帧标志flags，它用一描述页帧的状态
+> 在龙芯上标志放在flags的低位部分，一共有22个标志；而flags的高位部分用来作为区段编号、节点编号、管理区编号、CPUPID标识等
+
+> 页帧状态标志
+
+|标志名称|标志含义|
+|:-|:-|
+|||
+
+* 内核中常用的复合页有两种
+> 一种是巨页（Huge Page），原理上主是将一个PMD项当作一个PTE项处理，提升TLB性能
+
+> 另一种是用在内存对象管理系统（slab/slub/slob）中，一个slab就是一个复合页
+
+> 页帧标志中的PG_compound, PG_head, PG_tail与复合页相关
+
+> 64位内核通常只使用PG_head, PG_tail标志，前者标记复合页帧的首页，后者标记复合页帧的尾页（除了第一页外全是尾页）
+
+* 在龙芯上，虚拟地址转换成物理地址并不一定需要经过页表或TLB，什么时候不需要呢？当线性映射时，也就是线性地址不需要。
+> 下面是与线性地址相关的宏
+
+```c
+__pa(), virt_to_phys()		// 虚拟地址转物理地址
+__va(), phys_to_virt()		// 物理地址转虚拟地址
+virt_to_pfn()			// 虚拟地址转物理页号
+pfn_to_virt()			// 物理页号转虚拟地址
+phys_to_pfn(), __phys_to_pfn(), PHYS_PFN()	// 物理地址转物理页号
+pfn_to_phys(), __pfn_to_phys(), PFN_PHYS()	// 物理页号转物理地址
+```
+
+* 所有的页描述符放在全局数组mem_map[]（平坦型内存模型）或每个节点NODE_DATA的node_mem_map（非连续内存模型）或者全局数组mem_section[]的section_mem_map（稀疏型内存模型）中
+
+> 不管使用哪种方式，每个页帧必然有唯一一个描述符与之对应，于是，页描述符和虚拟地址（线性地址）、物理地址、页帧号之间也存在简单的对应关系
+
+```c
+virt_to_page()			// 虚拟地址转页描述符
+page_to_virt()或page_address()	// 页描述符转虚拟地址
+phys_to_page()			// 物理地址转页描述符
+page_to_phys()			// 页描述符转物理地址
+pfn_to_page()或__pfn_to_page()	// 物理页号转页描述符
+page_to_pfn()或__page_to_pfn()	// 页描述符转物理页号
+```
+
+### 4.2.1 物理地址空间
+* Linux内核支持三种内存模型：平坦模型、非连续内存模型、稀疏内存模型
+* 平坦内存模型，表示整个物理地址空间是一块连续的整体
+* 非连续型内存模型和稀疏型内存模型，表示物理地址空间由若干个地址段组成，段与段之间允许存在空洞
+* 非连续型内存模型侧重于地址段比较密集的情况
+* 稀疏型内存模型侧重于地址段比较稀疏的情况
+> 如果要支持内存热插拔，则只可以选择稀疏型内存模型
+
+* 对于NUMA结构，物理内存天生就是不连续的
+* 龙芯用稀疏型内存模型
+* 稀疏型内存模型将整个物理地址空间划分成多个区段
+> 对于龙芯，每个区段的大小是256MB（2^PA_SECTION_SHIFT），最大物理地址表达能力是256TB（2^MAX_PHYSEM_BITS），最大区段个数是NR_MEM_SECTIONS
+
+* 龙芯的物理地址空间为48位，其中NUMA节点内的地址空间为44位，第44到47位为节点编号（目前最多4个NUMA节点）
+> 节点编号编码在物理地址里面，因此每个节点的起始地址相距非常远，符合稀疏型内存的特征
+
+> 在一台4个节点的龙芯电脑上，假设节点内的物理地址全部连续，每个节点上连接1TB内存，那么地址空间分布如下图
+
+```
+
+/* 一共4TB内存，散布在256TB的地址空间里，够稀*/
+```
+
+> 实际上每个节点内部的物理内存也可以是不连续的
+
+* 一个节点可以包含多个管理区，多个节点也可能处于同一个管理区
+* 划分管理区的主要依据是一些硬件层面的约束，如下
+> 1. 传统ISA设备的DMA只能访问0～16MB的物理内存地址
+
+> 2. 传统PCI设备的DMA只能访问0～4GB的物理内存地址
+
+> 3. 线性地址空间不足以访问所有物理内存地址
+
+> 基于上述约束，64位MIPS处理器的内存管理区的划分如下
+
+```
+1. ZONE_DMA区：DMA内存区，包含16MB以下的内存页帧，为传统ISA设备服务　
+2. ZONE_DMA32区：DMA32内存区，包含16MB以上、4GB以下的内存页帧，为传统PCI设备服务
+3. ZONE_NORMAL区：常规内存区，包含4GB以上，512PB以下的内存页帧，可以直接使用线性地址
+4. ZONE_HIGHMEM区：高端内存区，包含512PB以上的内存页帧
+
+/* 上面的划分是一种理想模型，实际上龙芯电脑上已经不再使用ISA设备，在要预见的未来也不会有超过512PB的物理内存，
+   因此，目前使用的内存管理区只有ZONE_DMA32、ZONE_NORMAL区
+ */
+```
+
+* 管理区描述符中重要字段
+|字段类型|字段名称|说明|
+|:-|:-|:-|
+
+> WMARK_MIN水位线记录每个管理区保留页数，这些保留页只有在紧急情况下才能使用
+
+> WMARK_LOW水位线是回收页帧的下界，空闲内存低于这个值时会唤醒kswapd内核线程启动内存回收；它的取值是MIN的1.25倍
+
+> WMARK_HIGH水位线是回收页帧的上界，空闲内存高于这个值时kswapd内核线程会停止内存回收；取值是MIN的1.5倍
+
+* 提升水位线可以更激进地触发内存回收机制
+> 提升多少使用watermark_boost来控制
+
+> 可以通过/proc/sys/vm/watermark_boost_factor（它的单位是百分点, 默认是15000表示150%）来调整watermark_boost
+
+### 4.2.2 伙伴系统算法
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
