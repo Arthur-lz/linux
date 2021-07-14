@@ -1693,8 +1693,62 @@ except_vec3_generic()
 
 > DMA一致性问题，是指DMA控制器对内存的访问不经核内私有cache，这就会引入私有cache与DMA控制器间的一致性问题
 
+* MIPS的高速缓存跟x86不一样，它不是完全透明的
+> 这意味着MIPS软件管理高速缓存，那么开机过程中高速缓存需要初始化；
 
+> 运行过程中高速缓存需要做一致性管理
 
+> 在特定的时候需要对高速缓存进行刷新（刷新指令cache指的是作废，刷新数据cache指的是写回并作废）
+
+* 软件管理高速缓存通过cache指令来完成
+> 指令有两个操作数，其使用方法是cache op, addr；其中op是操作类型，addr是操作地址或者缓存行的索引
+
+```
+/* op是一个五位的编码域，低两位是缓存类型，高三位是具体的操作类型
+ *
+ * 对于龙芯，低两位取值如下 
+ * 0: 一级指令cache（I-Cache）
+ * 1: 一级数据cache（D-Cache）
+ * 2: 一级牺牲cache（V-Cache）
+ * 3: 二级混合cache（S-Cache）
+ * 
+ * 对于龙芯，高三位取值如下
+ * 0: 索引型作废/写回
+ * 1: 索引型加载标签
+ * 2: 索引型存储标签
+ * 4: 命中型作废
+ * 5: 命中型写回并作废
+ * 6: 命中型写回
+ * 
+ * arch/mips/include/asm/cacheops.h
+ */
+```
+
+> 命中型的cache操作意味着，如果给出的地址addr被命中，则执行op所指定的操作，否则什么都不干
+
+> 索引型的cache操作则通过地址addr对缓存进行索引，在对应的缓存行上执行op所指定的操作
+
+> 索引型存储标签主要用于高速缓存的初始化，通常设置成全0的标签
+
+> 索引型作废/写回用于高速缓存的初始化或者用于刷新一大段地址的高速缓存（甚至是整个高速缓存），对于指令cache是作废，以于数据cache是写回并作废
+
+> 命中型作废、写回、写回并作废通常针对单个地址使用
+
+* 内核提供了大量刷新高速缓存的API
+```c
+void flush_cache_all(void);           		/* 刷新所有Cache*/
+void flush_icache_all(void);			/* 刷新所有指令cache*/
+void flush_cache_mm(struct mm_struct *mm);	/* 刷新特定进程的cache */
+void flush_cache_page(struct vm_area_struct *vma, unsigned long page, unsigned long pfn);	/* 刷新特定页的cache */
+void flush_dcache_page(struct page *page);	/* 刷新特定页的数据cache*/
+void flush_cache_range(struct vm_area_struct *vma, unsigned long start, unsigned long end);	/* 刷新一段地址范围的cache */
+void flush_icache_range(unsigned long start, unsigned long end);	/* 刷新一段地址范围的指令cache*/
+void flush_cache_sigtramp(unsigned long addr);	/* 刷新信号处理例程的cache*/
+void flush_cache_vmap(unsigned long start, unsigned long end);	/* vmalloc()、vmap()建立页映射时刷新一段地址 */
+void flush_cache_vunmap(unsigned long start, unsigned long end);	/* vfree()、vunmap()解除页面映射时刷新一段地址 */
+```
+
+### 4.1.2 龙芯3号的TLB
 
 
 
