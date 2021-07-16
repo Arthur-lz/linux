@@ -156,6 +156,7 @@
 * MESI协议，M（修改Modified）、E（独占Eclusive）S（共享Share）I（无效Invalid）
 
 * MESI协议定义
+
 |状态|描述|
 |:-|:-|
 |M|这行数据有效，数据被修改，和内存中的数据不一致，数据只存在本cache中|
@@ -164,6 +165,7 @@
 |I|这行数据无效|
 
 * MESI状态说明
+
 |当前状态|操作|响应|迁移状态|
 |:-|:-|:-|:-|
 |M|总线读|Flush该cache line到内存，以便其他CPU可以访问到最新的内容，状态变成S|S|
@@ -2898,6 +2900,7 @@ static void check_preempt_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr)
 
 ### 3.3.1 CPU域初始化
 * 根据实际物理属性，CPU域分成以下三种
+
 |CPU分类|Linux内核分类|说明|
 |:-|:-|:-|:-|
 |超线程（SMT）| CONFIG_SCHED_SMT|一个物理核心可以有两个执行线程，被称为超线程技术。超线程使用相同CPU资源且共享L1 cache，迁移进程不会影响cache利用率|
@@ -4252,6 +4255,7 @@ CONFIG_DEBUG_LOCKDEP=y
 > 打印代码行号
 
 * printk打印格式
+
 |数据类型|printk格式符|
 |:-|:-|
 |int|%d或%x|
