@@ -1983,7 +1983,11 @@ page_to_pfn()或__page_to_pfn()	// 页描述符转物理页号
 4. ZONE_HIGHMEM区：高端内存区，包含512PB以上的内存页帧
 
 /* 上面的划分是一种理想模型，实际上龙芯电脑上已经不再使用ISA设备，在要预见的未来也不会有超过512PB的物理内存，
-   因此，目前使用的内存管理区只有ZONE_DMA32、ZONE_NORMAL区
+ * 因此，目前使用的内存管理区只有ZONE_DMA32、ZONE_NORMAL区
+ *
+ * 这里有几个问题：
+ * 1.只有ZONE_NORMAL可以使用线性地址？其他几个区是否可以使用线性地址？
+ * 2.线性映射的线性地址在MIPS下比分页映射管理的虚拟地址访问速度快，那么是不是就不需要分页映射或者说不需要页表来管理虚拟地址了？
  */
 ```
 
@@ -2000,7 +2004,7 @@ page_to_pfn()或__page_to_pfn()	// 页描述符转物理页号
 |unsigned long|present_pages|管理区总页数（不包括内存空洞）|
 |atomic_long_t|managed_pages|管理区总页数（不包括内存空洞和保留页）|
 |int|node|管理区所在NUMA节点号|
-|struct pglist_data*|zone_pgdat|管理区民在NUMA节点号|
+|struct pglist_data*|zone_pgdat|管理区所在NUMA节点号|
 |struct per_cpu_pageset*|pageset|每CPU高速页帧集（PCP列表）|
 |atomic_long_t|vm_stat[]|一系列用于统计的计数器|
 
@@ -2072,10 +2076,20 @@ page_to_pfn()或__page_to_pfn()	// 页描述符转物理页号
 > 由数组大小可知，该数组的每一项分别对应一种块大小的空闲页帧
 
 ```c
+struct zone {
+	...
+	struct free_area	free_area[MAX_ORDER]; // 每个管理区中有MAX_ORDER个（一般是11个）free_area成员，索引即页帧空闲的2^index，例如: 索引0，即2^0 = 1页帧类型的块，索引5代表2^5 = 32个空闲页帧类型的块
+	...
+};
 struct free_area {
 	struct list_head	free_list[MIGRATE_TYPES]; // 空闲页帧链表数组, 原来free_list是一个单独的链表
 	unsigned long		nr_free;
 };
+
+/* 一个free_area[n]代表它里面包含的空闲页帧块是2^n个空闲页帧的块、它的成员free_list又进一步以迁移类型来划分并说明每种迁移类型下具体有多少个这样的空闲块
+ */
+
+cat /proc/pagetypeinfo 可以查看各节点下，每个管理区（zone）中每种迁移类型空闲页帧使用状态
 ```
 
 * 伙伴系统被设计出来是为了解决页帧外碎片的，它也在不断的演进升级，比如，起初伙伴系统并不支持页帧的行为特征。什么是页帧的行为特征？先看一下下面这个例子
@@ -2183,12 +2197,16 @@ free_page(addr), free_pages(addr, order);	// addr是第一个页帧的线性地�
 > 在启用numa时，该函数等价于alloc_pages_current(gfp_mask, order), 否则函数等价于alloc_pages_node(numa_node_id(), gfp_mask, order); 前者首选在当前节点分配页帧，后者则在指定节点分配页帧
 
 > 上述最终都会调用__alloc_pages()
+
+```
+__alloc_pages()
   |--->__alloc_pages_nodemask()
      	|---->get_page_from_freelist(alloc_mask, order, alloc_flags, &ac)
 		|---->rmqueue()
 			|------>__rmqueue_smallest(zone, order, MIGRATE_HIGHATOMIC);
 			|------>__rmqueue(zone, order, migratetype, alloc_flags);
 	|---->__alloc_pages_slowpath(alloc_mask, order, &ac);
+```
 
 * 页帧回收的方法
 > 1.动用保留页帧
@@ -2235,7 +2253,9 @@ free_page(addr), free_pages(addr, order);	// addr是第一个页帧的线性地�
 ```
 
 * 如何选择“写回”和“交换”？
-> 依据vm_swappiness全局变量来进行判断，其值越小，倾向一写回；越大，倾向于交换。其值默认为60，可通过/proc/sys/vm/swappiness进行修改
+> 依据vm_swappiness全局变量来进行判断，其值越小，倾向于写回；越大，倾向于交换。其值默认为60，可通过/proc/sys/vm/swappiness进行修改
+
+> vm_swappiness多大算大？多小算小？
 
 * 顺序锁、顺序计数器
 > 它们用于保护多个读者和一个写者的共享资源，并且写者优先级高于读者
