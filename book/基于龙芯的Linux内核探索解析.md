@@ -1887,7 +1887,36 @@ void local_flush_tlb_one(unsigned long vaddr);
 
 |标志名称|标志含义|
 |:-|:-|
-|||
+|PG_locked|该页被锁定，禁止交换到磁盘|
+|PG_referenced|刚刚被访问过的页|
+|PG_uptodate|在完成读操作后置位，除非发生磁盘I/O错误|
+|PG_dirty|该页已经被修改，如果有必要需写回磁盘，在Xen中重定义为PG_savepinned|
+|PG_lru|该页在跟内存回收有关的某种LRU链表中|
+|PG_active|该页在LRU链表的活动链表中|
+|PG_workingset|在Refault-Distance算法中用于标识一个页帧是否处于工作集中|
+|PG_waiters|表示有进程在等待队列里等待该页帧|
+|PG_error|在传输页时发生I/O错误|
+|PG_slab|包含在slab中的页|
+|PG_owner_priv_l|在交换中被重定义为PG_swapcache，表示页帧属于交换高速缓存；在文件系统中重定义为PG_checked；在Xen中重定义为PG_pinned/PG_foreig/PG_xen_remapped|
+|PG_arch_l|在MIPS中重定义为PG_dcache_dirty，表示数据cache被修改|
+|PG_reserved|该页帧保留给内核使用（或者不使用）|
+|PG_private|私有数据，在不同子系统里面有不同用处，其中在slob中重定义为PG_slob_free|
+|PG_private_2|私有数据，在不同子系统里有不同用处，其中在FSCache中重定义为PG_fscache，在复合页中重定义成PG_double_map，表示双重映射|
+|PG_writeback|正在使用writepage()方法将页写回磁盘|
+|PG_compound|复合页帧（常用于32位系统，仅在4.3版本之前的内核有此标志|
+|PG_head|复合页的首页（常用于64位系统）|
+|PG_tail|复合页的尾页（常用于64位系统，4.3版本之前的内核中有此标志；除了首页外都是尾页）|
+|PG_swapcache|页帧属于交换高速缓存（从4.10版本开台复用PG_owner_priv_l）|
+|PG_mappedtodisk|页帧中的数据对应于磁盘中分配的块|
+|PG_reclaim|为回收内存已经对页做了写入磁盘的标记，同时重定义为PG_isolated，用于表示非LRU链表中隔离的可移动页|
+|PG_swapbacked|该页有SWAP后端|
+|PG_unevictable|该页不可驱逐|
+|PG_mlocked|该页被mlock()之类的系统调用锁定|
+|PG_uncached|该页按Uncached方式映射|
+|PG_hwpoison|该页被“硬件毒化”，不应当访问|
+|PG_compound_lock|在复合页拆分过程中作为“位自旋锁”使用（仅在4.5版本之前有这个标志）|
+|PG_young|启用空闲页跟踪时标记“年轻页”|
+|PG_idle|启用空闲页跟踪时标记“空闲页”|
 
 * 内核中常用的复合页有两种
 > 一种是巨页（Huge Page），原理上主是将一个PMD项当作一个PTE项处理，提升TLB性能
@@ -1943,28 +1972,61 @@ page_to_pfn()或__page_to_pfn()	// 页描述符转物理页号
 
 ```
 	0x0000 0000 0000
-	|    0x0100 0000 0000
-	|    |		0x1000 0000 0000
-	|    |		|    0x1100 0000 0000
-	|    |		|    |		0x2000 0000 0000
-	|    |		|    |		|    0x2100 0000 0000
-	|    |		|    |		|    |		0x3000 0000 0000
-	|    |		|    |		|    |		|    0x3100 0000 0000
-	|    |		|    |		|    |		|    |
-	-----------------------------------------------------------------
-	|内存|	空洞	|内存|	空洞	|内存|	空洞	|内存|		|
-	-----------------------------------------------------------------
-	|		|		|		|		|
-	|<----节点0---->|<----节点1---->|<----节点2---->|<----节点3---->|
+	|    		0x0100 0000 0000
+	|    		|	0x1000 0000 0000
+	|    		|	|    0x1100 0000 0000
+	|    		|	|    |		0x2000 0000 0000
+	|    		|	|    |		|    0x2100 0000 0000
+	|    		|	|    |		|    |		0x3000 0000 0000
+	|    		|	|    |		|    |		|    0x3100 0000 0000
+	|    		|	|    |		|    |		|    |
+	-------------------------------------------------------------------------
+	|内存		|空洞	|内存|	空洞	|内存|	空洞	|内存|		|
+	-------------------------------------------------------------------------
+	|	    |    	|		|		|		|
+	|<-------节点0--------->|<----节点1---->|<----节点2---->|<----节点3---->|
+	|	    |								|
+	|	    |								|
+	|<--DMA32-->|<---------------------Normal管理区------------------------>| 
 
 
 /* 一共4TB内存，散布在256TB的地址空间里，够稀
  * 空洞的大小是：0x1000 0000 0000 - 0x0100 0000 0000 = 2^44 - 2^40 = 16TB - 1TB = 15TB
  * 内存的大小是：0x0100 0000 0000 = 2^40 = 1TB
+ * 
+ * 由上图可见，节点0内存管理区包括ZONE_DMA32和ZONE_NORMAL两个，而节点1、2、3都只有一个ZONE_NORMAL管理区的一部分
  */
 ```
 
 > 实际上每个节点内部的物理内存也可以是不连续的
+
+* 每个NUMA节点都有一个类型为struct pglist_data的数据结构用于管理物理页
+```c
+struct node_data {
+	struct pglist_data	pglist;		/* 页面管理数据 */
+	struct hub_data		hub;
+	cpumask_t 		cpumask;	/* 属于该节点的逻辑CPU掩码*/
+};
+
+NODE_DATA()宏用于获取指定节点的页面管理数据pglist
+```
+
+> 页面管理数据pglist_data的重要成员
+
+|成员类型|成员名称|说明|
+|:-|:-|:-|
+|int|nr_zones|节点中管理区个数|
+|struct zone|node_zones[]|节点中管理区的数组|
+|struct zonelist|node_zonelists[]|页分配器使用的zonelist数组（后备管理区）|
+|unsigned long|node_start_pfn|节点的起始页帧号|
+|unsigned long|node_prsent_pages|节点内存的总页数（不包括内存空洞）|
+|unsigned long|node_spanned_pages|节点内存的总页数（包括内存空洞）|
+|int|node_id|节点标识（节点号）|
+|wait_queue_heat_t|kswapd_wait|页交换守护进程（kswapd）使用的等待队列|
+|struct task_struct*|kswapd|页交换守护进程（kswapd）的进程描述符|
+|int|kswapd_order|kswap要创建的空闲块大小的阶（以2为底数的对数值）|
+|struct lruvec|lruvec|用于内存回收的5个LRU链表|
+|atomic_long_t|vm_stat[]|一系列用于统计的计数器|
 
 * 一个节点可以包含多个管理区，多个节点也可能处于同一个管理区
 * 划分管理区的主要依据是一些硬件层面的约束，如下
