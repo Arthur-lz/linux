@@ -2325,7 +2325,100 @@ __alloc_pages()
 > 顺序计数器的初始值是0，写者操作共享变量时，先加锁，然后通过write_seqcount_begin()将计数器增1；操作完成以后，先通过write_seqcount_end()将计数器增1（你没看错，还是增1），然后释放锁。因此计数器为奇数时表示有写者在操作共享资源，而计数器为偶数时代表没有写者操作共享资源。读者操作共享变量的时候，通过read_seqcount_begin()获取计数器的值，如果是奇数代表写者正在临界区，只能不断重试，直到变成偶数为止。因为读者不对共享资源加锁，读者的临界区会被写者打断，所以读者在退出临界区时需要调用read_seqcount_retry()判断之前的操作是否需要重做，是否重做的判断依据是之前的计数器值跟当前计数器值不相等
 
 #### 页帧释放解析
+* free_pages()
+```c
+void free_pages(unsigned long addr, unsigned int order); /* addr是页帧块中第一个页帧的虚拟地址; 如果addr不为0，则它等价于__free_pages()
+void __free_pages(struct page *page, unsigned int order)
+{
+	if (put_page_testzero(page))		/* 递减页面引用计数并测试之前的引用计数是否为0, 如果不是0则说明页帧还有别的使用者，直接返回；
+						 * 如果为0，则说明页帧已经没有使用者了，可以通过free_the_page进行释放
+						 */
+		free_the_page(page, order);
+}
 
+static inline void free_the_page(struct page* page, unsigned int order)
+{
+	if (order == 0)
+		free_unref_page(page);	/* 单个页帧总是从cpu高速页帧集pcp而不是空闲链表分配，因此单个页帧的释放也是放回pcp
+					 * 4.0.5, 4.4.24两个版本里都没有free_unref_page，而有的是free_hot_cold_page()
+					 * 4.20.9版本里有free_unref_page()并且该函数是在__free_pages中调用；但是没有free_the_page()
+					 */
+	else
+		__free_pages_ok(page, order);
+}
+
+/* 释放单页 */
+void free_unref_page(struct page* page)
+{
+	unsigned long pfn = page_to_pfn(page);
+	free_unref_page_prepare(page, pfn);
+	free_unref_page_commit(page, pfn);
+}
+
+static bool free_unref_page_prepare(struct page* page, unsigned long pfn)
+{
+	if (!free_pcp_prepare(page)) 
+		return false;
+	migragetype = get_pfnblock_migratetype(page, pfn);
+	set_pcppage_migratetype(page, migratetype); // 把页面的迁移类型设置到page->index
+	return false;
+}
+
+static bool free_unref_page_commit(struct page* page, unsigned long pfn)
+{
+	struct zone *zone = page_zone(page);
+	migratetype = get_pcppage_migratetype(page); // 从page->index中读出页帧的迁移类型
+	...
+	pcp = &this_cpu_ptr(zone->pageset)->pcp;
+	list_add(&page->lru, &pcp->lists(migratetype));
+	pcp->count++;
+	if (pcp->count >= pcp->high) {	/*需要释放的页帧放入pcp后，需要判断pcp中的页帧数量是否超过pcp列表上限，如果超过了则释放batch个页帧到空闲链表*/
+		unsigned long batch = READ_ONCE(pcp->batch);
+		free_pcppage_bulk(zone, batch, pcp);
+	}
+}
+
+/* 多个页帧的释放*/
+void _free_one_page(struct page *page, unsigned long pfn, struct zone *zone, unsigned int order, int migratetype)
+{
+	max_order = min_t(unsigned int, MAX_ORDER, pageblock_order + 1);
+	...
+continue_merging:
+	while (order < max_order -1) {
+		buddy_pfn = __find_buddy_pfn(pfn, order);
+		buddy = page + (buddy_pfn - pfn);
+		if (!page_is_buddy(page, buddy, order))
+			goto done_merging;
+		del_page_from_free_area(buddy, &zone->free_area[order]);
+		combined_pfn = buddy_pfn & pfn;
+		page = page + (combined_pfn - pfn);
+		pfn = combined_pfn;
+		order++;
+	}
+	...
+done_merging:
+	set_page_order(page, order);
+	if ((order < MAX_ORDER - 2) && pfn_valid_within(buddy_pfn) && !is_shuffle_order(order)) {
+		struct page *higher_page, *higher_buddy;
+		combined_pfn = buddy_pfn & pfn;
+		higher_page = page + (combined_pfn - pfn);
+		buddy_pfn = __find_buddy_pfn(combined_pfn, order + 1);
+		higher_buddy = higher_page + (buddy_pfn - combined_pfn);
+		if (pfn_valid_within(buddy_pfn) &&
+				page_is_buddy(higher_page, higher_buddy, order + 1)) {
+			/* if条件是在判断并级的伙伴非空闲且上一级伙伴可合并，如果条件为真，则将最终的最大块插入到空闲链表尾
+			 * 插入到空闲链表尾的目的是，因为空闲页是从空闲链表头开始分配的，所以这里将这一类的空闲页帧块插入到空闲链表尾，
+			 * 是因为，当前最大块的伙伴很有可能释放且上一级有伙伴存在，这样就可以在现有的伙伴过一会儿释放后就可以再合并，并且可以再向上一级合并；这样可以最大限度的减小碎片
+			 */
+			add_to_free_area_tail(page, &zone->free_area[order], migratetype);
+			return;
+		}
+	}
+	add_to_free_area(page, &zone->free_area[order], migratetype);
+}
+```
+
+## 4.3 内核内存对象管理
 
 
 
