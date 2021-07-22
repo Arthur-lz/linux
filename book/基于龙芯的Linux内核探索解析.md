@@ -2419,9 +2419,146 @@ done_merging:
 ```
 
 ## 4.3 内核内存对象管理
+* 伙伴系统最大限度地解决了内存管理的外碎片问题，但对于内碎片问题却无能为力
+* 为了解决内核自身使用小块内存的碎片问题，Linux引入了基于对象的内存管理，就是SLAB系统算法
+> 一个对象是一个具有任意大小的以字节为单位的连续内存块
 
+> 对象可以拥有特定的数据结构，也可以是大小符合几何分布的无结构内存块
 
+> 基于对象的内存管理还有一个好处，就是尽量减少直接调用伙伴系统api，因而对硬件高速缓存更加友好
 
+* 广义的SLAB是一个通用的概念，泛指Linux内核中的内存对象管理系统，其具体实现有
+> 经典的SLAB（狭义的SLAB）
+
+> 适用于嵌入式的SLOB
+
+> 适用于大规模系统的SLUB
+
+* SLUB是从2.6.22版本引入的，从2.6.23开始成为默认选择
+
+* SLAB是建立在伙伴系统之上的
+
+* 大写的SLAB表示内存对象分配器，与SLUB, SLOB是并列的概念
+* 小写的slab只是一种数据结构
+* SLAB的组织结构分为三段：快速缓存、slab、对象
+> slab就是一个或多个连续的页帧，里面紧密排列着一个个空闲的或已经分配的对象（严格来说，对象具有对齐要求，因此对象之间通常有一定的对齐间隙）
+
+> 因为对象有不同类型，所以slab也有不同类型
+
+> 快速缓存由多个可伸缩的slab组成
+
+> 所有不同的快速缓存组织在一个双向链表（slab_caches）中
+
+* SLUB的每个快速缓存都包括一个每CPU本地slab和一个全局slab链表
+> 分配对象时，首先选择在本地slab中分配；如果本地slab已经用完，再从全局slab链表里分配
+
+> 如果是多节点的NUMA系统，全局slab链表实际上是一个数组，也就是说每个NUMA节点都有一个slab链表，这样可以避免跨节点分配，这样就可以充分利用局部性原理，从而达到性能最大化
+
+### 4.3.1 数据结构与API
+#### 快速缓存描述符：kmem_cache
+```c
+struct kmem_cache {
+	struct kmem_cache_cpu __percpu *cpu_slab;	/* 每个cpu一项的cpu管理数据，包含了本地slab*/
+	slab_flags_t flags;
+	unsigned long min_partial;		/* 节点partial链表中需要维持的slab最小数目*/
+	unsigned int size;			/* 对象大小，包含元数据和对齐补充量*/
+	unsigned int object_size;		/* 对象大小，不包含元数据和对象补充量*/
+	unsigned int offset;			/* 对象中指向下个空闲对象指针的偏移地址*/
+	unsigned int cpu_partial;		/* 本地partial链表中空闲对象的最大允许数目*/
+	struct kmem_cache_order_objects oo;	/*kmem_cache_order_objects结构高16位页帧分配阶；低16位表示每个slab中包含的对象个数
+						 * oo是缺省的分配阶和slab对象数
+						 */
+	struct kmem_cache_order_objects max;	/* 最大的分配阶和slab对象数*/
+	struct kmem_cache_order_objects min;	/* 最小的分配阶和slab对象数*/
+	gfp_t allocflags;			/* 调用伙伴系统函数时使用的标志*/
+	int refcount;				/* 引用计数*/
+	void (*ctor)(void *);			/* 用于初始化对象的构造函数*/
+	unsigned int inuse;			/* 对象中元数据的偏移地址*/
+	unsigned int align;
+	const char *name;
+	struct list_head list;			/*将所有快速缓存链接在一起的双向链表指针*/
+	struct kmem_cache_node *node[MAX_NUMODES];	/* 每个numa节点一项的节点管理数据，包含了全局slab链表*/
+};
+```
+
+#### CPU管理数据kmem_cache_cpu
+> 如果一个slab成为每cpu本地slab，则cpu管理数据kmem_cache_cpu::freelist也将会指向空闲对象链表
+
+```c
+struct kmem_cache_cpu {
+	void **freelist;	/* 无锁空闲对象链表，链接了本地slab的空闲对象; 对freelist的并发访问不需要加锁，而是使用事务，tid就是用来控制并发访问的全局唯一事务ID*/
+	unsigned long tid;
+	struct page *page;	/* 本地slab的首页描述符, 也是整个复合页的描述符; kmem_cache_cpu::page::freelist称为本地slab常规空闲对象链表*/
+	struct page *partial;	/* 是CPU的本地部分满slab链表指针*/
+};
+
+/* 两个链表kmem_cache_cpu:freelist和kmem_cache_cpu::page::freelist的使用方法：
+ * 1.当一个slab刚刚成为本地slab时，常规空闲对象链表page::freelist指向本地slab的首个空闲对象，无锁空闲对象链表为空
+ * 2.当本地slab投入使用以后，无锁空闲对象链表指向本地slab中以当前分配对象为基点的下一个空闲对象，而常规空闲对象链表page:freelist为空
+ * 3.在随后的使用过程中，对象分配总是优先使用无锁空闲对象链表，因此无锁空闲对象链表会随着对象一个个分配逐渐收缩；而对象释放只有在符合严格限制条件时才会使用无锁空闲对象链表，多数情况下使用常规空闲对象甸表，因此常规空闲对象链表随着对象一个个释放逐渐膨胀
+ * 4.在无锁空闲对象链表变空的时候，对象分配函数会查看常规空闲对象链表，如果非空，重新填充无锁空闲对象链表并将常规空闲对象链表清空，相当于再次变成了新投入使用的本地slab；反之，无锁空闲对象链表和常规空闲对象链表都为空表示本地slab已经变成全满slab，需要从本地partial链表中取出一个slab来更新本地slab
+ */
+```
+
+#### 节点管理数据kmem_cache_node
+```c
+/* kmem_cache_node结构是SLAB, SLOB, SLUB公用。下面是只考虑SLUB时的内容 */
+struct kmem_cache_node {
+	spinlock_t list_lock;
+	unsigned long nr_partial;	/* 链表中slab数目*/
+	struct list_head partial;	/* 全局的，访问它时需加锁; 当kmem_cache_cpu::partial为空时，用批处理方式从kmem_cache_node::partial取出若干个slab；当kmem_cache_cpu::partial中的slab过多时，用批处理方式还回若干个slab给kmem_cache_node::partial*/
+};
+
+/* 对象分配的大致顺序如下：
+ * 1.先试图通过本地slab的无锁空闲对象链表分配
+ * 2.然后试图通过本地slab的常规空闲对象链表分配
+ * 3.再试图通过本地partial链表分配
+ * 4.再然后试图通过节点全局partial链表分配
+ * 5.最后试图通过页分配器在伙伴系统分配
+ * 上述如果全部失败，是返回错误
+ *
+ * 对象释放的大致过程如下：
+ * 1.如果对象属于当前CPU的本地slab，则直接释放即可返回
+ * 2.如果对象不属于本地slab而是属于full slab，则释放对象后所所在slab移到本地partial链表中；紧接着还要判断本地partial链表中的空闲对象数目是否超出了kmem_cache::cpu_partial，如果超出的话要移动一批slab到节点全局partial链表中
+ * 3.如果对象不属于本地slab也不属于full slab，则释放对象后判断所在slab是否全空。如果全空则继续判断节点全局partial链表中的slab数目是否超出了kmem_cache::min_partial，如果超出的话需要释放这个空slab的页，使之回到伙伴系统
+ */
+```
+
+> 经典的SLAB算法的kmem_cache_node包含3个链表：slabs_full（全满，slab的所有对象已经全部分配）, slabs_partial（slab的对象中有一部分分配了）, slab_free（slab中的所有对象都是空闲的，一个都没分配）
+
+> SLUB算法的kmem_cache_node中只有一个链表partial
+
+> kmem_cache::offset非常重要，它在每一个对象的尾部，指向下一个空闲对象
+
+#### 快速缓步分类
+* SLUB系统主要有3类快速缓存：元快速缓存、通用快速缓存、专用快速缓存
+> 元快速缓存是快速缓存的缓存，用于管理kmem_cache, kmem_cache_node本身
+
+> 通用快速缓存包含符合几何分布大小的内存对象，最小为8字节，最大为页大小的两倍，保存于二维数组kmalloc_cache[NR_KMALLOC_TYPES][KMALLOC_SHIFT_HIGH + 1]中 
+
+> 元快速缓存、通用快速缓存在内核启动过程的早期由mm_init()的子函数kmem_cache_init()创建　
+
+> 专用快速缓存对应于某种特定的数据结构，在内核启动后期由相应的子系统根据需要创建
+
+* SLAB, SLUB, SLOB系统主要API列举如下
+```c
+void kmem_cache_init(void);
+
+kmem_cache_create();
+
+kmem_cache_destroy();
+
+kmalloc(size_t size, gfp_t flags);
+
+kfree(const void *x);
+
+kmem_cache_alloc();
+
+kmem_cache_free();
+
+```
+
+### 4.3.2 核心函数解析
 
 
 
