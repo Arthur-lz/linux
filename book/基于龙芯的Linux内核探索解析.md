@@ -2559,8 +2559,229 @@ kmem_cache_free();
 ```
 
 ### 4.3.2 核心函数解析
+* 以通用对象的分配和释放为例，深入解析SLUB算法的内部细节
 
+#### 通用对象分配
+* 通用对象分配函数原型void *kmalloc(size_t size, gfp_t flags)
+```c
+void *__kmalloc(size_t size, gfp_t flags)
+{
+	struct kmem_cache *s;
+      	void *ret;
+  
+      	if (unlikely(size > KMALLOC_MAX_CACHE_SIZE)) /* 如果通用对象大小大于两个页帧，就通过kmalloc_large分配，它最大可分配64MB的大对象 */
+                return kmalloc_large(size, flags);
+  
+        s = kmalloc_slab(size, flags);		/* 取得与size对应的快速缓存kmem_cache*/
+  
+        if (unlikely(ZERO_OR_NULL_PTR(s)))
+        	return s;
+   
+        ret = slab_alloc(s, flags, _RET_IP_);	/* 在快速缓存kmem_cache中分配对象*/
+    
+       	trace_kmalloc(_RET_IP_, ret, size, s->size, flags);
+    
+        kasan_kmalloc(s, ret, size, flags);
+    
+        return ret;                                                                                                                             
+}
 
+static __always_inline void *slab_alloc_node(struct kmem_cache *s,
+                 gfp_t gfpflags, int node, unsigned long addr)
+{
+	s = slab_pre_alloc_hook(s, gfpflags);
+redo:
+	do {
+		tid = this_cpu_read(s->cpu_slab->tid);
+		c = raw_cpu_ptr(s->cpu_slab);
+	} while (IS_ENABLED(CONFIG_PREEMPT) && (tid != READ_ONCE(c->tid)));
+	/* 上面的这个do{}while()循环是用事务id即tid来判断当前是否有抢占发生，如果有抢占发生则CPU管理数据c中的tid会与s中的tid不同,
+	 * 如果不同就一直在这里循环
+	 */
+
+	barrier();
+	object = c->freelist;	/* 取本地slab无锁空闲对象链表的第一个对象 */
+	page = c->page;		/* 取本地slab所在的页面描述符 */
+
+	if (!object || !node_match(page, node)) /* 如果object为空，或者page所在的NUMA结点不是输入参数指定的节点，则进入慢速分配路径__slab_alloc
+		object = __slab_alloc(s, gfpflags, node, addr, c);
+	else {
+		void *next_object = get_freepinter_safe(s, object);	/* 取无锁空闲对象链表下一个对象地址 */
+		/* this_cpu_cmpxchg_double，如果本地slab的无锁空闲对象链表中首个空闲对象依旧是object且本地slab的全局事务id依旧是tid，
+		 * 则首个空闲对象更新为next_object并且全局事务id更新为next_tid(tid)，返回真
+		 * 
+		 * 如果返回假，说明本地slab上面出现了并发访问，object可能已经被内核其他部分使用，只能跳转到redo重试分配。
+		 * 如果返回真，说明对象分配成功。接下来调用prefetch_freepointer
+		 */
+		if (!this_cpu_cmpxchg_double(s->cpu_slab->freelist s->cpu_slab->tid,
+					object, tid, next_object, next_tid(tid)))
+			goto redo;
+		prefetch_freepointer(s, next_object); /*这是一上性能优化操作，将无锁空闲对象链表的下一个对象预取到硬件高速缓存，以便加速后续分配*/
+	}
+
+	if (slab_want_init_on_alloc(gfpflags, s) && object)	/*判断对象是否需要清0*/
+		memset(object, 0, s->object_size);
+	slab_post_alloc_hook(s, gfpflags, object);
+	return object;
+}
+
+/* 慢速分配路径*/
+static void *___slab_alloc(struct kmem_cache *s, gfp_t gfpflags, int node,                                                                      
+                           unsigned long addr, struct kmem_cache_cpu *c)
+{
+	page = c->page;		/* 取本地slab的复合页描述符 */
+	if (!page) goto new_slab;	/* 如果本地slab复合页为空，说明本地slab已经没有空闲对象了*/
+redo:
+	if (!node_match(page, node)) {	/* 如果本地slab与node指定的NUMA节点不匹配，则返回假*/
+		int searchnode = node;
+		if (node != NUMA_NO_NODE && !node_present_pages(node))
+			searchnode = node_to_mem_node(node);
+		if (!node_match(page, searchnode)) {	/* 上面两行来搜索节点，如果还是与本地slab不匹配，则归还这个slab到它的节点partial链表*/
+			deactivate_slab(s, page, c->freelist, c); /* 归还本地slab到相应的节点partial链表*/
+			goto new_slab;
+		}
+	}
+	freelist = c->freelist; /* 取本地slab无锁空闲对象链表 */
+	if (freelist)		/* 如果本地slab无锁空闲对象链表非空，说明可以执行快速分配路径A */
+		goto load_freelist;	/* 跳到快速分配路径 */
+	freelist = get_freelist(s, page);	/* 取常规空闲对象链表*/
+	if (!freelist) {	/* 常规空闲对象链表为空 */
+		c->page = NULL;
+		goto new_slab;	/* C, D, E路径*/
+	}
+load_freelist:			/* A, B路径 */
+	c->freelist = get_freepointer(s, freelist);	/* 更新本地slab无锁空闲对象链表 */
+	c->tid = next_tid(c->tid);			/* */
+	return freelist;
+new_slab:			/* C, D, E 慢速路径 */
+	if (slub_percpu_partial(c)) {			/* 判断本地partial链表不为空, 这说明可以执行C路径*/
+		page = c->page = slub_percpu_partial(c);	/* 将本地partial链表的首个元素赋值给本地slab复合页*/
+		slub_set_percpu_partial(c, page);		/* 更新本地partial链表*/
+		goto redo;					/* 跳转到redo执行*/
+	}
+	freelist = new_slab_objects(s, gfpflags, node, &c);	/* 能到这，说明本地partial链表也空了，只能通过new_slab_objects执行D, E路径 
+								 * 如果是D，通过get_partial()从节点partial链表取slab；
+								 * 如果是E, 通过new_slab()调用allocate_slab()从伙伴系统分配slab
+								 * 当new_slab_objects()返回时，本地slab和本地partial链表都得到了补充，
+								 * 可以跳转到load_freelist继续执行
+								 */
+	page = c->page;
+	goto load_freelist;
+}
+```
+
+#### 通用对象释放
+* 通用对象释放函数原型是void kfree(const void *x)
+```c
+void kfree(const void *x)
+{
+	page = virt_to_head_page(x);	/* 将对象虚拟地址x转换成所在的复合页描述符*/
+	if (!PageSlab(page)) {		/* 判断该复合页是不是一个slab, 如果不是一个slab，那么肯定是之前kmalloc通过kmalloc_large分配出来的巨型通用对象（大小超过两页）*/
+		unsigned int order = compound_order(page);	/* 算出对象的阶*/
+		__free_pages(page, order);			/* 通过伙伴系统函数释放 */
+		return;
+	}
+
+	slab_free(page->slab_cache, page, object, NULL, 1, _RET_IP_);	/* 能到这里，说明是一个slab，通过slab_free来释放*/
+}
+
+/* head: 指向多个对象的头部对象
+ * tail: 指向多个对象的尾部对象
+ * cnt:  对象个数
+ * 如果tail为NULL, cnt=1表示只释放单个对象
+ */
+static __always_inline void do_slab_free(struct kmem_cache *s,
+                              struct page *page, void *head, void *tail,
+                                 int cnt, unsigned long addr)
+{                                                                                                                                               
+	void *tail_obj = tail ? : head;
+     	struct kmem_cache_cpu *c;
+        unsigned long tid;
+redo:
+	do {
+		tid = this_cpu_read(s->cpu_slab->tid);
+		c = raw_cpu_ptr(s->cpu_slab);
+	   } while (IS_ENABLED(CONFIG_PREEMPT) && unlikely(tid != READ_ONCE(c->tid)));
+
+	barrier();
+	if (likely(page == c->page)) {	/* 判断被释放对象所在的slab首页等于本地slab的首页，如果相等则执行快速路径 */
+   		set_freepointer(s, tail_obj, c->freelist);
+
+               	if (unlikely(!this_cpu_cmpxchg_double(	/* 将对象插入无锁空闲对象链表，如果执行失败说明出现了并发访问，跳转到redo重来*/
+	     		s->cpu_slab->freelist, s->cpu_slab->tid,
+	    	                           c->freelist, tid,
+	    		                     head, next_tid(tid)))) {
+	
+	      		note_cmpxchg_failure("slab_free", s, tid);
+	                goto redo;
+                 }
+        stat(s, FREE_FASTPATH);
+        } else	/* 对象不是本地slab时，执行下面的慢速路径*/
+        __slab_free(s, page, head, tail_obj, cnt, addr);
+
+}
+
+/* 冻结是SLUB里一个很重要的概念。一个slab被某个CPU冻结后，就只有这个CPU能够从这个slab分配对象。
+ * 哪些slab是冻结的？
+ * 1.本地slab总是冻结的；
+ * 2.脱离链表的全满slab在重新获得一个被释放的空闲对象后，会进入本地partial链表并且被冻结
+ * 
+ */
+static void __slab_free(struct kmem_cache *s, struct page *page,
+                        void *head, void *tail, int cnt,
+                        unsigned long addr)
+{
+	do {
+   		if (unlikely(n)) {
+                     spin_unlock_irqrestore(&n->list_lock, flags);
+                     n = NULL;
+                 }
+     		prior = page->freelist;		/* prior用来保存被释放对象所在slab的常规空闲对象链表*/
+       		counters = page->counters;	/* counters保存了对象所在slab的多项信息（inuse, frozen）*/
+         	set_freepointer(s, tail, prior);
+           	new.counters = counters;
+             	was_frozen = new.frozen;
+               	new.inuse -= cnt;
+                if ((!new.inuse || !prior) && !was_frozen) {	/*!new.inuse表示slab将成为全空slab; !prior表示slab常规空闲对象链表为空
+								 * was_frozen表示slab早已冻结
+								 */
+                         if (kmem_cache_has_cpu_partial(s) && !prior) {	/*kmem_cache_has_cpu_partial用于判断一个快速缓存是否拥有本地partial链表*/
+				 new.frozen = 1;	/* slab现已冻结*/
+			 } else {
+			 	n = get_node(s, page_to_nid(page));	/* n保存了对象slab所在节点管理数据 */
+				spin_lock_irqsave(&n->list_lock, flags);
+			 }
+		}
+	} while (!cmpxchg_double_slab(s, page,
+            		prior, counters,
+              		head, new.counters,
+                 "__slab_free"));
+
+	if (likely(!n)) {	/* 判断节点管理数据n是否为空, 为空说明目标slab已经被冻结*/
+		if (new.frozen && !was_frozen) /* 继续判断slab是不是刚才被冻结的*/
+			put_cpu_partial(s, page, 1); /* 将目标slab放入本地partial链表*/
+		return;
+	}
+
+	if (unlikely(!new.inuse && n->nr_partial >= s->min_partial)) /* 路径E，目标slab需要回到伙伴系统*/ 
+		goto slab_empty;
+
+	if (!kmem_cache_has_cpu_partial(s) && unlikely(!prior)) { /* 没超过上限，则维持现状留在本地partial链表，C路径; 或节点partial链表, D路径*/
+		remove_full(s, n, page);
+		add_partial(n, page, DEACTIVATE_TO_TAIL);
+	}
+	return;
+slab_empty:
+	if (prior)
+		remove_partial(n, page);
+	else
+		remove_full(s, n, page);
+	discard_slab(s, page);	/* 将目标slab归还给伙伴系统*/
+}
+
+```
+
+## 4.4 分页映射内存管理
 
 
 
