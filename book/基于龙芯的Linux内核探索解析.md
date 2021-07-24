@@ -2616,7 +2616,7 @@ redo:
 		if (!this_cpu_cmpxchg_double(s->cpu_slab->freelist s->cpu_slab->tid,
 					object, tid, next_object, next_tid(tid)))
 			goto redo;
-		prefetch_freepointer(s, next_object); /*这是一上性能优化操作，将无锁空闲对象链表的下一个对象预取到硬件高速缓存，以便加速后续分配*/
+		prefetch_freepointer(s, next_object); /*这是一种性能优化操作，将无锁空闲对象链表的下一个对象预取到硬件高速缓存，以便加速后续分配*/
 	}
 
 	if (slab_want_init_on_alloc(gfpflags, s) && object)	/*判断对象是否需要清0*/
@@ -2634,9 +2634,9 @@ static void *___slab_alloc(struct kmem_cache *s, gfp_t gfpflags, int node,
 redo:
 	if (!node_match(page, node)) {	/* 如果本地slab与node指定的NUMA节点不匹配，则返回假*/
 		int searchnode = node;
-		if (node != NUMA_NO_NODE && !node_present_pages(node))
-			searchnode = node_to_mem_node(node);
-		if (!node_match(page, searchnode)) {	/* 上面两行来搜索节点，如果还是与本地slab不匹配，则归还这个slab到它的节点partial链表*/
+		if (node != NUMA_NO_NODE && !node_present_pages(node))	/* node_present_pages判断总的页帧数，如果为0说明此节点无内存 */ 
+			searchnode = node_to_mem_node(node);	/* 这里是选择一个新的节点（但龙芯上node与searchnode总是相同的）*/
+		if (!node_match(page, searchnode)) {/* 用searchnode来再次判断，如果还是与本地slab不匹配，则归还这个slab到它的节点partial链表*/
 			deactivate_slab(s, page, c->freelist, c); /* 归还本地slab到相应的节点partial链表*/
 			goto new_slab;
 		}
@@ -2675,7 +2675,7 @@ new_slab:			/* C, D, E 慢速路径 */
 ```c
 void kfree(const void *x)
 {
-	page = virt_to_head_page(x);	/* 将对象虚拟地址x转换成所在的复合页描述符*/
+	page = virt_to_head_page(x);	/* 将对象虚拟地址x转换成所在复合页描述符*/
 	if (!PageSlab(page)) {		/* 判断该复合页是不是一个slab, 如果不是一个slab，那么肯定是之前kmalloc通过kmalloc_large分配出来的巨型通用对象（大小超过两页）*/
 		unsigned int order = compound_order(page);	/* 算出对象的阶*/
 		__free_pages(page, order);			/* 通过伙伴系统函数释放 */
