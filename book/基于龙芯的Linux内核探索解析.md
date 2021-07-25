@@ -2782,8 +2782,168 @@ slab_empty:
 ```
 
 ## 4.4 分页映射内存管理
+* SLAB, SLUB内核内存对象管理系统建立在页帧分配器（伙伴系统）之上，这种内存管理系统有一个重要特点就是基于线性映射
+* 基于线性映射的内存管理是有局限性的，最大的局限是只能利用ZONE_DMA, ZONE_DMA32, ZONE_NORMAL这三个管理区的常规内存
+* 如果要利用高端内存ZONE_HIGHMEM只能使用基于分页映射的内存管理
+> 分页映射可以管理高端内存，也可以管理常规内存
 
+#### 基于分页映射的内存管理有两类方法
+* 1.第一类是单页内存管理（又包括持久内核映射、临时内核映射，临时内核映射也叫固定内核映射）
+> 这一类只有在启用高端内存的系统上才是基于分页映射的，否则是基于线性映射的；
 
+> 32位MIPS会启用高端内存；在64位MIPS内核中是基于线性映射的；
+
+* 2.第二类是非连续多页内存管理
+> 只有非连续内存管理才是真正基于分页映射的
+
+* MIPS的内核态虚拟地址空间划分
+> 它里面会定义线性映射的虚拟地址、分页映射的虚拟地址分别位于32位系统和64位系统的哪些段
+
+* 内核本身是线性映射的，但内核模块总是被加载到分页映射的内存区
+* 分页映射就是需要使用页表的，而线性地址天生就是已知的，根本不涉及页表
+> 线性映射和线性地址一定要分割清楚
+
+### 4.4.1 持久内核映射
+* 持久内核映射用于建立一个页帧到内核虚拟地址的长期映射
+> 它可能引发睡眠，因此只能在进程上下文中使用
+
+> 页帧是预先从伙伴系统里分配出来的，但分配时候可能没拿到虚拟地址，因此需要通过映射（或解映射）来建立（或解除）虚拟地址到物理地址的关联
+
+> 持久内核映射有的API有两：
+
+```c
+void *kmap(struct page *page);
+void *kunmap(struct page *page);
+```
+
+* 64位内核的kmap/kunmap
+> 64是没有高端内存的
+
+```c
+/* include/linux/highmem.h
+ * kmap所有的64位应都定义在这里，如x86, mips
+ */
+
+static inline void *kmap(struct page *page)
+{
+	might_sleep();
+	return page_address(page);	/* 直接使用page_address返回页描述符的线性地址 */
+}
+
+static inline void kunmap(struct page *page)
+{
+
+}
+```
+
+* 32位内核的kmap/kunmap
+```c
+/* arch/mips/mm/highmem.h
+ * 只有32位的才是各个体系结构需要自己定义的，目前看x86, arm, mips都符合这个规律
+ */
+
+void *kmap(struct page *page)
+{
+	might_sleep();
+	if (!PageHighMem(page))			/* 判断页描述符是否在高端内核区 */
+		return page_address(page);
+	addr = kmap_high(page);			/* 在高端内存区，用kmap_high进行分页映射并将虚拟地址返回 */
+	flush_tlb_one((unsigned long)addr);	/* 刷新addr对应的TLB */
+	return addr;
+}
+
+/* mm/highmem.h
+ */
+
+void *kmap_high(struct page *page)
+{
+	vaddr = (unsigned long)page_address(page);	/* 先用page_address来看看能否得到有效的虚拟地址，如果可以，则说明内核已经在别的地方对这个页帧建立了分页映射；如果返回NULL，说明映射没有建立，这种情况需要用map_new_virtual来进行映射 */
+
+	if (!vaddr)
+		vaddr = map_new_virtual(page);
+	pkmap_count[PKMAP_NR(vaddr)]++;		/* 页引用计数放在pkmap_count[LAST_PKMAP]数组中
+						 * 引用计数为1表示：对应的页表项已经建立，但TLB还没有更新，所以还无法使用；引用计数为1一般有两种可能：一个是表示正在建立映射的过程中，另一种可能是：因为以前被映射过后来又解除了映射
+						 * 引用计数大于1表示：对应页表项已经完全可用并且在被多个内核成分使用，如果有n个内核成分使用，则引用计数为n+1
+						 * 
+						 * 回到kmap函数，看kmap_high()函数的后面一行，有专门的TLB刷新函数来刷新tlb，这样在刷新tlb后，这个虚拟地址就可以正常使用了
+						 *
+						 * LAST_PKMAP在MIPS中定义为512或1024
+						 */
+	return (void*)vaddr;
+}
+
+#define PKMAP_NR(virt)	((virt-PKMAP_BASE) >> PAGE_SHIFT)	/* 虚拟地址转页表索引 */
+#define PKMAP_ADDR(nr)	(PKMAP_BASE + ((nr) << PAGE_SHIFT))	/* 页表索引转虚拟地址 */
+
+unsigned long map_new_virtual(struct page *page)
+{
+	unsigned int color = get_pkmap_color(page);
+start:
+	count = get_pkmap_entries_count(color);
+	for (;;) {
+		last_pkmap_nr = get_next_pkmap_nr(color);
+		if (no_more_pkmaps(last_pkmap_nr, color)) {
+			flush_all_zero_pkmaps();
+			count = get_pkmap_entries_count(color);
+		}
+		if (!pkmap_count[last_pkmap_nr]) 	/* 值为0说明有适合映射的位置，则跳出循环 */
+			break;
+		if (--count)
+			continue;
+		DECLARE_WAITQUEUE(wait, current);
+		wait_queue_heat_t *pkmap_map_wait = get_pkmap_wait_queue_head(color);
+		__set_current_state(TASK_UNINTERRUPTIBLE);
+		add_wait_queue(pkmap_map_wait, &wait);
+		schedule();
+		remove_wait_queue(pkmap_map_wait, &wait);
+		if (page_address(page))
+			return (unsigned long)page_address(page);
+		goto start;
+	}
+	/* 能退出上面的for循环，说明pkmap_count[]和pkmap_page_table里面有一个未映射的表项，其索引为last_pkmap_nr */
+	vaddr = PKMAP_ADDR(last_pkmap_nr);	/* 取出这个合适的虚拟地址 */
+	set_pte_at(&init_mm, vaddr, &(pkmap_page_table[last_pkmap_nr]), mk_pte(page, kmap_prot));	/* 将页表项写入pkmap_page_talbe */
+	pkmap_count[last_pkmap_nr] = 1;			/* 设置pkmap_count中对应项的引用计数为 1*/
+	set_page_address(page, (void*)vaddr);		/* 记录页描述符与虚拟地址的对应关系 */
+	return vaddr;
+}
+```
+
+* 32位内核的kunmap()
+```c
+/* arch/mips/mm/highmem.h
+ */
+
+void kunmap(struct page *page)
+{
+	if (!PageHighMem(page))
+		return;
+	kunmap_high(page);
+}
+
+/* mm/highmem.c
+ */
+
+void kunmap_high(struct page *page)
+{
+	unsigned int color = get_pkmap_color(page);	/* 取页面颜色*/
+	vaddr = (unsigned long)page_address(page);	/* 取要解除映射的页的虚拟地址 */
+	nr = PKMAP_NR(vaddr);				/* 将虚拟地址转换成页表索引 */
+	need_wakeup = 0;
+	switch (--pkmap_count[nr]) {
+		case 0:
+			BUG();
+		case 1:
+			pkmap_map_wait = get_pkmap_queue_head(color);
+			need_wakeup = waitqueue_active(pkmap_map_wait);
+	}
+
+	if (need_wakeup)
+		wake_up(pkmap_map_wait);
+}
+```
+
+### 4.4.2 临时内核映射
 
 
 
