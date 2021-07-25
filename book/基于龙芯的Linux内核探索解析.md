@@ -2944,11 +2944,259 @@ void kunmap_high(struct page *page)
 ```
 
 ### 4.4.2 临时内核映射
+* 临时内核映射也叫“固定内核映射”，用于建立一个页帧到内核虚拟地址的临时映射，它不会引发睡眠，因此可以用在中断上下文
+> 与持久内核映射相同，页帧是预先从伙伴系统里分配出来的，但分配的时候可能没有拿到虚拟地址，因此需要通过映射来建立虚拟地址到物理地址的关联
 
+* 临时内核映射主要有两个API：
+```c
+void *kmap_atomic(struct page *page);
+void kunmap_atomic(void *addr);
+```
 
+* 64位内核的kmap_atomic/kunmap_atomic
+```c
+/* include/linux/highmem.h
+ */
 
+static inline void *kmap_atomic(struct page *page)
+{
+	preempt_disable();		/* 禁止抢占 */
+	pagefault_disable();		/* 禁止缺页异常 */
+	return page_address(page);
+}
 
+static inline void __kunmap_atomic(void *addr)
+{
+	pagefault_enable();
+	preempt_enable();
+}
+```
 
+* 32位内核的kmap_atomic/kunmap_atomic
+```c
+/* arch/mips/mm/highmem.c
+ */
+
+void *kmap_atomic(struct page *page)
+{
+	preempt_disable();
+	pagefalut_disable();
+	if (!PageHighMem(page))
+		return page_address(page);
+	type = kmap_atomic_idx_push();				/* 把当前映射类型压栈, 并返回映射类型 */
+	idx = type + KM_TYPE_NR * smp_processor_id();		/* 根据映射类型计算出页表索引区间偏移量 */
+	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);		/* 计算出虚拟地址 */
+	set_pte(kmap_pte - idx, mk_pte(page, PAGE_KERNEL));	/* 写入页表 */
+	local_flush_tlb_one((unsigned long)vaddr);		/* 刷新vaddr对应的tlb*/
+	return (void*)vaddr;
+}
+
+void __kunmap_atomic(void *kvaddr)
+{
+	unsigned long vaddr = (unsigned long)kvaddr & PAGE_MASK;	/* 将kvaddr对齐到所在页的起始点 */
+	if (vaddr < FIXADDR_START) {					/* 低于FIXADDR_START说明不在高端区 */
+		pagefault_enable();
+		preempt_enable();
+		return;
+	}
+	kmap_atomic_idx_pop();
+	pagefault_enable();
+	preempt_enable();
+}
+```
+
+### 4.4.3 非连续内存管理
+* 这是一种解决外碎片的方法，就是允许外碎片产生，但是通过页表将离散的页帧映射到连续的虚拟地址，这样虽然物理地址不连续，但虚拟地址是一整块
+* 非连续内存管理基于分页映射，因而可以用于高端内存，也可以用于常规内存管理
+* 非连续内存管理的重要数据结构“VMA描述符”struct vm_struct
+```c
+struct vm_struct {
+	struct vm_struct 	*next;
+	void 			*addr;		/* 这个内核VMA的起始虚拟地址*/
+	unsigned long		size;		/* 这个内核VMA的长度 */
+	unsigned long 		flags;		/* 非连续内存映射的标志，主要有VM_ALLOC、VM_MAP、VM_IOREMAP*/
+	struct page		**pages;	/* 构成这个内核VMA的页描述符数组*/
+	unsigned int		nr_pages;	/* 这个VMA包含的页数*/
+	phys_addr_t		phys_addr;	/* 类型为VM_IOREMAP时对应的设备物理地址 */
+	const void 		*caller;	/* 调用者的函数地址*/
+};
+
+/* VM_ALLOC表示该VMA是由vmalloc()分配出来的；
+ * VM_MAP表示该VMA是用于vmap()映射的
+ * VM_IOREMAP表示该VMA是用ioremap()映射的设备内存（如PCI设备存储）
+ *
+ * 所有的内核VMA都被组织在红黑树vmap_area_root和有序链表vmap_area_list里，而vmlist只在启动早期使用；红黑树利于快速查找，而有序链表适合全体遍历
+ */
+```
+
+#### 非连续存储管理有两类API，一类用于分配和释放，另一类用于映射和解映射
+* 用于分配释放的API
+```c
+void *vmalloc(unsigned long size);	/* 分配一段非连续内存并建立映射，其大小为size */
+void *vzalloc(unsigned long size);	/* 对分配出来的内存进行清0 */
+void *vmalloc_node(unsigned long size, int node);	/* 在指定的NUMA节点分配 */
+void *vzalloc_node(unsigned long size, int node);	/* 在指定的NUMA节点分配，并以分配出来的内存进行清0*/
+void *vmalloc_user(unsigned long size);			/* 分配出来的内存可用于用户态程序 */
+void *vmalloc_32(unsigned long size);			/* 只在32位可访问的空间内分配 */
+void *vmalloc_32_user(unsigned long size);		/* 只在32位可访问的空间分配内存，并且分配出来的内存可用于用户态程序 */
+
+/* 上述所有这些函数最后都会通过__vmalloc_node()来实现
+ */
+
+void vfree(const void *addr)		/* 释放由vmalloc()及其变种函数所分配出来的内存并解除映射 */
+
+static void * __vmalloc_node(unsigned long size, unsigned long align, gfp_t gfp_mask, pgprot_t prot, int node, const void *caller)
+{
+	return __vmalloc_node_range(size, align, VMALLOC_START, VMALLOC_END, gfp_mask, prot, 0, node, caller);
+}
+/* __vmalloc_node_range除了__vmalloc_node()调用外，还有一个module_alloc()
+ * 非连续内存管理和模块内存区管理的方法是完全一致的，只是虚拟地址范围不同，其体现就在__vmalloc_node_range()函数上面
+ * __vmalloc_node()使用的虚拟地址是VMALLOC_START, VMALLOC_END
+ * module_alloc()使用的是虚拟地址是MODULE_START, MODULE_END
+ *
+ */
+
+void * __vmalloc_node_range(unsigned long size, unsigned long align,
+		unsigned long start, unsigned long end, gfp_t gfp_mask,
+		pgprot_t prot, unsigned long vm_flags, int node, const void *caller)
+{
+	size = PAGE_ALIGN(size);		/* 因为要使用伙伴系统分配，所以需要按页对齐, 以便让size变成页大小的整数倍 */
+	area = __get_vm_area_node(size, align, VM_ALLOC | VM_UNINITIALIZED | 	/* 查找一个空闲的内核VMA */
+			vm_flags, start, end, node, gfp_mask, caller);
+	addr = __vmalloc_area_node(area, gfp_mask, prot, node);		/* 执行真正的页分配和页映射 */
+	clear_vm_uninitialized_flag(area);				/* 清除VMA的VM_UNINITIALIZED标志 */
+	return addr;
+}
+/* 非连续内存分配是建立在伙伴系统基础之上的，其分配单位是页
+ */
+
+static struc vm_struct *__get_vm_area_node(unsigned long size,
+			unsigned long align, unsigned long flags, unsigned long start, unsigned long end, int node, gfp_t gfp_mask,
+			const void *caller)
+{
+	size = PAGE_ALIGN(size);
+	area = kzalloc_node(sizeof(*area), gfp_mask & GFP_RECLAIM_MASK, node);	/* 在node指定的节点上分配一个大小合适的SLAB通用对象area*/
+	va = alloc_vmap_area(size, align, start, end, node, gfp_mask);	/* 分配一个vmap_area并将其插入到红黑树中*/
+	setup_vmalloc_vm(area, va, flags, caller);	/* 初始化vm_struct并建立vmap_area与vm_struct的关联 */
+	return area;
+}
+
+static void *__vmalloc_area_node(struct vm_struct *area, gfp_t gfp_mask, pgprot_t prot, int node)
+{
+	const gfp_t nested_gfp = (gfp_mask & GFP_RECLAIM_MASK) | __GFP_ZERO);
+	const gfp_t alloc_mask = gfp_mask | __GFP_NOWARN;
+	const gfp_t highmem_mask = (gfp_mask & (GFP_DMA | GFP_DMA32))?0:__GFP_HIGHMEM;
+	nr_pages = get_vm_area_size(area) >> PAGE_SHIFT;
+	array_size = (nr_pages * sizeof(struct page*));
+	area->nr_pages = nr_pages;
+	/* 给页描述符数组分配空间 */
+	if (array_size > PAGE_SIZE) {
+		pages = __vmalloc_node(array_size, 1, nested_gfp | highmem_mask,
+				PAGE_KERNEL, node, area->caller);
+		area->flags |= VM_VPAGES;
+	} else {
+		pages = kmalloc_node(array_size, nested_gfp, node);
+	}
+	area->pages = pages;
+	/* 给页描述符数组中的每一个页描述符分配页帧 */
+	for (i = 0; i < area->nr_pages; i++) {
+		if (node == NUMA_NO_NODE)
+			page = alloc_page(alloc_mask | highmem_mask);	/* 用伙伴系统来分配 */ 
+		else
+			page = alloc_pages_node(node, alloc_mask | highmem_mask, 0);
+		area->pages[i] = page;
+		if (gfpflags_allow_blocking(gfp_mask | highmem_mask))
+			cond_resched();
+	}
+	atomic_long_add(area->nr_pages, &nr_vmalloc_pages);
+	if (map_vm_area(area, prot, pages))	/* 创建页表项并建立映射并刷新cache */
+		goto fail;
+	return area->addr;
+}
+```
+
+* 用于映射和解映射的API
+```c
+void *vmap(struct page **pages, unsigned int count, unsigned long flags, pgprot_t prot)		/* 对预先分配出来的一组非连续页进行映射，映射完成之后在虚拟地址上是连续的;参数pages是非连续页数组；count是总页数；flags是映射类型标志；prot是页保护权限 */
+{
+	might_sleep();		/* 有这个，说明vmap允许阻塞*/
+	area = get_vm_area_caller((count << PAGE_SHIFT), flags, __builtin_return_address(0));	/*获得一个合适的VMA*/
+	if (map_vm_area(area, prot, pages)) {	/*建立各级页表项并刷新cache*/
+		vunmap(area->addr);
+		return NULL;
+	}
+	return area->addr;
+}
+
+void vunmap(const void *addr)		/* 解除vmap()建立的非连续内存映射 */
+{
+	might_sleep();
+	if (addr)
+		__vunmap(addr, 0);
+}
+```
+
+* 非连续内存的释放与解除映射
+```c
+void vfree(const void *addr)
+{
+	might_sleep_if(!in_interrupt());
+	__vfree(addr);
+}
+
+static void _vfree(const void *addr)
+{
+	if (unlikely(in_interrupt())
+		__vfree_deferred(addr);		/* 当前上下文在中断中，需要调用__vfree_deferred延迟释放 */
+	else
+		__vunmap(addr, 1);		/* 立即释放页帧并解除映射*/
+}
+
+static inline void __vfree_deferred(const void *addr)
+{
+	struct vfree_deferred *p = raw_cpu_ptr(&vfree_deferred);
+	if (!list_add(struct llist_node *)addr, &p->list))
+		schedule_work(&p->wq);	/* 在进程上下文中延迟释放*/
+}
+
+/* vfree()和vunmap()最后都是通过__vunmap()来实现
+ */
+
+/* addr是需要释放或解除映射的非连续内存首地址
+ * deallocate_pages是在解除映射后释放需要释放的页帧
+ * vfree()时，deallocate_pages=1
+ * vunmap()时，deallocate_pages=0
+ */
+static void __vunmap(const void *addr, int deallocate_pages)
+{
+	area = find_vmap_area((unsigned long)addr)->vm;
+	vm_remove_mappings(area, deallocate_pages);	/* 查找并解除一个内核VMA的非连续内存映射 */
+	if (deallocate_pages) {
+		for (i = 0; i < area->nr_pages; i++) {
+			struct page *page = area->pages[i];
+			__free_pages(page, 0);		/* 回收页帧到伙伴系统*/
+		}
+		atomic_long_sub(area->>nr_pages, &nr_vmalloc_pages);
+		kvfree(area->pages);	/* 释放页描述符数组pages*/
+	}
+	kfree(area);	/*释放内核VMA描述符 */
+	return;
+}
+```
+
+* 从用户的角度来看，基于线性映射的kmalloc/kfree与基于分页映射的vmalloc/vfree具有高度的相似性
+> kmalloc/kfree在性能上更占优势
+
+> vmalloc/vfree的局限性更小
+
+> 从4.12版本内核开始引入了一组整合kmalloc/kfree, vmalloc/vfree的新API
+
+```c
+void *kvmalloc(size_t size, gfp_t flags);	/* 先使用kmalloc分配内存，如果失败则用vmalloc分配*/
+vod kvfree(const void *addr);
+```
+
+## 4.5 进程地址空间管理　
 
 
 
