@@ -3198,10 +3198,233 @@ static void __vunmap(const void *addr, int deallocate_pages)
 void *kvmalloc(size_t size, gfp_t flags);	/* 先使用kmalloc分配内存，如果失败则用vmalloc分配*/
 vod kvfree(const void *addr);
 ```
+#### 下面的这些内存管理方法的使用者都是内核本身
+* 1.基于线性映射的SLAB,SLUB内核内存对象管理
+* 2.基于分页映射的持久内核映射、临时内核映射和非连续内存管理
+* 内核自身的物理内存分配可以即时完成
 
 ## 4.5 进程地址空间管理　
+* 进程地址空间管理是面向用户态程序的内存管理
+* malloc()仅仅能够申请到一块虚拟内存，并没有真正映射到物理页
+* 用户态进程的物理内存分配是通过“缺页异常”延迟完成的
 
+### 4.5.1 数据结构与API
+#### 进程内存描述符：mm_struct
+* 每个进程（包括普通进程和内核线程）用一个进程描述符（struct task_struct）表示;每个进程描述符里有两个内存描述符指针mm和active_mm
 
+* 一个内存描述符用来表示一个进程的地址空间
+
+* 普通进程拥有自己独立的地址空间；属于同一个进程的线程共享同一个地址空间
+
+* 对于普通进程、线程，mm和active_mm相同
+
+* 对于内核线程，mm为NULL，active_mm在系统初始化过程中为init_mm，在初始化完成后等同于进程切换的前一个进程的active_mm
+
+```
+这样操作是因为，内核本身不拥有用户态地址空间，但是内核又需要通过页表来访问普通进程的地址空间（如vmalloc()的地址）。
+对于大多数体系结构而言，进程页表在用户态虚拟地址部分各不相同，而在内核地址部分的页表都是相同的，因此可以通过复用前一个进程的页表来怎么着？
+```
+
+* 内核描述符定义
+
+```c
+/* include/linux/mm_types.h */
+
+struct mm_struct {
+	struct {
+		struct vm_area_struct *mmap;		/* 内存映射图（进程VMA链表头指针）*/
+		struct rb_root mm_rb;			/* 进程VMA红黑树的根节点*/
+		unsigned long (*get_unmapped_area) (struct file *filp, unsigned long addr, unsigned long len, unsigned long pgoff, unsigned long flags);
+		unsigned long mmap_base;		/* 灵活布局下mmap区域的基地址*/
+		unsigned long mmap_legacy_base;		/* 传统布局下mmap区域的基地址*/
+		unsigned long task_size;		/* 进程虚拟内存空间的长度*/
+		pgd_t *pgd;				/* 进程页表根目录*/
+		atomic_t mm_users;			/* 次引用计数，表示共享该内存描述符的进程个数*/
+		atomic_t mm_count;			/* 主引用计数，它包括三项内容，
+							 *  1拥有该内存描述符的进程；
+							 *  2使用该内存描述符的内核线程；
+							 *  3临时需要引用该内存描述符的内核路径
+							 */
+		/* 当主次引用计数都变为0时，内存描述符就会被释放；
+		 * exec()会调用mm_alloc()将mm_count=mm_users=1;
+		 * mmgrab()/mmdrop()用于增减主引用计数
+		 * mmget()/mmput()用于增减次引用计数　
+		 */
+		int map_count;
+		struct rw_semaphore mmap_sem;
+		unsigned long start_code, end_code, start_data, end_data;
+		unsigned long start_bk, brk, start_stack;
+		unsigned long arg_start, arg_end, env_start, env_end;
+		mm_context_t context;			/* 体系结构相关的内存上下文描述符;
+							 * mm_context_t::asid，ASID用于多进程TLB匹配，但是ASID与进程ID并不是一一对应关系，为什么？
+							 * 1.多个进程可以共享同一个地址空间
+							 * 2.传统上TLB中的硬件ASID只有8位，其数量不足以对应所有进程
+							 * 3.TLB是每CPU核私有的，因此同一进程在不同核上运行时具有不同的ASID
+							 * 
+							 * 由于1，所以ASID数组与内存描述符关联，而不是与进程描述符关联；
+							 * 由于2，所以ASID数组的类型被定义为64位整数；
+							 * 由于3，ASID数组总共有NR_CPUS项，每一项对应一个逻辑CPU
+							 * 
+							 * ASID数组中的每一项所占用的64位被分割成两段，高56位为版本号，低8位为硬件ASID；
+							 * 版本号为0表示ASID无效，第一个有效的ASID版本号为0x100，引入版本号是为了按批来处理进程
+							 * 版本号相同的进程属于同一批，每一批最多256个进程；
+							 * 进程的ASID有如下特性：
+							 * 1.新创建的进程通过init_new_context()将mm_context_t::ASID[]设置成无效（版本号为0，
+							 * ASID为0）
+							 * 2.进程被调度开始运行时，通过get_new_mmu_context()在当前逻辑CPU上获得有效的ASID，此时
+							 * ASID有效，版本号有效。
+							 * 3.每个逻辑CPU有一个asid_cache变量，表示刚刚分配出去的ASID，同时也表明了当前CPU的ASID
+							 * 版本号
+							 * 4.一个批次的ASID分配完（硬件ASID达到255）以后，版本号升级（即asid_cache增加1）而
+							 * 硬件ASID再次从0开始；当ASID版本号升级到最大值以后，再次回滚到ASID_FIRST_VERSION
+							 * 5.正在运行的进程的ASID必须和asid_cache拥有相同的版本号，这是在调度时检测的。如果匹配
+							 * 则直接运行，否则通过get_new_mmu_context()在特定的逻辑CPU上重新获取ASID再投入运行
+							 * 6.可以在必要的时候通过drop_mmu_context()废弃一个进程地址空间在当前逻辑CPU上的ASID
+							 */
+		...
+	}__randomie_layout;		/* 结构体随机化，表示此结构的内部布局是可以随机调整的 */
+	unsigned long cpu_bitmap[];
+};
+
+```
+
+#### 进程VMA描述符：vm_area_struct
+* 进程VMA也称为线性区
+
+* 进程地址空间由一个个VMA组成
+
+```c
+/* include/linux/mm_types.h
+ */
+
+struct vm_area_struct {
+	unsigned long vm_start;				/* VMA的起始虚拟地址*/
+	unsigned long vm_end;
+	struct vm_area_struct *vm_next, *vm_prev;	/* 该进程VMA链表的上一个元素*/
+	struct rb_node vm_rb;
+	struct mm_struct *vm_mm;			/* 内存描述符*/
+	pgrot_t vm_page_prot;				/* VMA的页保护权限*/
+	unsigned long vm_flags;
+	struct list_head anon_vma_chain;		/* 链接AVC（AV枢纽）的链表节点*/
+	struct anon_vma *anon_vma;			/* mmap匿名映射所用到的结构体，简称AV*/
+	const struct vm_operations_struct *vm_ops;	/* 进程VMA操作函数集*/
+	unsigned long vm_pgoff;				/* mmap文件映射在vm_file中的偏移量，单位是页*/
+	struct file *vm_file;				/* mmap文件映射所对应的文件*/
+	struct mempolicy *vm_policy;
+	...
+};
+```
+
+* 内核总是试图尽可能合并进程VMA以减少其数量
+> 如果两个VMA在地址上连续并且权限标志相同，就会合并成一个VMA
+
+> 如果一个VMA中一部分地址区域被释放造成断裂，或者一部分地址区域权限标志改变，就会将一个VMA分解成多个VMA
+
+> 一般情况下，进程的代码段是一个VMA，数据段是一个vma，堆是一个VMA，栈是一个VMA；而MMAP大多包括多个VMA（因为它可能包含文件映射和匿名映射，且可以指定映射地址和权限）
+
+* 代码段、数据段的VMA是装载应用程序时静态创建的，而堆、栈和MMAP映射区则可以动态增长和收缩
+> 此处所讲的增长和收缩指的是虚拟地址空间，而物理页帧的分配是在缺页异常中延迟完成的
+
+> MMAP映射区的VMA扩展通过mmap(), mmap2()系统调用完成
+
+> 堆的VMA扩展通过brk()系统调用完成
+
+> 栈的VMA扩展隐藏在缺页异常的处理过程中，不需要显式进行
+
+### 4.5.2 内存映射
+* 内存映射指的是MMAP映射区的VMA管理
+> mmap(), mmap2()用于建立映射
+
+> munmap()用于撤销映射
+
+> mremap()用于修改映射
+
+#### 建立内存映射
+* mmap(), mmap2()唯一区别是偏移量单位不同，前面的是字节，后面的是4KB
+
+* 内存映射的页保护权限
+
+|权限名称|说明|
+|:-|:-|
+|PROT_NONE|映射区中的页不可访问|
+|PROT_READ|映射区中的页可读|
+|PROT_WRITE|映射区中的页可写|
+|PROT_EXEC|映射区中的页可执行|
+
+> 页保护权限如果不是NONE，就必须是READ, WRITE, EXEC的组合
+
+> 这些权限会在构造页表项时写入页属性的对应位
+
+* mmap()可以创建文件映射，也可以创建匿名映射
+> 创建文件映射时，文件描述符fd、偏移量offset/pgoff都必须是有意义的值、映射的flags不包含MAP_ANONYMOUS
+
+> 创建匿名映射时，文件描述符fd为-1，偏移量被忽略，映射标志flags包含MAP_ANONYMOUS
+
+* 私有文件映射和共享文件映射可能在一定程度上违反直觉
+> 共享文件映射与私有文件映射的真正区别是对写操作的不同处理
+
+> 共享文件映射中，各个进程的写操作是彼此共享的，即彼此可见的
+
+> 私有文件映射中，各个进程的写操作是写时复制的，即彼此隐藏的。也就是说私有文件映射在进行写操作时会创建一份私有副本，因此别的进程看不到修改的结果，并且修改的结果也不会写回到磁盘文件
+
+> 共享库能不能使用共享文件映射呢？能，但一般不建议这样用，因为有些程序会使用动态修改代码的方法来优化性能，通常的文件读写是read+write的方式，数据在内核缓冲区与用户缓冲区之间来回传递，而内存映射型文件读写直接使用内核缓冲区，执行mmap()以后可以像读写普通内存一样地读写文件
+
+> 比如，动态链接库使用的是私有映射
+
+* 核心函数do_mmap()
+```c
+unsigned long do_mmap(struct file *file, unsigned long addr, unsigned long len, 
+		unsigned long prot, unsigned long flags, vm_flags_t vm_flags,
+		unsigned long pgoff, unsigned long *populate, struct list_head *uf)
+{
+	struct mm_struct *mm = current->mm;
+	...
+	addr = get_unmapped_area(file, addr, len, pgoff, flags);	/*确定一个符合条件的区域*/
+	...
+	addr = mmap_region(file, addr, len, vm_flags, pgoff, uf);	/*映射该区域*/
+
+	if ((vm_flags & VM_LOCKED) ||
+			(flags & (MAP_POPULATE | MAP_NONBLOCK)) == MAP_POPULATE))
+				*populate = len;			/* 当do_mmap()返回后，它的调用者会判断populate是否为0，
+									 * 如果不为0则调用mm_populate()分配真正的物理页
+									 */
+	return addr;
+}
+```
+
+#### 撤销内存映射
+* __do_munmap()
+```c
+/* mm: 目标进程的内存描述符
+ * start, len分别是撤销映射区的起始地址和长度
+ * uf: 与用户态缺页异常处理有关
+ * downgrade：表示是否可以对mmap_sem做降级处理
+ */
+int __do_munmap(struct mm_struct *mm, unsigned long start, size_t len, struct list_head *uf, bool downgrade)
+{
+	len = PAGE_ALIGN(len);
+	end = start + len;
+	vma = find_vma(mm, start);		/* 找到start所在的VMA*/
+	prev = vma->vm_prev;
+	if (start > vma->vm_start) {		/* 如果条件成立，说明在找到的包含start的VMA区中在撤销后还留了一段，即start - vma->vm_start这段*/
+		error = __split_vma(mm, vma, start, 0);		/* 所以需要分割start所在的VMA成两部分*/
+		prev = vma;					/* 用分割后的vma来更新prev，其值就是vma中剩下来的低地址段*/
+	}
+	last = find_vma(mm, end);				/*找end所在的VMA*/
+	if (last && end > last->vm_start)			/*这说明end所在的VMA中的高地址段有一段需要保留下来, end - last->vm_start*/
+		int error = __split_vma(mm, last, end, 1);	/*把高地址那段与要撤销的那段分割*/
+	vma = prev ? prev->vma_next : mm->mmap;
+	if (downgrade)
+		downgrade_write(&mm->mmap_sem);
+	unmap_region(mm, vma, prev, start, end);		/*撤销目标区间页表项*/
+	remove_vma_list(mm, vma);
+	return 0;
+}
+```
+#### 修改内存映射
+* sys_mremap()本质上相当于do_munmap()、do_mmap()、mm_populate()的组合
+
+### 4.5.3 堆区管理
 
 
 
