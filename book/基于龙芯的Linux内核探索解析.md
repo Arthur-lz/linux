@@ -2048,8 +2048,8 @@ NODE_DATA()宏用于获取指定节点的页面管理数据pglist
  * 因此，目前使用的内存管理区只有ZONE_DMA32、ZONE_NORMAL区
  *
  * 这里有几个问题：
- * 1.只有ZONE_NORMAL可以使用线性地址？其他几个区是否可以使用线性地址？
- * 2.线性映射的线性地址在MIPS下比分页映射管理的虚拟地址访问速度快，那么是不是就不需要分页映射或者说不需要页表来管理虚拟地址了？
+ * 1.只有ZONE_NORMAL可以使用线性地址？其他几个区是否可以使用线性地址？DMA, DMA32, NORMAL属于常规内存，可以使用线性地址
+ * 2.线性映射的线性地址在MIPS下比分页映射管理的虚拟地址访问速度快，那么是不是就不需要分页映射或者说不需要页表来管理虚拟地址了？不是，因为像内核模块需要用到不连续内存，而线性映射只可以管理连续内存，分页映射可以管理连续或不连续的内存，即模块需要分页映射来管理，即需要页表
  */
 ```
 
@@ -2085,7 +2085,7 @@ NODE_DATA()宏用于获取指定节点的页面管理数据pglist
 * 内存碎片分为外碎片和内碎片
 > 外碎片，指的是页面之间的碎片，虽然空闲页面很多，但是零散的分布在各个地方，这些零散分布的页面就是外碎片，这有可能导致无法分配大片连续页面
 
-> 内碎片，指的是内页内的碎片，内存的分配以页面为基本单位，但一个页面中真正使用的内容不多，剩余浪费的部分就是内碎片
+> 内碎片，指的是页内的碎片，内存的分配以页面为基本单位，但一个页面中真正使用的内容不多，剩余浪费的部分就是内碎片
 
 #### 解决外碎片的方法有三种：
 * 1、记录现存的连续空闲页帧块，同时尽量避免为满足小块的内存请求而分割大的空闲块，从而避免外碎片的产生
@@ -2800,7 +2800,7 @@ slab_empty:
 > 它里面会定义线性映射的虚拟地址、分页映射的虚拟地址分别位于32位系统和64位系统的哪些段
 
 * 内核本身是线性映射的，但内核模块总是被加载到分页映射的内存区
-* 分页映射就是需要使用页表的，而线性地址天生就是已知的，根本不涉及页表
+* 分页映射是需要使用页表的，而线性地址天生就是已知的，根本不涉及页表
 > 线性映射和线性地址一定要分割清楚
 
 ### 4.4.1 持久内核映射
@@ -2827,7 +2827,9 @@ void *kunmap(struct page *page);
 static inline void *kmap(struct page *page)
 {
 	might_sleep();
-	return page_address(page);	/* 直接使用page_address返回页描述符的线性地址 */
+	return page_address(page);	/* 直接使用page_address返回页描述符的线性地址 
+					 * struct page_address_map::virtual保存或者说维护着页帧的虚拟地址
+					 */
 }
 
 static inline void kunmap(struct page *page)
@@ -2845,11 +2847,12 @@ static inline void kunmap(struct page *page)
 void *kmap(struct page *page)
 {
 	might_sleep();
-	if (!PageHighMem(page))			/* 判断页描述符是否在高端内核区 */
+	if (!PageHighMem(page))			/* 判断页描述符是否在高端内存区 */
 		return page_address(page);
 	addr = kmap_high(page);			/* 在高端内存区，用kmap_high进行分页映射并将虚拟地址返回 */
 	flush_tlb_one((unsigned long)addr);	/* 刷新addr对应的TLB */
 	return addr;
+	/* 目前来看，所谓的分页映射，本质上就是用页表来管理页帧与虚拟地址之间的关联 */
 }
 
 /* mm/highmem.h
