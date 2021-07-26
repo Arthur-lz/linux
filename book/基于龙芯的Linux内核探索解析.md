@@ -3425,7 +3425,197 @@ int __do_munmap(struct mm_struct *mm, unsigned long start, size_t len, struct li
 * sys_mremap()本质上相当于do_munmap()、do_mmap()、mm_populate()的组合
 
 ### 4.5.3 堆区管理
+* Glibc（linux的运行时C库）用malloc()来分配堆内存，用free()来释放堆内存；还可以通过brk(), sbrk()来直接修改堆区VMA大小
+> 这些函数最终会调用brk()系统调用，该系统调用对应的内核函数是sys_brk()
 
+```c
+asmlinkage unsigned long sys_brk(unsigned long brk)
+{
+	struct mm_struct *mm = current->mm;
+	origbrk = mm->brk;
+	...
+	newbrk = PAGE_ALIGN(brk);
+	oldbrk = PAGE_ALIGN(mm->brk);
+	if (oldbrk == newbrk) {
+		mm->brk = brk;
+		goto success;
+	}
+	if (brk <= mm->brk) {	/*目标值小于原值，这说明是在收缩*/
+		mm->brk = brk;
+		ret = __do_munmap(mm, newbrk, oldbrk - newbrk, &uf, true);
+		if (ret < 0) {
+			mm->brk = origbrk;
+			goto out;
+		} else if (ret == 1) {
+			downgraded = true;
+		}
+		goto success;
+	}
+	/*能执行到这，说明目标值大于原值，说明堆要扩大*/
+	next = find_vma(mm, oldbrk);
+	if (next && newbrk + PAGE_SIZE > vm_start_gap(next)) 	/*这是用来判断新值在扩大后是否会出现vma重叠*/
+		goto out;
+	if (do_brk_flags(oldbrk, newbrk - oldbrk, 0, &uf) < 0)	/*能到这，说明没有出现VMA重叠，可以扩大堆*/
+		goto out;
+	mm->brk = brk;
+success:
+	populate = newbrk > oldbrk && (mm->def_flags & WM_LOCKED) != 0;
+	if (populate)
+		mm_populate(oldbrk, newbrk - oldbrk);
+	return brk;
+out:
+	retval = origbrk;
+	return retval;
+}
+```
+
+### 4.5.4 缺页异常处理
+* 缺页异常处理是进程地址空间管理中与体系结构关系最紧密的一部分　
+* 缺页异常本质上是页表项里面不存在有效的对应项，进入TLB异常处理的慢速路径
+> 龙芯的TLB异常分四种：TLB重填异常、TLB写无效异常、TLB读无效异常、TLB修改异常
+
+> 在多数情况下，TLB异常的处理会访问相应的页表项并将其装填到TLB中，这属于TLB异常的快速路径。但是，如果页表里面如果也不存在有效的对应项，这就进入了TLB异常处理的慢速路径，即缺页异常处理。引起缺页异常的地址被称为异常地址
+
+* __do_page_fault()是缺页异常处理的核心函数
+```c
+void __do_page_fault(struct pt_regs *regs, unsinged long write, unsinged long address)
+{
+	struct task_struct *tsk = current;
+	struct mm_struct *mm = tsk->mm;
+	const int field = sizeof(unsigned long) * 2;
+	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
+	static DEFINE_RATELIMIT_STATE(ratelimit_state, 5 * HZ, 10);
+	si_code = SEGV_MAPERR;
+	if (unlikely(address >= VMALLOC_START && address <= VMLLOC_END))
+		goto no_context;
+	if (unlikely(address >= MODULE_START && address <= MODULE_END))
+		goto no_context;
+	if (faulthandler_disabled() || !mm)
+		goto bad_area;
+	if (user_mode(regs))
+		flags |= FAULT_FLAG_USER;
+retry:
+	vma = find_vma(mm, address);
+	if (!vma)
+		goto bad_area;
+	if (vma->vm_start <= address)
+		goto good_area;
+	if (!(vma->vm_flags & VM_GROWSDOWN))
+		goto bad_area;
+	if (expand_stack(vma, address))
+		goto bad_area;
+good_area:				/* good_area代码区：表示异常地址在进程线性区或栈区中，
+					 * 可以通过handle_mm_fault()分配物理页并回到正常流程
+					 */
+	si_code = SEGV_ACCERR;
+	if (write) {
+		if (!(vma->vm_flags & VM_WRITE))
+			goto bad_area;
+		flags |= FAULT_FLAG_WRITE;
+	} else {
+		if (cpu_has_rixi) {
+			if (address == regs->cp0_epc && !(vma->vm_flags & VM_EXEC)) {
+				goto bad_area;
+			}
+			if (!(vma->vm_flags & VM_READ) && exception_pc(regs) != address) {
+				goto bad_area;
+			}
+		} else {
+			if (!(vma->vm_flags & (VM_READ | VM_WRITE | VM_EXEC)))
+				goto bad_area;
+		}
+	}
+	fault = handle_mm_fault(vma, address, flags);
+	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
+		return;
+	if (unlikely(fault & VM_FAULT_ERROR)) {
+		if (fault & VM_FAULT_OOM)
+			goto out_of_memory;
+		else if (fault & VM_FAULT_SIGSEGV)
+			goto bad_area;
+		else if (fault & VM_FAULT_SIGBUS)
+			goto do_sigbus;
+		BUG();
+	}
+	if (flags & FAULT_FLAG_ALLOW_RETRY) {
+		if (fault & VM_FAULT_MAJOR)
+			tsk->maj_fl++;
+		else
+			tsk->min_flt++;
+		if (fault & VM_FAULT_RETRY) {
+			flags &= ~FAULT_FLAG_ALLOW_RETRY;
+			flags |= FAULT_FLAG_TRIED;
+			goto retry;
+		}
+	}
+	return;
+bad_area:			/*bad_area: 表示异常地址不在进程线性区也不在栈区，无法分配物理页；最后通过段错误信号杀死当前进程*/
+	if (user_mode(regs)) {
+		tsk->thread.cp0_badvaddr = address;
+		tsk->thread.error_code = write;
+		current->thread.trap_nr = (regs->cp0_cause >> 2) & 0x1f;
+		force_sig_fault(SIGSEGV, si_code, (void __user*)address);
+		return;
+	}
+no_context:		/*异常地址是一个内核态地址，通过fixup_exception()修正预定义异常，如果修正不了则执行die()进入死机状态*/
+	if (fixup_exception(regs)) {
+		current->thread.cp0_baduaddr = address;
+		return;
+	}
+	bust_spinlocks(1);
+	die("Oops", regs);
+out_of_memory:		/*异常地址在进程线性区或栈区，但handle_mm_fault()因系统内存紧张而无法分配物理页，最后通过OOM杀手杀死最耗内存的进程*/
+	if (!user_mode(regs))
+		goto no_context;
+	pagefault_out_of_memory();
+	return;
+do_sigbus:		/*异常地址在进程线性区或栈区，但handle_mm_fault()分配内存时遇到了总线错误，最后通过SIGBUS信号杀死当前进程*/
+	if (!user_mode(regs))
+		goto no_context;
+	current->thead.trap_nr = (regs->cp0_cause >> 2) & 0x1f;
+	tsk->thread.cp0_badvaddr = address;
+	force_sig_fault(SIGBUS, BUS_ADRERR, (void __user*)address);
+	return;
+}
+
+static vm_fault_t __handle_mm_fault(struct vm_area_struct *vma, unsigned long address, unsigned int flags)
+{
+	struct vm_fault vmf = {
+		.vma = vma,
+		.address = address & PAGE_MASK,
+		.flags = flags,
+		.pgoff = linear_page_index(vma, address),
+		.gfp_mask = __get_fault_gfp_mask(vma),
+	};
+	pgd = pgd_offset(mm, address);
+	p4d = p4d_alloc(mm, pgd, address);
+	vmf.pud = pud_alloc(mm, p4d, address);
+	vmf.pmd = pmd_alloc(mm, vmf.pud, address);
+	return handle_pte_fault(&vmf);
+}
+
+static vm_fault_t handle_pte_fault(struct vm_fault *vmf)
+{
+	/* 1.PTE表项无效，并且是文件页：调用do_fault();
+	 * 2.PTE表项无效，并且是匿名页：调用do_anonymous_page();
+	 * 3.PTE表项有效，但页不在内存：调用do_swap_page();
+	 * 4.PTE表项有效，但页不可访问：调用do_numa_page();
+	 * 5.PTE表面有效，但试图写一个不可写页：调用do_wp_page()
+	 */
+}
+
+static vm_fault_t do_fault(struct vm_fault *vmf)
+{
+	/* do_read_fault()处理私有文件映射和共享文件映射的读异常	
+	 * do_cow_fault()处理私有文件的写异常
+	 * do_share_fault()处理共享文件的写异常
+	 * 
+	 * 这三个分支的关键步骤都是__do_fault()，而它的核心则是vma->vm_ops->fault(vma, &vmf)
+	 */
+}
+```
+
+## 4.6 内存管理其他话题
 
 
 
