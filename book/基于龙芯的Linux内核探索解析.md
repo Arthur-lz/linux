@@ -3225,7 +3225,7 @@ vod kvfree(const void *addr);
 对于大多数体系结构而言，进程页表在用户态虚拟地址部分各不相同，而在内核地址部分的页表都是相同的，因此可以通过复用前一个进程的页表来怎么着？
 ```
 
-* 内核描述符定义
+* 内存描述符定义
 
 ```c
 /* include/linux/mm_types.h */
@@ -3234,7 +3234,8 @@ struct mm_struct {
 	struct {
 		struct vm_area_struct *mmap;		/* 内存映射图（进程VMA链表头指针）*/
 		struct rb_root mm_rb;			/* 进程VMA红黑树的根节点*/
-		unsigned long (*get_unmapped_area) (struct file *filp, unsigned long addr, unsigned long len, unsigned long pgoff, unsigned long flags);
+		unsigned long (*get_unmapped_area) (struct file *filp, unsigned long addr, 
+				unsigned long len, unsigned long pgoff, unsigned long flags);
 		unsigned long mmap_base;		/* 灵活布局下mmap区域的基地址*/
 		unsigned long mmap_legacy_base;		/* 传统布局下mmap区域的基地址*/
 		unsigned long task_size;		/* 进程虚拟内存空间的长度*/
@@ -3255,34 +3256,34 @@ struct mm_struct {
 		unsigned long start_code, end_code, start_data, end_data;
 		unsigned long start_bk, brk, start_stack;
 		unsigned long arg_start, arg_end, env_start, env_end;
-		mm_context_t context;			/* 体系结构相关的内存上下文描述符;
-							 * mm_context_t::asid，ASID用于多进程TLB匹配，但是ASID与进程ID并不是一一对应关系，为什么？
-							 * 1.多个进程可以共享同一个地址空间
-							 * 2.传统上TLB中的硬件ASID只有8位，其数量不足以对应所有进程
-							 * 3.TLB是每CPU核私有的，因此同一进程在不同核上运行时具有不同的ASID
-							 * 
-							 * 由于1，所以ASID数组与内存描述符关联，而不是与进程描述符关联；
-							 * 由于2，所以ASID数组的类型被定义为64位整数；
-							 * 由于3，ASID数组总共有NR_CPUS项，每一项对应一个逻辑CPU
-							 * 
-							 * ASID数组中的每一项所占用的64位被分割成两段，高56位为版本号，低8位为硬件ASID；
-							 * 版本号为0表示ASID无效，第一个有效的ASID版本号为0x100，引入版本号是为了按批来处理进程
-							 * 版本号相同的进程属于同一批，每一批最多256个进程；
-							 * 进程的ASID有如下特性：
-							 * 1.新创建的进程通过init_new_context()将mm_context_t::ASID[]设置成无效（版本号为0，
-							 * ASID为0）
-							 * 2.进程被调度开始运行时，通过get_new_mmu_context()在当前逻辑CPU上获得有效的ASID，此时
-							 * ASID有效，版本号有效。
-							 * 3.每个逻辑CPU有一个asid_cache变量，表示刚刚分配出去的ASID，同时也表明了当前CPU的ASID
-							 * 版本号
-							 * 4.一个批次的ASID分配完（硬件ASID达到255）以后，版本号升级（即asid_cache增加1）而
-							 * 硬件ASID再次从0开始；当ASID版本号升级到最大值以后，再次回滚到ASID_FIRST_VERSION
-							 * 5.正在运行的进程的ASID必须和asid_cache拥有相同的版本号，这是在调度时检测的。如果匹配
-							 * 则直接运行，否则通过get_new_mmu_context()在特定的逻辑CPU上重新获取ASID再投入运行
-							 * 6.可以在必要的时候通过drop_mmu_context()废弃一个进程地址空间在当前逻辑CPU上的ASID
-							 */
+		mm_context_t context;	/* 体系结构相关的内存上下文描述符;
+					 * mm_context_t::asid，ASID用于多进程TLB匹配，但是ASID与进程ID并不是一一对应关系，为什么？
+					 * 1.多个进程可以共享同一个地址空间
+					 * 2.传统上TLB中的硬件ASID只有8位，其数量不足以对应所有进程
+					 * 3.TLB是每CPU核私有的，因此同一进程在不同核上运行时具有不同的ASID
+					 * 
+					 * 由于1，所以ASID数组与内存描述符关联，而不是与进程描述符关联；
+					 * 由于2，所以ASID数组的类型被定义为64位整数；
+					 * 由于3，ASID数组总共有NR_CPUS项，每一项对应一个逻辑CPU
+					 * 
+					 * ASID数组中的每一项所占用的64位被分割成两段，高56位为版本号，低8位为硬件ASID；
+					 * 版本号为0表示ASID无效，第一个有效的ASID版本号为0x100，引入版本号是为了按批来处理进程
+					 * 版本号相同的进程属于同一批，每一批最多256个进程；
+					 * 进程的ASID有如下特性：
+					 * 1.新创建的进程通过init_new_context()将mm_context_t::ASID[]设置成无效（版本号为0，
+					 * ASID为0）
+					 * 2.进程被调度开始运行时，通过get_new_mmu_context()在当前逻辑CPU上获得有效的ASID，此时
+					 * ASID有效，版本号有效。
+					 * 3.每个逻辑CPU有一个asid_cache变量，表示刚刚分配出去的ASID，同时也表明了当前CPU的ASID
+					 * 版本号
+					 * 4.一个批次的ASID分配完（硬件ASID达到255）以后，版本号升级（即asid_cache增加1）而
+					 * 硬件ASID再次从0开始；当ASID版本号升级到最大值以后，再次回滚到ASID_FIRST_VERSION
+					 * 5.正在运行的进程的ASID必须和asid_cache拥有相同的版本号，这是在调度时检测的。如果匹配
+					 * 则直接运行，否则通过get_new_mmu_context()在特定的逻辑CPU上重新获取ASID再投入运行
+					 * 6.可以在必要的时候通过drop_mmu_context()废弃一个进程地址空间在当前逻辑CPU上的ASID
+					 */
 		...
-	}__randomie_layout;		/* 结构体随机化，表示此结构的内部布局是可以随机调整的 */
+	}__randomize_layout;		/* 结构体随机化，表示此结构的内部布局是可以随机调整的 */
 	unsigned long cpu_bitmap[];
 };
 
@@ -3381,7 +3382,9 @@ unsigned long do_mmap(struct file *file, unsigned long addr, unsigned long len,
 	...
 	addr = get_unmapped_area(file, addr, len, pgoff, flags);	/*确定一个符合条件的区域*/
 	...
-	addr = mmap_region(file, addr, len, vm_flags, pgoff, uf);	/*映射该区域*/
+	addr = mmap_region(file, addr, len, vm_flags, pgoff, uf);	/* 映射该区域
+									 * 主要工作是设置vma
+									 */
 
 	if ((vm_flags & VM_LOCKED) ||
 			(flags & (MAP_POPULATE | MAP_NONBLOCK)) == MAP_POPULATE))
@@ -3604,6 +3607,7 @@ static vm_fault_t handle_pte_fault(struct vm_fault *vmf)
 	 */
 }
 
+/* 前两种出现频率较高，看一下第1种先*/
 static vm_fault_t do_fault(struct vm_fault *vmf)
 {
 	/* do_read_fault()处理私有文件映射和共享文件映射的读异常	
@@ -3611,11 +3615,82 @@ static vm_fault_t do_fault(struct vm_fault *vmf)
 	 * do_share_fault()处理共享文件的写异常
 	 * 
 	 * 这三个分支的关键步骤都是__do_fault()，而它的核心则是vma->vm_ops->fault(vma, &vmf)
+	 *
+	 * 在fault()中会找到或分配物理页，以xfs文件系统为例，xfs_filemap_fault()->filemap_fault()->
+	 * 1.首先会调用find_get_page()在当前地址空间里找符合条件的page，找到后执行do_async_mmap_readahead做异步预读
+	 * 2.如果没有找到会执行同步预读do_sync_mmap_readahead()，之后再次调用find_get_page()来查找对应的page是否准备就绪
 	 */
+}
+
+/* 再看一下第二种匿名页PTE表项无效情况*/
+int do_anonymous_page(struct vm_fault *vmf)
+{
+	pte_alloc(vma->vm_mm, vmf->pmd);
+	anon_vma_prepare(vma);
+	page = alloc_zeroed_user_highpage_movable(vma, vmf->address);	/* 分配页帧了*/
+	__SetPageUptodate(page);
+	entry = mk_pte(page, vma->vm_page_prot);
+	if (vma->vm_flags & VM_WRITE)
+		entry = pte_mkwrite(pte_mkdirty(entry));
+	vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd, vmf->address, &vmf->ptl);
+	if (userfaultfd_missing(vma))
+		return handle_userfault(vmf, VM_UFFD_MISSING);
+	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, entry);
+	update_mmu_cache(vma, vmf->address, vmf->pte);
+	return 0;
 }
 ```
 
+##### 总结一下
+* mmap()时建立的内存映射，只是对vma的初始化，比如文件映射时，设置vma->vm_file, vma->vm_ops等等
+* 只有到了__do_page_fault()处理缺页异常时, 如果是文件映射引起的缺页异常才会调用handle_mm_fault()建立页表、分配页帧
+
 ## 4.6 内存管理其他话题
+### 4.6.1 反射映射
+### 4.6.2 内存回收
+* 内存回收分直接回收和周期性回收
+> 直接回收在内存分配函数得不到满足时直接触发
+
+> 周期性回收是内核线程kswapd的周期性扫描和评估
+
+* 从Linux4.8.0版本开始将基于管理区的内存回收改成了基于NUMA节点的内存回收方式，LRU链表也从管理区移到NUMA节点
+* 5个LRU链表
+> LRU_INACTIVE_ANON, 匿名页不活跃链表
+
+> LRU_ACTIVE_ANON，匿名页活跃链表
+
+> LRU_INACTIVE_FILE，文件页不活跃链表
+
+> LRU_ACTIVE_FILE，文件页活跃链表
+
+> LRU_UNEVICTABLE，不可回收页链表
+
+> 节点页面管理数据struct pglist_data里面有个lruvec成员，它的主要内容是lists[NR_LRU_LISTS]数组，这个数组就是5个LRU链表
+
+### 4.6.3 巨页机制
+* HUGETLBFS
+> 缺点，需要修改应用程序
+
+```
+mount -t hugetlbfs none /mnt/huge
+
+```
+
+* THP
+> THP的主要工作原理是使用内核线程khugepaged扫描进程地址空间，在满足条件时自动将常规页组合成巨页
+
+> THP支持，需要配置内核CONFIG_TRANSPARENT_HUGEPAGE
+
+> THP有三种工作模式：always, madvise, never
+
+> 不需要修改应用程序
+
+* 巨页机制对交换不太友好，在交换出去之前必须拆分成常规页
+* 巨页开发方面参考：tools/testing/selftests/vm/
+
+## 4.7 本章小结
+
+
 
 
 
