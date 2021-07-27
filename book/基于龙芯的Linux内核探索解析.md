@@ -3690,6 +3690,241 @@ mount -t hugetlbfs none /mnt/huge
 
 ## 4.7 本章小结
 
+# 第5章 进程管理解析
+## 5.1 进程描述符
+```c
+struct task_struct {
+	volatile long state;			/*进程的运行状态，形如TASK_XXX*/
+	randomized_struct_fields_start
+	void *stack;				/*指向进程内核栈的指针，实际上也包含了体系结构相关的线程信息结构thread_info*/
+	refcount_t usage;			/*进程描述符的引用计数*/
+	unsigned int flags;			/*进程的标志集合，形如PF_xxx*/
+	int on_cpu;				/*为1表示正在CPU上运行，为0表示未运行*/
+	int on_rq;				/*进程在运行队列的状态：0表示进程不在任何运行队列中；1表示正在队列中排队；2表示正在队列间迁移*/
+	int prio;				/*普通进程的调度优先级*/
+	int static_prio;			/*普通进程的静态优先级*/
+	int normal_prio;			/*普通进程的动态优先级*/
+	unsigned int rt_priority;		/*实时进程的实时优先级*/
+	const struct sched_class *sched_class;	/*进程所属的调度器类*/
+	struct sched_entity se;			/*进程的普通高度实体*/
+	struct sched_rt_entity rt;		/*进程的实时调度实体*/
+	struct sched_dl_entity dl;		/*进程的限期调度实体*/
+	unsigned int policy;			/*进程的调度策略*/
+	int nr_cpus_allowed;
+	cpumask_t cpus_mask;			/*进程的CPU亲和关系掩码*/
+	const cpumask_t *cpus_ptr;
+#ifdef CONFIG_CGROUP_SCHED
+	struct task_group *sched_task_group;	/*进程所在的进程组（用于组调度）*/
+#endif
+#ifdef CONFIG_PREEMPT_RCU
+	int rcu_read_lock_nesting;		/*可抢占RCU所使用的嵌套计数器*/
+	union rcu_spicial rcu_read_unlock_special;
+	struct list_head rcu_node_entry;
+	struct rcu_node *rcu_blocked_node;
+#endif
+	struct sched_info sched_info;
+	struct list_head tasks;			/*将所有进程链接在一起的链表结构*/
+	struct mm_struct *mm, *active_mm;	/*进程的内存描述符，进程的活动内存描述符*/
+	int exit_state;				/*进程的退出状态，形如EXIT_XXX*/
+	int exit_code;
+	int exit_signal;
+	unsigned int personality;
+	unsigned sched_reset_on_fork:1;
+	unsigned sched_contributes_to_load:1;
+	unsigned sched_migrated:1;
+	unsigned in_execve:1;
+	unsigned in_iowait:1;
+	unsigned long atomic_flags;
+	pid_t pid;					/*全局进程ID（线程ID）*/
+	pid_t tgid;					/*进程的在线程组的全局组ID*/
+	struct task_struct __rcu *real_parent;		/*进程的真实父进程*/
+	struct task_struct _rcu *parent;		/*进程的当前父进程*/
+	struct list_head children;			/*进程的子进程列表*/
+	struct list_head sibling;			/*进程的兄弟进程列表*/
+	struct task_struct *group_leader;
+	struct list_head ptraced;
+	struct list_head ptrace_entry;
+	struct pid *thread_pid;				/*进程自身的PID结构（PIDTYPE_PID类型）*/
+	struct hlist_node pid_links[PIDTYPE_MAX];	/*用于查找命名空间相关的PID数组的哈希表元素*/
+	struct list_head thread_group;
+	struct list_head thread_node;
+	struct completion *vfork_done;
+	int __user *set_child_tid;
+	int __user *clear_child_tid;
+	u64 utime;					/*进程花在用户态的绝对时间*/
+	u64 stime;					/*进程花在内核态的绝对时间*/
+	u64 utimescaled;				/*进程花在用户态的相对时间*/
+	u64 stimescaled;				/*进程花在内核态的相对时间*/
+	u64 gtime;					/*进程花在客户态的时间（虚拟机进程）*/
+	struct prev_cputime prev_cputime;
+	u64 start_time;					/*启动时间（单位为纳秒，用单调时间表示）*/
+	u64 real_start_time;				/*启动时间（单位为纳秒，用开机时间表示）*/
+	unsigned long min_flt;
+	...
+	struct fs_struct *fs;				/*文件系统的上下文相关信息*/
+	struct files_struct *files;			/*打开的文件描述符信息*/
+	struct signal_struct *signal;			/*信号有关的通用信息*/
+	struct sighand_struct *sighand;			/*信号的处理函数信息*/
+	struct sigpending pending;			/*待决的私有信号*/
+	struct io_context *io_context;			/*IO上下文*/
+	struct mempolicy *mempolicy;			/*进程的NUMA内存分配策略*/
+	randomized_struct_fields_end
+	struct thread_struct thread;			/*体系结构相关的线程上下文描述符（主要是寄存器上下文）*/
+};
+```
+
+### 5.1.1 运行状态相关
+* 进程状态可分成“活动时状态”和“死亡后状态”两大类
+> 活动时：TASK_NEW, TASK_RUNNING, TASK_INTERRUPTIBLE, TASK_KILLABLE, TASK_UNINTERRUPTIBLE, TASK_IDLE, TASK_PARKED, TASK_WAKING, TASK_STOPPED, TASK_TRACED;此时的退出状态一律为0
+
+> 死亡后：EXIT_DEAD, EXIT_ZOMBIE, EXIT_TRACE；此时进程的运行状态为TASK_DEAD
+
+* 常用的睡眠函数
+```c
+void ssleep(unsigned int seconds);	/*秒级睡眠函数。将当前进程的状态设为TASK_UNINTERRUPTIBLE，但不挂接到任何等待队列，睡眠seconds秒后回到TASK_RUNNING状态*/
+
+void msleep(unsigned int msecs);	/*毫秒级睡眠函数。将当前进程的状态设为TASK_UNINTERRUPTIBLE，但不挂接到任何等待队列，睡眠msecs秒后回到TASK_RUNNING状态*/
+
+unsigned long msleep_interruptible(unsigned int msecs);	/*毫秒级睡眠函数。将当前进程的状态设为TASK_INTERRUPTIBLE，但不挂接到任何等待队列，睡眠msecs秒后回到TASK_RUNNING状态*/
+
+void usleep_range(unsigned long min, unsigned long max);	/*微秒级睡眠函数。将当前进程的状态设为TASK_UNINTERRUPTIBLE，但不挂接到任何等待队列，睡眠最小min微秒、最大max微秒后回到TASK_RUNNING状态。*/
+
+void sleep_on(wait_queue_head_t *q);	/*将当前进程的状态设为TASK_UNINTERRUPTIBLE，并挂接到等待队列q上面*/
+
+void sleep_on_timeout(wait_queue_head_t *q, signed long timeout);	/*将当前进程的状态设为TASK_UNINTERRUPTIBLE，并挂接到等待队列q上面，如果睡眠超时达到timeout则进程被自动唤醒*/
+
+void interruptible_sleep_on(wait_queue_head_t *q);	/*将当前进程的状态设为TASK_INTERRUPTIBLE，并挂接到等待队列q上面*/
+
+void interruptible_sleep_on_timeout(wait_queue_head_t *q, signed long timeout);	/*将当前进程的状态设为TASK_INTERRUPTIBLE，并挂接到等待队列q上面，如果睡眠超时达到timeout则进程被自动唤醒*/
+
+wait_event(wq, condition);	/*将当前进程的状态设为TASK_UNINTERRUPTIBLE，并挂接到等待队列wq上面, 如果条件condition满足则进程被自动唤醒*/
+
+wait_event_timeout(wq, condition, timeout);	/*将当前进程的状态设为TASK_UNINTERRUPTIBLE，并挂接到等待队列wq上面, 如果条件condition满足或睡眠超时timeout则进程被自动唤醒；使用的是普通定时器*/
+
+wait_event_hrtimeout(wq, condition, timeout);	/*将当前进程的状态设为TASK_UNINTERRUPTIBLE，并挂接到等待队列wq上面, 如果条件condition满足或睡眠超时timeout则进程被自动唤醒；使用的是高分辨率定时器*/
+
+wait_event_interruptible(wq, condition);	/*将当前进程的状态设为TASK_INTERRUPTIBLE，并挂接到等待队列wq上面, 如果条件condition满足则进程被自动唤醒*/
+
+wait_event_interruptible_timeout(wq, condition, timeout);	/*将当前进程的状态设为TASK_INTERRUPTIBLE，并挂接到等待队列wq上面, 如果条件condition满足或睡眠超时timeout则进程被自动唤醒；使用的是普通定时器*/
+
+wait_event_interruptible_hrtimeout(wq, condition, timeout);	/*将当前进程的状态设为TASK_INTERRUPTIBLE，并挂接到等待队列wq上面, 如果条件condition满足或睡眠超时timeout则进程被自动唤醒；使用的是高分辨率定时器*/
+
+wait_event_freezable(wq, condition);	/*将当前进程的状态设为TASK_INTERRUPTIBLE，并挂接到等待队列wq上面, 如果条件condition满足则进程被自动唤醒;如果在条件未满足时被唤醒，则调用try_to_freeze()试图进入冻结状态*/
+
+wait_event_freezable_timeout(wq, condition, timeout);	/*将当前进程的状态设为TASK_INTERRUPTIBLE，并挂接到等待队列wq上面, 如果条件condition满足或睡眠超时timeout则进程被自动唤醒;如果在条件未满足时被唤醒，则调用try_to_freeze()试图进入冻结状态*/
+```
+
+* 常用的唤醒函数
+```c
+wake_up(x);		/*在等待队列x上唤醒一个进程*/
+
+wake_up_nr(x, nr);	/*在等待队列x上唤醒nr个进程*/
+
+wake_up_all(x);		/*在等待队列x上唤醒所有进程*/
+
+wake_up_interruptible(x);	/*在等待队列x上唤醒一个状态为TASK_INTERRUPTIBLE的进程*/
+
+wake_up_interruptible_nr(x, nr);	/*在等待队列x上唤醒nr个状态为TASK_INTERRUPTIBLE的进程*/
+
+wake_up_interruptible_all(x);	/*在等待队列x上唤醒所有状态为TASK_INTERRUPTIBLE的进程*/
+
+```
+
+### 5.1.2 标识调度相关
+* 在Linux中进程和线程都是运行的程序实体，两者的区别是进程有独立的地址空间（mm_struct），而若干个线程共享同一个地址空间（mm_struct）
+* Linux中的线程容器不是进程，而是线程组
+> 一个运行中的多线程程序是一个线程组，里面包含多个线程；
+
+> 一个运行中的单线程程序也是一个线程组，里面包含一个线程
+
+* Linux上，用户线程、内核线程、进程都有一个独立的内核数据结构（task_struct），都是接受内核调度的基本单位
+* 用户级的线程通常叫“协程”（Co-routine）
+* 从内核数据结构上讲，进程和线程基本上是同义词
+* 从用户程序执行的角度讲，进程指的是线程组
+* 在内核数据结构中，每一个进程或线程都有一个进程ID（pid, 也是线程ID）和一个线程组ID（tgid）
+> 对于线程组组长，pid与tgid相等
+
+> 对于非线程组组长，pid是线程自己的pid，tgid是所在线程组组长的pid
+
+> 在用户态运行时库glibc中，getpid()实际获得的是tgid，而gettid()获取的是pid
+
+> 多个进程（或线程）可以组合成“线程组”，多个线程组可以组合成“进程组”，多个进程组可以组合成“会话”
+
+* 进程的组织结构可以理解为：命名空间->会话->进程组->进程（线程）组->线程
+* 线程上下文描述符struct thread_struct
+> 主要用于进程间切换时相关寄存器状态缓存
+
+* 线程信息结构struct thread_info
+> 主要用于进程从用户态向内核态切换时相关的寄存器状态缓存
+
+* 进程描述符里没有直接给出指向线程信息结构的成员，但有一个指向内核栈的指针stack，它实际上指的就是thread_info
+* 线程信息结构访问非常频繁，因此专门用GP寄存器促当前进程的thread_info指针
+> 该指针可以通过current_thread_info()函数获取
+
+> current宏则是用来获取当前进程的进程描述符，实际上用的就是current_thread_info()->task
+
+* 一个内核线程只有一个内核栈，而一个用户线程包括一个内核栈一个用户栈。进程的用户栈用于执行应用程序，而进程的内核栈用于执行进程的内核态代码（比如异常、中断、系统调用）。进程进入和退出内核态时，需要切勿栈指针SP
+
+```c
+struct thread_struct {
+	unsigned long 		reg16;
+	unsigned long 		reg17, reg18, reg19, reg20, reg21, reg22, reg23;
+	unsigned long		reg29, reg30, reg31;
+	unsigned long		cp0_status;
+	struct mips_fpu_struct fpu FPU_ALIGN;
+	struct mips_dsp_state dsp;
+	union mips_watch_reg_state watch;
+	unsigned long		cp0_badvaddr;
+	unsigned long		cp0_baduaddr;
+	unsigned long		error_code;
+	unsigned long		trap_nr;
+	struct mips_abi		*abi;
+	
+};
+
+struct thread_info {
+	struct task_struct 	*task;
+	unsigned long 		flags;
+	unsigned long		tp_value;
+	__u32			cpu;
+	int			preempt_count;
+	mm_segment_t 		addr_limit;
+	struct pt_regs		*regs;
+	long			syscall;
+};
+```
+
+### 5.1.3 其他重要部分
+* 同一线程组中所有线程共享一个信号描述符signal_struct
+
+## 5.2 进程创建
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
