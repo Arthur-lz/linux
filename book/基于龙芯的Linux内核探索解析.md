@@ -3706,7 +3706,7 @@ struct task_struct {
 	int normal_prio;			/*普通进程的动态优先级*/
 	unsigned int rt_priority;		/*实时进程的实时优先级*/
 	const struct sched_class *sched_class;	/*进程所属的调度器类*/
-	struct sched_entity se;			/*进程的普通高度实体*/
+	struct sched_entity se;			/*进程的普通调度实体*/
 	struct sched_rt_entity rt;		/*进程的实时调度实体*/
 	struct sched_dl_entity dl;		/*进程的限期调度实体*/
 	unsigned int policy;			/*进程的调度策略*/
@@ -3858,7 +3858,7 @@ wake_up_interruptible_all(x);	/*在等待队列x上唤醒所有状态为TASK_INT
 > 主要用于进程从用户态向内核态切换时相关的寄存器状态缓存
 
 * 进程描述符里没有直接给出指向线程信息结构的成员，但有一个指向内核栈的指针stack，它实际上指的就是thread_info
-* 线程信息结构访问非常频繁，因此专门用GP寄存器促当前进程的thread_info指针
+* 线程信息结构访问非常频繁，因此专门用GP寄存器保存当前进程的thread_info指针
 > 该指针可以通过current_thread_info()函数获取
 
 > current宏则是用来获取当前进程的进程描述符，实际上用的就是current_thread_info()->task
@@ -3898,6 +3898,120 @@ struct thread_info {
 * 同一线程组中所有线程共享一个信号描述符signal_struct
 
 ## 5.2 进程创建
+### 5.2.1 复制新进程
+* SysV IPC（UNIX System V Inter-Process Communication）是UNIX System V中引入的并在Linux内核中实现的3种进程间通信机制
+> 信号量（SEM）
+
+> 消息队列（MSG）
+
+> 共享内存（SHM）
+
+* _do_fork()
+```c
+sys_fork();		/*_do_fork(SIGCHLD, 0, 0, NULL, NULL, 0);*/
+sys_vfork();		/*_do_fork(CLONE_VFORK | CLONE_VM | SIGCHLD, 0, 0, NULL, NULL, 0);*/
+sys_clone();		/*_do_fork(clone_flags, newsp, 0, parent_tidptr, child_tidptr, tls);*/
+kernel_thread();	/*_do_fork(flags | CLONE_VM | CLONE_UNTRACED, (unsigned long)fn, (unsigned long)arg, NULL, NULL, 0);*/
+
+/* fork()创建出来的子进程没有特殊标志，在退出时往父进程发送SIGCHILD信号；
+ * vfork()创建出来的子进程带CLONE_VFORK, CLONE_VM两个标志，因此共享父进程的地址空间，并在执行新程序之前阻塞父进程，同样在退出时往父进程发送SIGCHILD信号；
+ * kernel_thread()创建出来的内核线程带CLONE_VM, CLONE_UNTRACED两个标志，说明它共享地址空间并禁止被跟踪
+ */
+
+/*所有创建新进程、线程的函数最终都由_do_fork()实现, 它定义在kernel/fork.c中*/
+
+/* _do_fork
+ * 功能：复制进程
+ * 特殊：成功返回时会产生两个进程（父进程和子进程）。
+ * 返回值：
+ *       如果子进程创建成功，父进程将返回子进程的进程ID，而子进程返回0
+ *       如果子进程创建失败，则父进程返回一个错误码
+ */
+long _do_fork(struct kernel_clone_args *args)
+{
+	struct task_struct *p;
+	u64 clone_flags = args->flags;
+	p = copy_process(NULL, trace, NUMA_NO_NODE, args);	/*复制父进程所有必需数据结构，返回子进程的进程描述符*/
+	pid = get_task_pid(p, PIDTYPE_PID);			/*获取子进程的PID结构*/
+	nr = pid_vnr(pid);					/*获取子进程在所属命名空间的进程ID*/
+	if (clone_flags & CLONE_PARENT_SETTID)
+		put_user(nr, parent_tidptr);			/*将nr拷贝到parent_tidptr中*/
+	if (clone_flags & CLONE_VFORK) {
+		p->vfork_done = &vfork;
+		init_completion(&vfork);			/*初始化一个完成变量*/
+	}
+	wake_up_new_task(p);					/*唤醒刚刚创建的子进程*/
+	if (clone_flags & CLONE_VFORK)				/*如果是vfork，则父进程阻塞等待子进程退出*/
+		wait_for_vfork_done(p, &vfork);
+	return nr;
+}
+
+struct task_struct *copy_process(struct pid *pid, int trace, int node, struct kernel_clone_args *args)
+{
+	...
+	p = dup_task_struct(current, node);	/*复制一个新的进程描述符, 复制的结果是子进程的所有成员与父进程相同，只有stack例外，因为它包含了内核栈和线程信息结构，不能共享*/
+	...
+	/*接下来对新进程的进程描述符的各个字段进行初始化*/
+	cgroup_fork(p);					/*组相关字段初始化*/	
+	...
+	retval = sched_fork(clone_flags, p);		/*调度器相关字段*/
+	...
+	shm_init_task(p);				/*共享内存相关字段*/
+	/*下面copy_xxx形式的复制函数，根据参数clone_flags来决定是复制还是共享父进程的数据结构; 如果是共享方式，则增加父进程相应数据结构的引用计数*/
+	retval = copy_semundo(clone_flags, p);		/*信号量取消队列*/
+	retval = copy_files(clone_flags, p);
+	retval = copy_fs(clone_flags, p);
+	retval = copy_sighand(clone_flags, p);
+	retval = copy_signal(clone_flags, p);
+	retval = copy_mm(clone_fags, p);
+	retval = copy_namespaces(clone_flags, p);
+	retval = copy_io(clone_flags, p);
+	retval = copy_thread_tls(clone_flags, args->stack, args->stack_size, p, args->tls);	/*在任何时候不能与父进程共享，必须新建*/
+	...
+}
+
+int copy_thread_tls(unsigned long clone_flags, unsigned long usp, 
+		unsigned ong kthread_arg, struct task_struct *p, unsigned long tls)
+{
+	struct thread_info *ti = task_thread_info(p);		/*取子进程的线程结构信息*/
+	struct pt_regs *childregs, *regs = current_pt_regs();	/*取当前进程（父进程）在内核栈中的寄存器上下文*/
+	childksp = (unsigned long)task_stack_page(p) + THREAD_SIZE - 32;	/*计算子进程内核栈的初始栈指针*/
+	childregs = (struct pt_regs*) childksp - 1;
+	childksp = (unsigned long)childregs;
+	p->thread.cp0_status = read_c0_status() & ~(ST0_CU2 | ST0_CU1);	/*子进程CP0的Status寄存器的值是在当前Status的基础之上去掉ST0_CU2和ST0_CU1，这表示子进程开始时CP1和CP2未使能*/
+	/************************************以下是内核线程**********************************************/
+	if (p->flags & PF_KTHREAD) {
+		unsigned long status = p->thread.cp0_status;
+		memset(childregs, 0, sizeof(struct pt_regs));	/*将栈中的寄存器上下文清0，这是因为这个寄存器上下文是返回用户态以后使用的，但内核线程不可能返回到用户态，所以不需要*/
+		ti->addr_limit = KERNEL_DS;			/*将addr_limit设置成KERNEL_DS表示地址访问不受限制*/
+		p->thread.reg16 = usp;				/*将线程上下文描述符中的reg16设置成输入参数usp*/
+		p->thread.reg17 = kthread_arg;
+		p->thread.reg29 = childksp;			/*线程上下文描述符中的reg29是栈指针SP*/
+		p->thread.reg31 = (unsigned long) ret_from_kernel_thread;	/*线程上下文描述符中的reg31是返回地址RA, 这表示子进程开始运行时，第一条指令位于ret_from_kernel_thread*/
+		status |= ST0_EXL;	/*加上EXL位，表示内核线程执行时处于“异常模式”*/
+		childregs->cp0_status = status;
+		return 0;
+	}
+	/*************************************以下是用户进程********************************************/
+	*childregs = *regs;
+	childregs->regs[7] = 0;				/*将栈中寄存器上下文的7号寄存器清0，即A3，表示清除错误码*/
+	childregs->regs[2] = 0;				/*2号寄存器清0，即V0，表示子进程将返回0*/
+	if (usp)					/*usp非0时，设置29号寄存器，即SP*/
+		childregs->regs[29] = usp;
+	ti->addr_limit = USER_DS;			/*addr_limit设置成USER_DS表示其地址访问被限制在用户空间*/
+	p->thread.reg29 = (unsigned long) childregs;
+	p->thread.reg31 = (unsigned long) ret_from_fork;	/*子进程刚开始运行时，第一条指令位于ret_from_fork处*/
+	childregs->cp0_status &= ~(ST0_CU2 | ST0_CU1);
+	clear_tsk_thread_flag(p, TIF_USEDFPU);
+	clear_tsk_thread_flag(p, TIF_USEDMSA);
+	clear_tsk_thread_flag(p, TIF_MSA_CTX_LIVE);
+	if (clone_flags & CLONE_SETTLS)
+		ti->tp_value = tls;
+	return 0;
+}
+```
+
+### 5.2.2 执行新程序
 
 
 
