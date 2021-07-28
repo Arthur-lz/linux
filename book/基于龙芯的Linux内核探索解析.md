@@ -4012,7 +4012,132 @@ int copy_thread_tls(unsigned long clone_flags, unsigned long usp,
 ```
 
 ### 5.2.2 执行新程序
+#### 内核线程
+* 内核线程是内核的一部分，只需要执行一个函数实体，而此函数实体是在创建内核线程时用参数传入的
+> 创建内核线程的方法有如下几种
 
+```c
+pid_t kernel_thread(*threadfn)(void*),void *data, unsigned long flags);
+struct task_struct *kthread_create_on_cpu(int( *threadfn)(void *data), void *data, unsigned int cpu, const char *namefmt);
+struct task_struct *kthread_create_on_node(int ( *threadfn)(void *data), void *data, int node, const char namefmt[], ...);
+kthread_create(threadfn, data, namefmt, arg...) kthread_run(threadfn, data, namefmt, ...);
+```
+
+> 除了1号进程（kernel_init）和2号进程（kthreadd）外，其他的内核线程很少直接用kernel_thread()来创建
+
+> 2号进程kthreadd是除了0、1、2号进程外所有内核线程的祖先；kthreadd在一个大徨里面等待请求，一旦收到请求，便通过create_kthread()来间接调用kernel_thread()来创建内核线程，这样设计的原因是，kernel_thread()是以当前进程为模板来创建内核线程的，但并不是所有的进程都适合作为模块（比如用户进程就不适合），而kthreadd则是一个纯净的内核线程，非常适合作模板  
+
+#### 用户进程
+* do_execveat_common()
+```c
+static int do_execveat_common(int fd, struct filename *filename,
+		struct user_arg_ptr argv, struct user_arg_ptr envp, int flags)
+{
+	return __do_execve_file(fd, filename, argv, envp, flags, NULL);
+}
+
+static int __do_execve_file(int fd, struct filename *filename, 
+		struct user_arg_ptr argv, struct user_arg_ptr envp, int flags, struct file *file)
+{
+	unshare_file(&displaced);	/*不管子进程在创建时是否设置了CLONE_FILES，现在已经到了exec()了，子进程就不可以再共享父进程的files字段了，
+					  因此需要unshare_file*/
+	current->in_execve = 1;		/*这表示exec()过程已经启动*/
+	if (!file) 
+		file = do_open_execat(fd, filename, flags);	/*打开可执行程序文件*/
+	...
+	bprm_mm_init(bprm);		/*bprm, binprm全称是Binary Program, 也就是二进制可执行程序的意思
+					 * 这是第一个重要的函数，用于分配内存描述符并赋值给bprm->mm，再分配一个进程VMA并赋值给bprm->vma
+					 */
+	...
+	prepare_binprm(bprm);		/*这是第二个重要函数，它设置UID、GID、EUID、EGID，然后调用kernel_read()将可执行程序前128字节读入bprm->buf字段中*/
+	...
+	exec_binprm(bprm);		/*这是第三个重要函数，负责装入并执行新程序*/
+	...
+}
+
+struct linux_binprm {			/*可执行文件数据结构*/
+	struct file *file;		/*可执行程序对应的文件对象*/
+	const char *filename;		/*可执行程序文件名*/
+	const char *interp;		/*解释器的文件名, 正常的二进制程序（如a.out或elf类型文件）就等同于filename，如果是脚本则是外壳解释程序（如bash）的文件名*/
+	struct mm_struct *mm;		/*新程序的内存描述符, 此时子进程不能再共享父进程的地址空间了*/
+	struct vm_area_struct *vma;	/*新程序临时栈所使用的进程VMA*/
+	int argc, envc;			/*新程序的命令参数个数和环境变量个数*/
+	char buf[BinPRM_BUF_SIZE];	/*buf是一块长度为128字节的可以被复用的缓冲区*/
+	...
+};
+
+/* exec_binprm()基本上是search_binary_handler()的封装
+ * Linux内核支持多种格式的可执行程序文件，主要包括旧的a.out二进制可执行文件格式，新的elf二进制可执行文件格式和Shell脚本程序
+ * 这些可执行文件格式由数据结构struct linux_binfmt描述
+ */
+
+struct linux_fmt {
+	struct list_head lh;
+	struct module *module;
+	int (*load_binary)(struct linux_binprm *);	/*负责装入并执行新程序*/
+	int (*load_shlib)(struct file*);		/*负责装入共享库*/
+	int (*core_dump)(struct coredump_params *cprm); /*负责崩溃时的内存转储*/
+	unsigned long min_coredump;
+}__randomize_layout;
+
+/*所有内核支持的可执行文件格式保存在双向链表formats中，search_binary_handler()的主要功能就是遍历formats链表，找到与新程序对应的格式并执行其load_binary()函数指针*/
+
+/* 以elf文件格式为例介绍具体的可执行程序文件格式*/
+static struct linux_binfmt elf_format = {
+	.module		= THIS_MODULE,
+	.load_binary	= load_elf_binary,
+	.load_shlb	= load_elf_library,
+	.core_dump	= elf_core_dump,
+	.min_coredump	= ELF_EXEC_PAGESIZE,
+};
+
+/* 对于elf格式内核执行路径：
+ * sys_execve()/sys_execveat()->
+ *	do_execve()/do_execveat()->
+ *		do_execveat_common()->
+ *			exec_binprm()->
+ *				search_binary_handler()->
+ *					fmt->load_binary()->
+ *						load_elf_binary()
+ */
+
+/* elf可执行文件分静态链接和动态链接两种：静态链接不需要共享库，所有代码和数据都在同一个文件里面；
+ * 动态链接的elf文件除了主程序文件以外，还需要若干个.so格式的共享库。
+ * 通常以动态库的elf文件居多，这些程序文件所需要的共享库至少有两个：ld.so, libc.so
+ * ld.so是加载器（有时也叫动态链接程序），它和主程序文件都是内核通过load_elf_binary()加载的，新程序执行时的第一条指令也是在ld.so当中; 
+ * ld.so开始执行以后，会加载libc.so（最常用的运行时共享库）和其他共享库，最后跳转到主程序文件的入口点mian()函数
+ */
+
+```
+
+* load_elf_binary()的主要步骤
+> 1.检查程序文件的前128字节文件头，确定其格式，格式不匹配则返回-ENOEXEC
+
+> 2.读主程序文件的文件头确定各种程序段和共享库
+
+> 3.获取动态链接程序（ld.so）的路径名，打开并读入前128字节的文件头
+
+> 4.调用flush_old_exec()释放从父进程继承的几乎所有资源
+
+> 5.调用setup_new_exec()建立新的执行环境（确定地址空间布局、设置进程名、将虚拟地址空间大小设置成TASK_SIZE）
+
+> 6.调用setup_arg_pages()建立最终的栈区VMA，并将命令行参数和环境变量拷贝到最终位置
+
+> 7.通过elf_map()调用do_mmap()来分配VMA并映射主程序文件的正文段（即代码段）和数据段
+
+> 8.通过set_brk()调用do_brk_flags()来分配初始堆区VMA（用于bss），然后将进程地址空间的初始start_brk和brk字段设置为初始堆区VMA的结束地址
+
+> 9.如果有需要，通过load_efl_interp()调用elf_map()等函数装入动态链接程序（ld.so），其返回值为入口地址elf_entry
+
+> 10.调用arch_setup_additional_pages()创建一些体系结构相关的特殊VMA映射，如VDSO等
+
+> 11.调用create_elf_tables()创建程序表并存放在栈中
+
+> 12.设置进程地址空间的start_code、end_code、start_data、end_data、start_brk、brk、start_stack等字段
+
+> 13.调用体系结构相关的start_thread()，参数为进程内核栈中的寄存器上下文指针regs、新程序入口地址pc（就是动态链接程序ld.so的入口地址elf_entry）和初始栈指针sp
+
+## 5.3 进程销毁
 
 
 
