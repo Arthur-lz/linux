@@ -4025,7 +4025,7 @@ kthread_create(threadfn, data, namefmt, arg...) kthread_run(threadfn, data, name
 
 > 除了1号进程（kernel_init）和2号进程（kthreadd）外，其他的内核线程很少直接用kernel_thread()来创建
 
-> 2号进程kthreadd是除了0、1、2号进程外所有内核线程的祖先；kthreadd在一个大徨里面等待请求，一旦收到请求，便通过create_kthread()来间接调用kernel_thread()来创建内核线程，这样设计的原因是，kernel_thread()是以当前进程为模板来创建内核线程的，但并不是所有的进程都适合作为模块（比如用户进程就不适合），而kthreadd则是一个纯净的内核线程，非常适合作模板  
+> 2号进程kthreadd是除了0、1、2号进程外所有内核线程的祖先；kthreadd在一个大循环里面等待请求，一旦收到请求，便通过create_kthread()来间接调用kernel_thread()来创建内核线程，这样设计的原因是，kernel_thread()是以当前进程为模板来创建内核线程的，但并不是所有的进程都适合作为模块（比如用户进程就不适合），而kthreadd则是一个纯净的内核线程，非常适合作模板  
 
 #### 用户进程
 * do_execveat_common()
@@ -4062,7 +4062,7 @@ struct linux_binprm {			/*可执行文件数据结构*/
 	struct mm_struct *mm;		/*新程序的内存描述符, 此时子进程不能再共享父进程的地址空间了*/
 	struct vm_area_struct *vma;	/*新程序临时栈所使用的进程VMA*/
 	int argc, envc;			/*新程序的命令参数个数和环境变量个数*/
-	char buf[BinPRM_BUF_SIZE];	/*buf是一块长度为128字节的可以被复用的缓冲区*/
+	char buf[BINPRM_BUF_SIZE];	/*buf是一块长度为128字节的可以被复用的缓冲区*/
 	...
 };
 
@@ -4138,6 +4138,207 @@ static struct linux_binfmt elf_format = {
 > 13.调用体系结构相关的start_thread()，参数为进程内核栈中的寄存器上下文指针regs、新程序入口地址pc（就是动态链接程序ld.so的入口地址elf_entry）和初始栈指针sp
 
 ## 5.3 进程销毁
+* 进程销毁时，子进程通过exit()退出程序执行，父进程通过wait()清理相关进程资源
+
+### 5.3.1 退出程序执行
+* 退出程序执行分为主动退出和被动退出两类
+> 被动退出可以是被内核或者其他进程通过信号杀死
+
+```c
+/*
+ */
+asmlinkage long sys_kill(int pid, int sig);
+asmlinkage long sys_tkill(int pid, int sig);
+asmlinkage long sys_tgkill(int tgid, int pid, int sig);
+
+/* 可能杀死目标进程的常用信号主要有：SIGINT、SIGTERM、SIGQUIT、SIGKILL
+ * 目标进程在收到这些信号以后，在信号处理过程中如果选择退出执行，就会调用do_goup_exit()->do_exit()
+ * 不管是主动退出还是被动退出最终都是要调用do_exit()
+ * kernel/exit.c
+ */
+
+void __noreturn do_exit(long code)
+{
+	struct task_struct *tsk = current;
+	set_fs(USER_DS);
+	exit_signals(tsk);				/*负责信号有关的清理工作：它主要是将进程设置状态标志PF_EXITING，声明本进程已经进入退出执行的过程，
+							 * 然后调用retarget_shared_pending()处理待决信号，该函数的主要功能是将共享信号交给其他同组的线程处理
+							 */
+
+	if (unlikely(in_atomic())) {			/* 如果当前进程处于原子上下文，则启用抢占。这是因为后续的退出过程可能会有阻塞，如果不允许抢占，
+							 * 整个系统就可能被冻结
+							 */
+		preempt_count_set(PREEMPT_ENABLED);
+	}
+	group_dead = atomic_dec_and_test(&tsk->signal->live);	/*判断当前退出的线程是否为线程组中最后一个退出的线程, 如果live减1后为0则返回1*/
+	if (group_dead) {					/*最后一个退出的线程时需要删除高分辨率定时器和普通定时器*/
+		hrtimer_cancel(&tsk->signal->real_timer);
+		exit_itimers(tsk->signal);
+	}
+	audit_free(tsk);
+	tsk->exit_code = code;
+	exit_mm(tsk);			/*exit_xxx形式的函数，会将相应子系统里面的各种资源引用计数减一，
+					 *减一之后如果计数为0（代表没有共享的了），就调用相关函数释放资源
+					 */
+	exit_sem(tsk);
+	exit_shm(tsk);
+	exit_files(tsk);
+	exit_fs(tsk);
+	if (group_dead)
+		disassociate_ctty(1);	/*脱离线程组与控制台的关联*/
+	exit_task_namespaces(tsk);
+	exit_task_work(tsk);
+	exit_thread();
+	cgroup_exit(tsk);
+	exit_notify(tsk, group_dead);	/* 自动收割：表示进程最后的残留资源由内核负责清理；
+					 * 被动收割：表示进程最后的残留资源由父进程负责清理；
+					 * 自动收割的进程其退出状态为EXIT_DEAD
+					 * 被动收割的进程其退出状态为EXIT_ZOMBIE
+					 * 对于自动收割的进程，exit_notify()将调用release_task()来试图释放进程的数据结构（进程描述符及其二级数据结构）
+					 */
+	proc_exit_connector(tsk);
+	mpol_put_task_policy(tsk);
+	tsk->flags |= PF_EXITPIDONE;
+	if (tsk->io_context)
+		exit_io_context(tsk);
+	preempt_disable();
+	exit_rcu();
+	do_task_dead();			/*完成最后的死亡宣告操作*/
+}
+
+void __noreturn do_task_dead(void)
+{
+	set_special_state(TASK_DEAD);	/*设置进程状态为TASK_DEAD，宣告当前进程已经死亡*/
+	current->flags |= PF_NOFREEZE;
+	__schedule(false);		/*切换到其他进程，如果内核一切正常，当前进程不会再有机会运行。通过这句实现的不返回__noreturn？*/
+	BUG();				/*如果能执行到这里，必定是内核有缺陷。BUG()后面的空操作无限循环为了保证万一内核BUG真的存在，
+					 *也不会继续往后执行导致更严重的后果
+					 */
+	for (;;)
+		cpu_relax();
+}
+
+```
+
+### 5.3.2 清理进程资源
+* 为什么需要僵尸进程和wait()函数族？因为在某些情况下，我们需要在进程结束以后从“尸体”中获得某些信息
+> 如果不有僵尸进程的设计则意味着进程都是“自动收割”的，那么“尸体”会被内核即时销毁，这也就失去了获取信息的源头
+
+> 如果没有wait()函数族，那么即使有“”也没有获得信息的方法，wait()函数族的输出参数status和rusage就是用于保存从“尸体”获得的那些信息
+
+> wait即收割
+
+* wait()函数族可以用于等待子进程退出，但也可以用于等待子进程发生别的一些状态
+> WEXITED, WSTOPPED, WCONTINUED, WNOHANG, WNOWAIT等options参数选项即可用于wait函数等待子进程发生别的一些什么事情
+
+* do_wait()
+```c
+/*kernel/exit.c*/
+
+static long do_wait(struct wait_opts *wo)
+{
+	/* 看，这里需要用等待队列，为什么要用等待队列？这是因为父进程在执行wait()收割时，子进程可能还没有退出呢，
+	 * 因此父进程需要睡眠，直接到条件满足时，父进程才会被唤醒并从等待队列移除
+	 */
+	init_waitqueue_func_entry(&wo->child_wait, child_wait_callback);	/*父进程被唤醒时执行的函数child_wait_callback*/
+	wo->child_wait.private = current;					/*设置唤醒的对象，就是当前的父进程*/
+	add_wait_queue(&current->signal->wait_chldexit, &wo->child_wait);
+repeat:
+	wo->notask_error = -ECHILD;
+	if ((wo->wo_type < PIDTYPE_MAX) && 
+	    (!wo->wo_pid || hlist_empty(&wo->wo_pid->tasks[wo->wo_type])))
+		goto notask;
+	set_current_state(TASK_INTERRUPTIBLE);
+	tsk = current;
+	do {
+		retval = do_wait_thread(wo, tsk);	/*wait_consider_task(wo, 0, p); 普通的父进程等待子进程*/
+		if (retval)
+			goto end;
+		retval = ptrace_do_wait(wo, tsk);	/*wait_consider_task(wo, 1, p); 调试跟踪器等待被调试跟踪的进程*/
+		if (retval)
+			goto end;
+		if (wo->wo_flags & __WNOTHREAD)
+			break;
+	} while_each_thread(current, tsk);
+notask:
+	retval = wo->notask_error;
+	if (!retval && !(wo->wo_flags & WNOHANG)) {
+		retval = -ERESTARTSYS;			/*表示系统调用需要重新开始*/
+		if (!signal_pending(current)) {		/*判断是自然到达还是被信号打断到达的这里，signal_pending返回假则表示是自然到达*/
+			schedule();			/*如果是自然到达这里，则切到其他进程，当前进程进入睡眠，睡醒后回到repeat重新执行*/
+			goto repeat;
+		}
+	}
+end:
+	__set_current_state(TASK_RUNNING);
+	remove_wait_queue(&current->signal->wait_chldexit, &wo->child_wait);
+	return retval;
+}
+
+static int wait_consider_task(struct wait_opts *wo, int ptrace, struct task_struct *p)
+{
+	int exit_state = READ_ONCE(p->exit_state); 	/*READ_ONCE()是为了确保编译器不做优化, 以便取得确切的最新状态*/
+	if (unlikely(exit_state == EXIT_DEAD)		/*子进程状态为EXIT_DEAD表示子进程是自动收割；或者是被动收割但已经被wait()收割过了, 这种情况下直接返回0*/
+		return 0;
+	if (unlikely(exit_state == EXIT_TRACE)		/* 子进程状态为EXIT_TRACE说明子进程是一个正在被调试器跟踪的进程。
+							 * 这种情况下，调试器退出的时候会通知真正的父进程，因此现在可以忽略不计，也返回0
+							 */
+		return 0;
+	if (exit_state == EXIT_ZOMBIE) {		/*这表示子进程是一个等待被动收割的普通僵尸进程*/
+		if (!delay_group_leader(p)) {		/*如果子进程是线程组组长并且线程组不为空，那么子进程会被延迟收割*/
+			if (unlikely(ptrace) || likely(!p->ptrace))	/* 非延迟收割的子进程，需要进一步判断是不是正在被跟踪，
+									 * 如果没有被跟踪，或虽然被跟踪但跟踪者就是其真正的父进程，
+									 * 那么调用wait_task_zombie()对子进程进行收割
+									 */
+				return wait_task_zombie(wo, p);		/*等待进入僵尸状态的进程*/
+		}
+	}
+	/* 下面的代码是对应exit_state == 0的情况，表示wait()函数族的调用者使用的不仅仅是WEXITED选项，
+	 * 还有WSTOPPED或WCONTINUED，在这两种情况下，将调用wait_task_stopped(), wait_task_continued()完成等待
+	 */
+	ret = wait_task_stopped(wo, ptrace, p);
+	if (ret)
+		return ret;
+	return wait_task_continued(wo, p);
+}
+
+static int wait_task_zombie(struct wait_opts *wo, struct task_struct *p)
+{
+	pid_t pid = task_pid_vnr(p);
+	...
+	if (state == EXIT_DEAD)
+		release_task(p);
+out_info:
+	...
+}
+
+void release_task(struct task_struct *p)
+{
+	struct task_struct *leader;
+	int zap_leader;
+repeat:
+	proc_flush_task(p);		/*清除procfs中进程p对应的缓存数据*/
+	cgroup_release(p);
+	ptrace_release_task(p);
+	__exit_signal(p);
+	zap_leader = 0;
+	leader = p->group_leader;
+	if (leader != p && thread_group_empty(leader) && leader->exit_state == EXIT_ZOMBIE) {
+		zap_leader = do_notify_parent(leader, leader->exit_signal);	/*整个线程组中，线程组组长进入僵尸状态，当前死亡进程不是线程组长，当前线程组无其他活动进程，则调用do_notify_parent通知线程组长的父进程，如果线程组长父进程忽略通知，则zap_leader值为1*/
+		if (zap_leader)
+			leader->exit_state = EXIT_DEAD;		/*将线程组长状态设置成EXIT_DEAD*/
+	}
+	release_thread(p);
+	put_task_struct_rcu_user(p);	/*递减进程描述符中的RCU引用计数，在计数器变成0以后调用call_rcu(&p->rcu, delayed_put_task_struct)
+					 *这里注册了一个rcu回调函数delayed_put_task_struct(), 用于在退出RCU临界区后执行它
+					 */
+	p = leader;			/*p被赋值为线程组组长*/
+	if (unlikely(zap_leader))
+		goto repeat;
+}
+```
+
+## 5.4 进程调度
 
 
 
