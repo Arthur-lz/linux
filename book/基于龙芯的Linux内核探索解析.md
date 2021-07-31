@@ -4470,7 +4470,179 @@ update_curr();	/* 更新进程的调度相关信息，其调用者包括但不�
 ```
 
 ### 5.4.4 调度核心解析
+* 两类重要函数：周期性时钟处理函数scheduler_tick()、调度器主函数schedule()/__schedule()
+#### scheduler_tick()
+* 只有在周期性时钟模式下才会周期性地调用sheduler_tick();
+> 无节拍模式指的是启用CONFIG_NO_HZ配置；
 
+> 周期性模式为启用CONFIG_HZ_PERIODIC配置
+
+> 高分辨率定时器模式指的是启用CONFIG_HIGH_RES_TIMERS配置，反之为低分辨率定时器模式
+
+* 如果选定了MIPS时钟源，那么每当时钟中断到达就会通过handle_int()->plat_irq_dispatch()->mach_irq_dispatch()->do_IRQ()来调用c0_compare_interrupt()
+> 而c0_compare_interrupt()会调用ClockEvent的event_handler()回调函数。根据不同的内核配置event_handler()有四种不同的实现
+
+```c
+tick_handle_periodic();		/* 1、低分辨率定时器 + 周期性模式*/
+tick_nohz_handler();		/* 2、低分辨率定时器 + 无节拍模式*/
+hrtimer_interrupt();		/* 3、高分辨率定时器 + 周期性模式*/
+hrtimer_interrupt();		/* 3、高分辨率定时器 + 无节拍模式*/
+
+/* 龙芯启用高分辨率定时器
+ * c0_compare_interrupt()->
+ *	clock_event_device::event_handler()->
+ *		hrtimer_interrupt()->
+ *			tick_cpu_sched::sched_timer()->
+ *				tick_sched_timer()->
+ *					update_process_times()->
+ *						scheduler_tick()
+ */
+
+void scheduler_tick(void)
+{
+	int cpu = smp_processor_id();
+	struct rq *rq = cpu_rq(cpu);
+	struct task_struct *curr = rq->curr;
+	sched_clock_tick();				/* 更新调度时钟*/
+	update_rq_clock(rq);				/* 根据调度时钟更新本地运行队列时钟*/
+	curr->sched_class->task_tick(rq, curr, 0);	/* 根据不同的调度类更新特定的调度信息*/
+#ifdef CONFIG_SMP
+	trigger_load_balance(rq);			/* 在必要的时候触发负载均衡操作*/
+#endif
+}
+
+/* 展开curr->sched_class->task_tick(rq, curr, 0);
+ * 这里假设调度类是CFS，则对应的task_tick是task_tick_fair()
+ */
+
+static void task_tick_fair(struct rq *rq, struct task_struct *curr, int queued)
+{
+	struct sched_entity *se = &curr->se;
+	for_each_sched_entity(se) {
+		cfs_rq = cfs_rq_of(se);
+		entity_tick(cfs_rq, se, queued);
+	}
+	if (static_branch_unlikely(&sched_numa_balancing)) 
+		task_tick_numa(rq, curr);
+}
+
+static void entity_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr, int queued)
+{
+	update_curr(cfs_rq);				/*更新CFS运行队列中与虚拟运行时间有关的调度信息*/
+	update_load_avg(curr, 1);			/*更新当前实体和所在CFS运行队列的CPU负载因子*/
+	update_cfs_group(curr);
+	if (cfs_rq->nr_running > 1)			/*如果CFS运行队列里不只一个可运行进程，则调用check_preempt_tick检查是否需要执行抢占调度*/
+		check_preempt_tick(cfs_rq, curr);
+}
+```
+
+#### schedule(), __schedule()
+* 这两个函数是调度器的主函数，主函数的调用分直接调用（也叫自愿调度或主动调度）和延迟调用两种（或称抢占调度或强制调度）
+
+##### 1.自愿调度
+* 自愿调度有3个场景
+> 1、当前进程需要等待某个条件满足才能继续运行时，调用一个wait_event()类函数将自己的状态设为TASK_INTERRUPTIBLE或者TASK_UNINTERRUPTIBLE，挂到某个等待队列，然后根据情况设置一个合适的唤醒定时器，最后调用schedule()发起调度
+
+> 2、当前进程需要睡眠一段特定时间（不等待任何事件）时，调用一个sleep()类函数将自己的状态设为TASK_INTERRUPTIBLE或TASK_UNINTERRUPTIBLE，但不进入任何等待队列，然后设置一个合适的唤醒定时器，最后调用schedule()发起调度
+
+> 3、当前进程单纯地想要让出CPU控制权时，调用yield()函数将自己的状态设为TASK_RUNNING并依旧处于运行队列，然后执行特定调度类的yield_task()操作，最后调用schedule()发起自愿调度
+
+```c
+asmlinkage __visible void __sched schedule(void)
+{
+	struct task_struct *tsk = current;
+	sched_submit_work(tsk);
+	do {
+		preempt_disable();
+		__schedule(false);			/*参数false表示这是一次自愿调度*/
+		sched_preempt_enable_no_resched();	/*打开抢占但不立即发起重调度*/
+	} while (need_resched());			/*只要当前进程的重调度标志为真，就一直循环*/
+	sched_update_worker(tsk);			/*如果当前进程是内核工作者线程，则调用wq_worker_running()标记当前进程回到运行状态*/
+}
+
+```
+
+#### Linux的块设备I/O模型
+* 每个进程有一个I/O请求队列（plug_list），进程自己发出的I/O请求在这个队列里面合并、排序以便优先对块设备的访问
+* 在一些合适的时间点上，进程请求队列里的I/O请求会被成批刷入I/O调度器内部的一个或者多个I/O请求队列
+> I/O调度器也叫电梯算法
+
+> 每个块设备运行一个自己的I/O调度器，会对来自不同进程的I/O请求进一步合并、排序以便优化对块设备的访问
+
+* 在一些合适的时间点上，电梯队列里面的I/O请求会被成批刷入块设备的分派队列（dispatch_list），通过底层块设备驱动与硬件进行交互
+> 传统上，每个块设备有一个分派队列
+
+> 从Linux 3.13版开始引入了多队列块设备模型，一个块设备可以有多个分派队列
+
+> 龙芯平台缺省用传统的单队列模型
+
+##### 2.抢占调度
+* 分两步：设置调度标志、发起调度
+* 设置调度标志的典型场景（设置当前进程的TIF_NEED_RESCHED标志）
+> 1、当前进程时间配额用完
+
+> 2、有高优先级进程需要运行的时候
+
+* 发起调度的检查点有两
+> 1、在抢占临界区结束时（比如preempt_enable()开抢占的时候检查调度标志，如果为真就调用preempt_schedule()发起抢占调度）
+
+> 2、在异常、中断或系统调用处理完成后返回的时候检查调度标志，如果为真就调用preempt_schedule_irq()发起抢占调度
+
+* preempt_schedule()和preempt_schedule_irq()主要区别是前者用在开中断上下文，而后者用在关中断上下文
+> 它们最终都会调用__schedule()
+
+```c
+static void __sched notrace __schedule(bool preempt)
+{
+	struct task_struct *prev, *next;
+	cpu = smp_processor_id();
+	rq = cpu_rq(cpu);
+	prev = rq->curr;
+	update_rq_clock(rq);
+	if (!preempt && prev->state) {
+		if (unlikely(signal_pending_state(prev->state, prev)))
+			prev->state = TASK_RUNNING;
+		else
+			deactivate_task(rq, prev, DEQUEUE_SLEEP | DEQUEUE_NOCLOCK);
+	}
+	next = pick_next_task(rq, prev);	/* prev当前进程，next是调度算法选择的下一个进程
+						 * 进程调度就是prev让出CPU控制权而next获得CPU控制权
+						 * pick_next_task()总会选择出来一个接下来可以执行的进程，最次的选择就是idle进程，否则会调用BUG()
+						 */
+	clear_tsk_need_resched(prev);
+	clear_preempt_need_resched();
+	if (likely(prev != next)) {
+		rq->nr_switchs++;
+		RCU_INIT_POINTER(rq->curr, next);
+		rq = context_switch(rq, prev, next, &rf);	/*上下文切换函数*/
+	}
+	balance_callback(rq);
+}
+
+static inline struct rq *context_switch(struct rq *rq, struct task_struct *prev,
+		struct task_struct *next, struct rq_flags *fr)
+{
+	prepare_task_switch(rq, prev, next);
+	arch_start_context_switch(prev);
+	if (!next->mm) {
+		enter_lazy_tlb(prev->active_mm, next);
+		next->active_mm = prev->active_mm;
+		if (prev->mm)
+			mmgrab(prev->active_mm);
+		else
+			prev->active_mm = NULL;
+	} else {
+		switch_mm_irqs_off(oldmm, mm, next);
+		if (!prev->mm) {
+			rq->prev_mm = prev->active_mm;
+			prev->active_mm = NULL;
+		}
+	}
+	switch_to(prev, next, prev);
+	barrier();
+	return finish_task_switch(prev);
+}
+```
 
 
 
