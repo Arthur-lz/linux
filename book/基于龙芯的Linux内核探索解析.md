@@ -4619,12 +4619,23 @@ static void __sched notrace __schedule(bool preempt)
 	balance_callback(rq);
 }
 
+/* rq: 运行队列
+ * prev: 切换前的进程　
+ * next: 切换后的进程　
+ * rf: 运行队列标志
+ */
 static inline struct rq *context_switch(struct rq *rq, struct task_struct *prev,
 		struct task_struct *next, struct rq_flags *fr)
 {
-	prepare_task_switch(rq, prev, next);
-	arch_start_context_switch(prev);
-	if (!next->mm) {
+	prepare_task_switch(rq, prev, next);		/*调用prepare_task()将next的on_cpu设为1*/
+	arch_start_context_switch(prev);		/* 龙芯上此函数为空函数*/
+	/* 接下来是关于内存描述符相关的处理逻辑：
+	 * 1.内核线程prev切换到内核线程next
+	 * 2.用户进程prev切换到内核线程next
+	 * 3.内核线程prev切换到用户进程next
+	 * 4.用户进程prev切换到用户进程next
+	 */
+	if (!next->mm) {				/* 这个判断表示接下来切换进程是内核线程*/
 		enter_lazy_tlb(prev->active_mm, next);
 		next->active_mm = prev->active_mm;
 		if (prev->mm)
@@ -4640,9 +4651,15 @@ static inline struct rq *context_switch(struct rq *rq, struct task_struct *prev,
 	}
 	switch_to(prev, next, prev);
 	barrier();
-	return finish_task_switch(prev);
+	return finish_task_switch(prev);	/* 调用finish_task()将prev的on_cpu=0
+						 * 调用finish_arch_post_lock_swithc()
+						 * 如果是从内核切到用户，则调用mmdrop()减少prev->active_mm的引用计数
+						 * 如果prev的状态是TASK_DEAD，调用put_task_struct_rcu_user()清理其进程描述符结构
+						 */
 }
 ```
+
+### 5.4.5 进程切换解析
 
 
 
