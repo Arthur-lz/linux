@@ -677,24 +677,92 @@ P代表重新定位的位置偏移量, 即算出的数据写入到二进制文�
 
 > 4. 绝对重定位采用的方案与相对重定位的方案相同，但计算更简单，它只需要将目标符号的地址与加数值相加即可
 
+## E 2.6 动态链接
+* 内核对必须与库动态链接才能运行的ELF文件不感兴趣
+* 模块中的所有引用都可以通过重定位解决
+* 用户空间程序的动态链接则完全由用户空间中的ld.so完成
+* .dynsym保存了有关符号表，包含了所有需要通过外部引用解决的符号
+* .dynamic保存了一个数组，数组项为Elf32_Dyn类型，这些项提供了以下几个段落所描述的信息
+```
+Symbol table '.dynsym' contains 185 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND
+     1: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND sigprocmask@GLIBC_2.2.5 (2)
+     2: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND raise@GLIBC_2.2.5 (2)
+     3: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND free@GLIBC_2.2.5 (2)
+     4: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND strcasecmp@GLIBC_2.2.5 (2)
+     5: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND abort@GLIBC_2.2.5 (2)
+     6: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND __errno_location@GLIBC_2.2.5 (2)
+     7: 0000000000000000     0 NOTYPE  WEAK   DEFAULT  UND _ITM_deregisterTMCloneTab
+     8: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND _exit@GLIBC_2.2.5 (2)
+     9: 0000000000000000     0 FUNC    GLOBAL DEFAULT  UND strcpy@GLIBC_2.2.5 (2)
+...
 
+# GLIBC_2.2.5表示必须至少使用GNU标准库的2.2.5版本才能解决这些引用 
+```
+> dynamic节中的数组项的数据类型在内核中定义如下(但根本没有使用，因为该信息在用户空间解释)
 
+```c
+<elf.h>
+typdef struct dynamic {
+	Elf32_Sword d_tag;	/* 用于区分各种指定信息类型的标记, 
+				 *  DT_NEEDED,指定该程序执行所需要的一个动态库
+				 * DT_STRTAB
+				 * DT_SYMTAB
+				 * DT_INIT
+				 * DT_FINI
+				 */ 
+	union{
+	  Elf32_Sword d_val;
+	  Elf32_Addr  d_ptr;
+	} d_un;
 
+} Elf32_Dyn;
 
+readelf --dynamic /usr/local/bin/vim
 
+Dynamic section at offset 0x3b0e18 contains 47 entries:
+  标记        类型                         名称/值
+ 0x0000000000000001 (NEEDED)             共享库：[libgtk-x11-2.0.so.0]
+ 0x0000000000000001 (NEEDED)             共享库：[libgdk-x11-2.0.so.0]
+ 0x0000000000000001 (NEEDED)             共享库：[libgdk_pixbuf-2.0.so.0]
+ 0x0000000000000001 (NEEDED)             共享库：[libgio-2.0.so.0]
+ 0x0000000000000001 (NEEDED)             共享库：[libpango-1.0.so.0]
+ 0x0000000000000001 (NEEDED)             共享库：[libgobject-2.0.so.0]
+ 0x0000000000000001 (NEEDED)             共享库：[libglib-2.0.so.0]
+ 0x0000000000000001 (NEEDED)             共享库：[libSM.so.6]
+ 0x0000000000000001 (NEEDED)             共享库：[libICE.so.6]
+ 0x0000000000000001 (NEEDED)             共享库：[libXt.so.6]
+ 0x0000000000000001 (NEEDED)             共享库：[libX11.so.6]
+ 0x0000000000000001 (NEEDED)             共享库：[libm.so.6]
+ 0x0000000000000001 (NEEDED)             共享库：[libtinfo.so.6]
+ 0x0000000000000001 (NEEDED)             共享库：[libselinux.so.1]
+ 0x0000000000000001 (NEEDED)             共享库：[libdl.so.2]
+ 0x0000000000000001 (NEEDED)             共享库：[liblua5.2.so.0]
+ 0x0000000000000001 (NEEDED)             共享库：[libperl.so.5.30]
+ 0x0000000000000001 (NEEDED)             共享库：[libpthread.so.0]
+ 0x0000000000000001 (NEEDED)             共享库：[libpython3.8.so.1.0]
+ 0x0000000000000001 (NEEDED)             共享库：[libruby-2.7.so.2.7]
+ 0x0000000000000001 (NEEDED)             共享库：[libc.so.6]
+ 0x000000000000000c (INIT)               0x83000	# 用于初始化的函数地址
+ 0x000000000000000d (FINI)               0x30c358	# 用于结束程序的函数地址
+...
 
+ 0x0000000000000005 (STRTAB)             0x2eaa8	# 字符串表位置
+ 0x0000000000000006 (SYMTAB)             0xa580		# 符号表位置
+```
 
+# E 3 小结
 
+# F 3.1
+## kerneldoc
+```c
+/**  这里有两个**，以此类方式说明的函数将包含在API参考手册中
+ *
+ *
+ */
+```
+* 可以使用make htmldocs来生成API参考手册
+> 需要安装sudo apt-get install python3-sphinx
 
-
-
-
-
-
-
-
-
-
-
-
-
+> 生成的API参考手册在Documentation/output/admin-guide/index.html
