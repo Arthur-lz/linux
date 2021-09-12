@@ -628,6 +628,7 @@ typedef struct elf32_rela {
   	Elf32_Word    r_info;
   	Elf32_Sword   r_addend;		/*在计算重定位值时，将根据不同的重定位类型，对该值进行不同的处理*/
 } Elf32_Rela;
+```
 
 ### 2. 重定位类型
 > ELF标准支持很多种重定位类型
