@@ -8,6 +8,7 @@ subsys_initcall(usb_init); 		/* 表示usb_init是usb子系统的初始化函数*
 usb_init()
 
 ```	
+
 > 类似的还有pci子系统, scsi子系统
 
 > 基本在drivers/下第一层目录里都有一个类似的子系统
@@ -50,6 +51,7 @@ struct usb_interface {
 							 */
 	
 };
+```
 
 * usb协议中规定，所有usb设备都必须支持挂起状态
 > 支持挂起是为了节电，当设备在指定的时间内（大约3ms），如果没有发生总线传输，就要进入挂起状态;当它收到一个non-idle信号时，就会被唤醒
@@ -120,11 +122,13 @@ struct usb_endpoint_descriptor {
 	
 } __attribute__ ((packed));
 ```
+
 * usb_bus
 > 什么是usb_bus，每一个主机控制器对应一个usb总线，每一个usb总线对应一个usb_bus结构变量，这个变量在主机控制器驱动程序中申请
 
 > 在usb世界里，一条usb总线就是一棵树，一个usb设备就是一个叶子。为了记录这棵树上的每个叶子，每个总线有一个地址映射表devmap
 
+```c
 struct usb_bus {
 	struct usb_devmap devmap; 	/*usb总线上的地址映射表，它表示了一条总线上usb设备的连接情况, 一条总线上可以接128个usb设备*/
 };
@@ -1044,6 +1048,7 @@ hub_event
 													 * 那怎么才可以做到？这就不是usb core可以回答的问题了，usb core不会知道设备想采用哪种设置，
 													 * 只有设备驱动自己才知道，所以接下来要做的是去在设备模型中寻找属于自己的驱动。
 													 */
+			|-----> hub_power_remaining
 					
 ```
 
@@ -1234,10 +1239,12 @@ static struct usb_driver hub_driver = {		/* hub 的驱动 */
 hub_probe()
 	|-----> INIT_WORK(&hub->events, hub_event);
 	|-----> hub_configure
-		|----->usb_fill_int_urb(hub->urb, hdev, pipe, *hub->buffer, maxp, hub_irq, hub, endpoint->bInterval);
+		|-----> usb_fill_int_urb(hub->urb, hdev, pipe, *hub->buffer, maxp, hub_irq, hub, endpoint->bInterval);
 			\___hub_irq
 				|------>kick_hub_wq
 					|-----> queue_work(hub_wq, &hub->events)
+		|-----> hub_activate
+			|-----> kick_hub_wq
 
 port_event, hub_event
 	|-----> usb_reset_device
@@ -1263,7 +1270,176 @@ hub_port_connect_change
  * driver_add会在总线上寻找每一个设备，如果找到了自己支持的设备，并且该设备没有和别的驱动相互绑定，那么就绑定该设备。
  * 设备的做法也一样，device_add在总线上寻找每一个设备驱动，找到了合适的就绑定该设备驱动。最后，调用probe函数，将兵权交给设备驱动。整个过程就叫做usb设备初始化。
  */
+
 ```
+
+* usb_port_init
+```c
+static int hub_set_address(struct usb_device *udev, int devnum)
+{
+        int retval;
+        struct usb_hcd *hcd = bus_to_hcd(udev->bus);
+
+        /*
+         * The host controller will choose the device address,
+         * instead of the core having chosen it earlier
+         */
+        if (!hcd->driver->address_device && devnum <= 1)
+                return -EINVAL;
+        if (udev->state == USB_STATE_ADDRESS)
+                return 0;
+        if (udev->state != USB_STATE_DEFAULT)
+                return -EINVAL;
+        if (hcd->driver->address_device)
+                retval = hcd->driver->address_device(hcd, udev);
+        else
+                retval = usb_control_msg(udev, usb_sndaddr0pipe(),		/* 设置设备地址, 只有设置了真正的地址后，硬件上才能真正通过这个地址进行通信*/
+                                USB_REQ_SET_ADDRESS, 0, devnum, 0,
+                                NULL, 0, USB_CTRL_SET_TIMEOUT);
+        if (retval == 0) {
+                update_devnum(udev, devnum);
+                /* Device now using proper address. */
+                usb_set_device_state(udev, USB_STATE_ADDRESS);			/* 设备地址设备成功后，设置设备的状态为Address, 这个状态表示有地址的状态*/
+                usb_ep0_reinit(udev);						/* 为什么要调用reinit?
+										 * 主机控制器会记录每一个端点的状态，在每一次设备的状态发生变化之后就需要更新主机控制器记录的端点状态。
+										 * 具体来说，ep0是一个struct usb_host_endpoint，它的成员都是为主机控制器驱动使用。
+										 * 它的成员struct list_head urb_list用来保存针对该端点的urb请求，即它保存的是urb请求组成的一个urb请求队列，
+										 * 也许这个urb请求队列里没有urb请求，但如果有urb请求，那么在改变了设备地址后，
+										 * 就需要将urb_list在设备地址改变前的所有urb请求清除掉, 而这就是ep0_reinit要通知主机控制器做的事，
+										 * 由主机控制器具体清除这些urb请求。
+										 *
+										 * 当一个设备没有设置地址时，它使用默认地址，即地址0,而当我们设置完地址后，这个地址发生变化，
+										 * 所以主机控制器必须知道这件事, 进一步的说其实是让主机控制器驱动知道这件事，因为与从设备通信的是hcd.
+										 * usb_disable_endpoint()最终会调用主机控制器提供的函数来让主机控制器清除urb_list里的urb请求，并更新hcd
+										 *
+										 * 这里是因为设备的地址改变了要执行ep0_reinit，如果设备的包大小改变了，也需要执行ep0_reinit，这些都是设备的状态变了
+										 */
+        }
+        return retval;
+}
+
+void usb_detect_quirks(struct usb_device *udev)					/*2.6.31里时，usb_detect_quirks是放在usb_new_deivces中的*/
+{
+        udev->quirks = __usb_detect_quirks(udev, usb_quirk_list);		/* usb_quirk_list是usb黑名单
+										 * 本质上来说，usb_detect_quirks的作用就是看目标设备是否在这张usb黑名单里
+										 * 如果在，则判断是具体哪种问题
+										 */
+
+        /*
+         * Pixart-based mice would trigger remote wakeup issue on AMD
+         * Yangtze chipset, so set them as RESET_RESUME flag.
+         */
+        if (usb_amd_resume_quirk(udev))
+                udev->quirks |= __usb_detect_quirks(udev,			/* 将发现的quirk写到usb_device.quirks */
+                                usb_amd_resume_quirk_list);
+
+        if (udev->quirks)
+                dev_dbg(&udev->dev, "USB quirks for this device: %x\n",
+                        udev->quirks);
+
+#ifdef CONFIG_USB_DEFAULT_PERSIST
+        if (!(udev->quirks & USB_QUIRK_RESET))
+                udev->persist_enabled = 1;
+#else
+        /* Hubs are automatically enabled for USB-PERSIST */
+        if (udev->descriptor.bDeviceClass == USB_CLASS_HUB)
+                udev->persist_enabled = 1;
+#endif  /* CONFIG_USB_DEFAULT_PERSIST */
+}
+
+
+```
+
+* usb_qualifier_descriptor
+```c
+/* USB_DT_DEVICE_QUALIFIER: Device Qualifier descriptor 
+ * 不同的USB版本兼容性问题，比如一个高速设备接到了一个旧的hub上，总不能说用不了了吧，所以，如今的高速设备是可以以高速方式工作也可以不以高速方式工作，即可以调节，接在高速hub上就以高速方式工作，
+ * 如果不是高速hub，则按全速方式工作。
+ * 如何实现呢？首先，在高速和全速下有不同配置的高速设备必须具有一个usb_qualifier_descriptor描述符，它干什么用呢？它描述了一个高速设备在进行速度切换时需要的信息。比如，一个设备当前工作在高速状态，
+ * 那么usb_qualifier_descriptor里保存就是全速信息，如果设备工作在全速状态，那么usb_qualifier_descriptor中保存的就是高速信息。
+ *
+ * 全速设备没有usb_qualifier_descriptor, 只有具有高速工作能力的设备才有
+ */
+struct usb_qualifier_descriptor {
+        __u8  bLength;
+        __u8  bDescriptorType;
+
+        __le16 bcdUSB;
+        __u8  bDeviceClass;
+        __u8  bDeviceSubClass;
+        __u8  bDeviceProtocol;
+        __u8  bMaxPacketSize0;
+        __u8  bNumConfigurations;
+        __u8  bRESERVED;
+} __attribute__ ((packed));
+
+```
+
+* usb_new_device
+```c
+device_add()		/* usb_new_deivce会调用device_add(), 
+			 * 它是设备模型里提供的函数，从作用上来说，这个函数一执行，系统里就真正有这个设备了，/sysfs下面能看到这个设备了，
+			 * 它会去遍历注册到USB总线上的所有驱动程序，如果找到合适的，就去调用这个驱动程序的probe函数，对于U盘就会调用storge_probe，对于hub就会调用hub_probe,
+			 * 传递给xx_probe()函数的参数，是此前获得的struct usb_interface指针和一个struct usb_device_id指针。
+			 * usb_device_id正是它在USB总线上寻找合适驱动的依据，
+			 * 换句话说，每个驱动程序都会把自己支持的设备定义在一张表里，表中的每一项就是一个struct usb_device_id,
+			 * 然后，当我们获得了一个具体的设备，我们就把设备的实际信息与这张表进行对比，如果找到匹配的，就认为该驱动支持该设备，从而最终会调用该驱动的probe函数。
+			 * 从此，该设备就被传递到了设备驱动。到这里为止，hub驱动也完成了它最重要的一项工作。
+			 */
+```
+
+* hub_power_remaining, 八大函数中的最后一个
+```c
+/* 执行完usb_new_device，正常情况下，hub驱动还在计算为新接进来的设备可以分多大的电流，即hub_power_remaining
+ * 从软件的角度来说，hub是不会强行对新接进来的设备采取什么强制措施，最多是打印出调试信息，进行警告。而设备如果真的遇到了供电问题，它自然会出现异常，它也许不工作，这当然由设备的具体驱动负责处理。
+ *
+ * hub_port_connect_change函数讲的是hub驱动遇到端口连接发生变化时如何工作的
+ */
+```
+
+* hub_activate-----> kick_hub_wq
+
+* hub_irq
+```c
+/* 有两条道可以调用hub_events
+ * 1、主动去读hub端口状态
+ * 2、正常工作的hub驱动在发生中断时会读hub端口状态，中断服务的函数为hub_irq，即每当端口有变化事件发生，hub_irq就会被调用，hub_irq会调用kick_hub_wq，触发hub的event_list，于是再次调用hub_evnet()
+ *
+ *  热插拔的实现路径
+ * hub_probe()
+ *       |-----> INIT_WORK(&hub->events, hub_event);
+ *       |-----> hub_configure
+ *       	|-----> usb_fill_int_urb(hub->urb, hdev, pipe, *hub->buffer, maxp, hub_irq, hub, endpoint->bInterval);
+ *       		\___hub端口有中断发生了，主机控制器驱动调用上面传入的urb完成函数hub_irq
+ *       			|------>kick_hub_wq
+ *					|-----> hub_event()
+ */
+```
+
+* 电源管理，先天下之睡而睡，后天下之醒而醒
+> APM
+
+> ACPI，它的状态一共分五种:S1, S2, S3, S4, S5
+
+```
+S4就是STD
+S3就是STR
+在Linux中，S1被叫做Sandby, S3为STR, S5是shutdown; Linux中说挂起，主要说的就是S1, S3, S4, 在/sys/pwoer/state有三种freeze mem disk
+
+/* 配置描述符中的bmAttributes就是标志着设备是否支持Remote Wakeup
+ * Remote Wakeup指的是设备可以发一个信号，把自己唤醒，当然实际上唤醒的是总线，或者说最后的反应是唤醒主机。最简单的例子就是USB键盘，你半天不碰计算机可能大家都睡觉了，可是突然你按了一下键盘，
+ * 可能就把大家唤醒了，因为你实际上是发送了一个硬件信号
+ * 用命令lsusb -v看一下设备的bmAttributes属性，看看它里面有没有显示Remote Wakeup，如果有，则表示支持
+ * Remote Wakeup是设备的特性，不是每个设备都具备。
+ *
+ * 当一个设备是在醒着的状态时，即设备醒来后需要把Wakeup功能关掉，因为只有在要睡觉的时候才需要打开Wakeup功能，就好比我们起床以后把闹钟关掉，而在晚上睡觉前定好闹钟是一个道理
+ * 设置Wakeup用SetFeature，关掉Wakeup用ClearFeature.
+ */
+```
+
+> STD, 挂起到磁盘; 与windows里的休眠对应。
+
+> STR, 挂起到内存; 与windows里的Standby对应。
 
 * David Brownell, 大卫-布劳内尔
 * Alan stern, 艾仑-斯特恩
