@@ -1441,5 +1441,37 @@ S3就是STR
 
 > STR, 挂起到内存; 与windows里的Standby对应。
 
+## 总线、设备、驱动
+### struct bus_type
+* bus_type 让设备、驱动两个链表联系了起来，devices链表、drivers链表
+* 每当出现一个新设备时要向总线报道 
+> usb总线上的设备是由usb core主动去扫描usb总线上的设备并为usb设备建立struct device实例，根据设备的实际情况为这个device实例赋值，并将其插入到usb总线的devices链表
+
+* 每当注册一个驱动时也要向总线报道
+> 驱动就不是usb core主动去加了，而是由驱动主动向usb总线注册
+
+> 每一个usb驱动都有一个结构体struct usb_driver, usb core为每一个usb驱动准备了一个函数usb_register，它会把usb驱动插入到usb_bus_type中的drivers链表中去
+
+* usb总线上现在有了设备和驱动，那么是如何把两者联系起来的呢？
+* 在以前，未出现热插拔设备时，是先有设备
+> 每一个设备在计算机启动之前都已经插到电脑上了
+
+> 然后启动计算机，然后操作系统开始初始化，总线开始扫描设备，每找到一个设备，就为其申请一个device结构，并且挂入总线的devices链表，然后，每一个驱动开始初始化，开始注册其struct device_driver结构
+
+> 然后它去总线的devices链表中去寻找每一个还没有绑定驱动程序的设备，即struct device中的struct device_driver指针仍然为空的设备，然后它会去观察这种设备的特征，看是否是它支持的设备
+
+> 如果是，那么调用一个叫做device_bind_driver的函数，然后它们就结为秦晋之好，换话话说就是把struct device结构中的成员device_driver指针指向这个驱动。
+
+> 而struct device_driver中的成员struct list_head devices中加入设备struct device
+
+> 就如上这样，device, driver, bus这三者之间两两之间就联系上了
+
+* 有了插拔设备之后，设备、驱动谁先谁后说不一定了，都有可能
+> 每当一个设备诞生，它就会去总线的drivers链表中寻找它自己的另一半
+
+> 每当一个个驱动诞生，它就会去总线的devices链表中寻找它支持的那些设备，如果找到合适的，那么调用device_bind_driver绑定好，如果找不到就等着
+
+* 通过一个总线可以找到每一个设备、每一个驱动 
+
 * David Brownell, 大卫-布劳内尔
 * Alan stern, 艾仑-斯特恩
