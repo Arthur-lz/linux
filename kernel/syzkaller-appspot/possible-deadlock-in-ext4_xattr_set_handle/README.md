@@ -223,11 +223,17 @@ Chain exists of:
  *** DEADLOCK ***
 
 3 locks held by syz-executor.2/20558:
- #0: ffff8880772fc460 (sb_writers#6){.+.+}-{0:0}, at: path_setxattr+0xb2/0x1c0 fs/xattr.c:593
+ #0: ffff8880772fc460 (sb_writers#6){.+.+}-{0:0}, at: path_setxattr+0xb2/0x1c0 fs/xattr.c:593				// ? percpu_down_read(sb->s_writers.rw_sem + level - 1);
  #1: ffff8880241e77b0 (&type->i_mutex_dir_key#4){++++}-{3:3}, at: inode_lock include/linux/fs.h:786 [inline]		// down_write(&inode->i_rwsem);
  #1: ffff8880241e77b0 (&type->i_mutex_dir_key#4){++++}-{3:3}, at: vfs_setxattr+0x11c/0x330 fs/xattr.c:300		// inode_lock(inode);
  #2: ffff8880241e7488 (&ei->xattr_sem){++++}-{3:3}, at: ext4_write_lock_xattr fs/ext4/xattr.h:142 [inline		// down_write(&EXT4_I(inode)->xattr_sem);]
  #2: ffff8880241e7488 (&ei->xattr_sem){++++}-{3:3}, at: ext4_xattr_set_handle+0x15c/0x1500 fs/ext4/xattr.c:2294		// ext4_write_lock_xattr(inode, &no_expand);
+
+/* 上面说的进程20558持有的三把锁
+ * sb->s_writers.rw_sem, 这一把不能完全确认
+ * inode->i_rwsem
+ * EXT4_I(inode)->xattr_sem
+ */
 
 stack backtrace:
 CPU: 1 PID: 20558 Comm: syz-executor.2 Not tainted 5.15.0-rc6-syzkaller #0
