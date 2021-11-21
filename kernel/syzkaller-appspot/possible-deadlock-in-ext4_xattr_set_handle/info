@@ -1,0 +1,100 @@
+QEMU emulator version 5.2.0 (Debian 1:5.2+dfsg-11)
+qemu-system-x86_64 ["-m" "2048" "-smp" "4" "-chardev" "socket,id=SOCKSYZ,server=on,nowait,host=localhost,port=2551" "-mon" "chardev=SOCKSYZ,mode=control" "-display" "none" "-serial" "stdio" "-no-reboot" "-name" "VM-4" "-device" "virtio-rng-pci" "-enable-kvm" "-machine" "q35,nvdimm" "-cpu" "max,migratable=off" "-smp" "4,maxcpus=8,cores=2,threads=2,sockets=2" "-vga" "virtio" "-usb" "-usbdevice" "tablet" "-m" "2G,slots=4,maxmem=16G" "-object" "memory-backend-file,id=pmem1,share=off,mem-path=/dev/zero,size=64M" "-device" "nvdimm,id=nvdimm1,memdev=pmem1" "-net" "nic,model=e1000e" "-fdb" "/syzkaller/managers/ci-qemu-upstream/workdir/instance-7/template/fd" "-cdrom" "/syzkaller/managers/ci-qemu-upstream/workdir/instance-7/template/cdrom" "-virtfs" "local,path=/syzkaller/managers/ci-qemu-upstream/workdir/instance-7/template/virtfs,mount_tag=syz,security_model=mapped-xattr,id=syz" "-device" "e1000,netdev=net0" "-netdev" "user,id=net0,restrict=on,hostfwd=tcp:127.0.0.1:10367-:22" "-hda" "/syzkaller/managers/ci-qemu-upstream/current/image" "-snapshot" "-kernel" "/syzkaller/managers/ci-qemu-upstream/current/kernel" "-append" "root=/dev/sda console=ttyS0 root=/dev/sda1"]
+
+[CPU Info]
+processor           : 0, 1, 2, 3
+vendor_id           : GenuineIntel
+cpu family          : 6
+model               : 63
+model name          : Intel(R) Xeon(R) CPU @ 2.30GHz
+stepping            : 0
+microcode           : 0x1
+cpu MHz             : 2299.998
+cache size          : 16384 KB
+physical id         : 0
+siblings            : 4
+core id             : 0, 0, 1, 1
+cpu cores           : 2
+apicid              : 0, 1, 2, 3
+initial apicid      : 0, 1, 2, 3
+fpu                 : yes
+fpu_exception       : yes
+cpuid level         : 13
+wp                  : yes
+flags               : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ss ht syscall nx pdpe1gb rdtscp lm constant_tsc rep_good nopl xtopology nonstop_tsc cpuid tsc_known_freq pni pclmulqdq vmx ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand hypervisor lahf_lm abm cpuid_fault ssbd ibrs ibpb stibp tpr_shadow vnmi flexpriority ept vpid fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid xsaveopt arat umip md_clear arch_capabilities
+vmx flags           : vnmi preemption_timer invvpid ept_1gb flexpriority tsc_offset vtpr vapic ept vpid unrestricted_guest vapic_reg shadow_vmcs
+bugs                : cpu_meltdown spectre_v1 spectre_v2 spec_store_bypass l1tf mds swapgs
+bogomips            : 4599.99
+clflush size        : 64
+cache_alignment     : 64
+address sizes       : 40 bits physical, 48 bits virtual
+power management    : 
+
+--------------------------------------------------------------------------------
+
+[KVM]
+/sys/module/kvm:
+	enable_vmware_backdoor: N
+	flush_on_reuse: N
+	force_emulation_prefix: N
+	halt_poll_ns: 200000
+	halt_poll_ns_grow: 2
+	halt_poll_ns_grow_start: 10000
+	halt_poll_ns_shrink: 0
+	ignore_msrs: N
+	kvmclock_periodic_sync: Y
+	lapic_timer_advance_ns: -1
+	min_timer_period_us: 200
+	mmio_caching: Y
+	nx_huge_pages: N
+	nx_huge_pages_recovery_ratio: 60
+	pi_inject_timer: 0
+	report_ignored_msrs: Y
+	tdp_mmu: Y
+	tsc_tolerance_ppm: 250
+	vector_hashing: Y
+
+/sys/module/kvm_amd:
+	avic: N
+	dump_invalid_vmcb: N
+	intercept_smi: Y
+	nested: 1
+	npt: Y
+	nrips: 1
+	pause_filter_count: 3000
+	pause_filter_count_grow: 2
+	pause_filter_count_max: 65535
+	pause_filter_count_shrink: 0
+	pause_filter_thresh: 128
+	vgif: 1
+	vls: 1
+
+/sys/module/kvm_intel:
+	allow_smaller_maxphyaddr: N
+	dump_invalid_vmcs: N
+	emulate_invalid_guest_state: Y
+	enable_apicv: N
+	enable_shadow_vmcs: Y
+	ept: Y
+	eptad: N
+	fasteoi: Y
+	flexpriority: Y
+	nested: Y
+	nested_early_check: N
+	ple_gap: 0
+	ple_window: 0
+	ple_window_grow: 0
+	ple_window_max: 0
+	ple_window_shrink: 0
+	pml: N
+	preemption_timer: Y
+	pt_mode: 0
+	unrestricted_guest: Y
+	vmentry_l1d_flush: not required
+	vnmi: Y
+	vpid: Y
+
+
+--------------------------------------------------------------------------------
+
+

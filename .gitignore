@@ -16,3 +16,4 @@ src/runninglinuxkernel_4.0
 *.zip
 *.out
 *.bz2
+kernel/syzkaller-appspot/possible-deadlock-in-ext4_xattr_set_handle/src

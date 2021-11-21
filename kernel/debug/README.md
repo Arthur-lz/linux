@@ -19,3 +19,14 @@ gdb vmlinux
 > tcp/ip? 
 
 > debugfs?
+
+* ram0是怎么出来的？
+```
+编译内核时需要配置
+make menuconfig
+Device Drivers > Block devices > RAM block device support 
+
+CONFIG_BLK_DEV_RAM=y
+CONFIG_BLK_DEV_RAM_COUNT=16
+CONFIG_BLK_DEV_RAM_SIZE=4096
+```

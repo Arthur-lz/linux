@@ -1,6 +1,6 @@
-obj-m := testwkup.o                        #要生成的模块名     
+obj-m := testwk.o                        #要生成的模块名     
 
-KDIR := /lib/modules/3.10.0-serica-001.x86_64/build
+KDIR := /lib/modules/`uname -r`/build
 PWD := $(shell pwd)
 
 default:  
