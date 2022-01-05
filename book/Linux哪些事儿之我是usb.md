@@ -1,3 +1,156 @@
+# usb几个版本
+## usb1.0
+## usb1.1
+## usb2.0
+* 高速模式, High-Speed, 速度最高480Mbps
+
+## usb3.0
+* Super-Speed, 比usb2.0的High-Speed提高近10倍，达到了5Gbps
+
+# usb子系统的树形结构
+## usb大树主要包括USB连接、USB主机控制器、USB设备
+### USB主机控制器
+* 它用于控制所有USB设备通信
+* CPU通常不直接与usb设备直接通信，而是和usb主机控制器打交道
+> cpu要对usb设备做什么，它会告诉控制器，而不是直接把命令发给设备
+
+> 控制器负责指挥设备执行命令，事情办完后控制器会通知CPU
+
+### USB设备分为hub(路由)和功能两类
+#### usb hub是什么？
+* 支持usb的计算机不会只允许用户同一时刻只使用一个usb设备
+> 比如，它不会限制你在用u盘时不能用usb键盘也不能用usb鼠标
+
+* 一个USB控制器通常与USB hub集成在一起，两者一对一绑定, 这个hub是root hub(因为hub还可以外接hub)
+
+### USB连接
+* 指USB设备与主机连接时使用的四根线, 电源线、地线和两根信号线
+
+# USB协议
+## USB总线是一种轮循总线
+> 协议中规定所有的数据传输必须由主机发起，由主机控制器初始化所有的数据传输，各种设备围绕在主机周围
+
+## USB通信
+### 端点, Endpoint
+> 主机和端点之间的数据传输是通过管道
+
+* 端点就是通信的发送点或接收点，要发送数据，只需要把数据发送到正确的端点就可以了
+* 管道只是用来找到相应的端点
+
+#### 管道的通信方式有两种
+* stream
+> stream管理对数据没有特殊要求
+
+* message
+> message管道要求从其通过的数据必须具有一定的数据格式，必须要让设备明白发送的请求是什么 
+
+> usb协议中规定message管道必须对应两个相同号码的端点：一个用来in，一个用来out，默认的管道就是message管道
+
+#### usb端点有四种类型分别对应了四种不同的数据传输方式
+* 控制传输
+> 用于对设备进行配置
+
+> 获取设置信息
+
+> 获取设备状态
+
+> 发送命令到设备
+
+* 中断传输
+> 以固定速率传送少量数据
+
+> usb键盘、鼠标、触摸屏等使用
+
+* 批量传输
+> 用于传输大量数据，可确保没有数据丢失，但不保证在指定时间内完成 
+
+* 等时传输
+> 用于传输大量数据，可确保按时传输，但不保证数据是否会丢失
+
+> 主要应用于音视频设备
+
+#### usb cable（数据线）
+* 在usb数据线中跑的数据不是urb，而是一个个数据包
+##### 所有的数据包都从一个SYNC同步字段开始
+* SYNC是一个8位长的二进制串，只是用来同步的，它的后两位标志了SYNC的结束和PID(Packet Id)的开始
+
+* PID也是一个8位长的二进制串，前四位用来区分不同的包类型，后四位只是前四位的反码，用于校验.
+
+* 数据包有四大类：Token, Data, Handshake, Special
+
+* 主机和设备通过PID来判断包是不是自己所需要的
+
+* PID之后紧跟的是地址字段，每个包都需要知道自己的目的地，这个地址包含两部分：7位表示总线上连接的设备或接口的地址, 4位表示端点地址
+
+* 地址字段之后紧跟的是11位的帧号，其值到7FFH时归0，这个帧号并不是每个包都有，它只在每帧或微帧开始的SOF Token包中有
+
+* 帧号后面跟的是Data字段，它可以有0到1024字节不等
+
+* 最后面的是CRC校验字段
+
+###### Data包有四种类型：DATA0, DATA1, DATA2, MDATA
+* DATA0, DATA1用来实现data toggle同步
+* 对于批量传输、控制传输和中断传输来说
+> 数据包最开始被初始化为DATA0
+
+> 然后为了传输的正确性，就传输一次DATA0，再传输一次DATA1. 一旦哪次打破了这种规律，主机就认为传输出错了
+
+> usb就是使用这种思路来判断对错
+
+> 等时传输不支持data toggle
+
+#### usb的设备请求
+* usb协议中规定，所有的设备通过默认的控制管道来响应主机的请求，协议中定义了标准请求，所有设备必须响应它们，比如GET_DESCRIPTOR请求
+
+# 从sysfs里认识每一个usb设备
+## /sys/devices/pci0000:00/0000:00:14.0/usb1/1-0:1.0
+* usb系统中第一个usb设备是root hub, 所有的root hub在内核中都分配有唯一的编号，上面的root hub编号是1
+
+* usb总线上的每一个设备都以root hub的编号作为其名字的第一个号码, 这个号码的后面紧跟着-字符，以及设备所插入的端口号
+> usb1中的1是root hub编号
+
+> 1-0:1.0，1-0是usb设备名称, 1.0前面的1是配置编号, 后面的0是接口编号
+
+* usb1就代表一条总线
+> 在/sys/bus/usb/devices中可能会有多个，如usb1, usb2那这就表示有两条usb总线
+
+> usb1中的1表示1号usb总线，或者说1号root hub
+
+# usb gadget
+## gadget是配件的意思
+> 它是一些内部运行Linux的嵌入式设备，比如PDA，设备本身有USB设备控制器，可以将计算机做为master，而这类设备做为slave端与主机进程usb通信
+
+> usb gadget驱动控制嵌入式设备作为一个usb设备和主机通信
+
+
+# 内核中usb子系统结构
+```
+				用户
+-------------------------------------------------------------------------------
+Block层		|	Net层	| Char层| ......
+-------------------------------------------------------------------------------
+			USB设备驱动
+-------------------------------------------------------------------------------
+			USB Core
+-------------------------------------------------------------------------------
+			USB主机控制器
+-------------------------------------------------------------------------------
+			USB硬件
+
+```
+* USB协议规定：主机控制器的驱动HCD必须位于USB软件的最下一层
+* 在主机控制器之下是物理的USB及所有与之连接的USB设备
+* HCD只有一个主人，它只对USB Core负责
+* 写usb驱动时，只能调用usbcore提供的接口, core会将usb驱动中的请求发给相应的HCD
+* HCD有多种接口, 如ohci, ehci, xhci等
+
+## usb子系统中的地图
+* 与其他子系统一样, Makefile, Kconfig, README三件宝
+
+### 子系统
+* drivers目录下的第一层目录都是一个子系统
+* 子系统代表了一类设备
+
 # usb 子系统初始化
 * usbcore不是设备，是所有usb设备依赖的模块
 ```c
@@ -101,7 +254,7 @@ struct usb_host_endpoint {	/* 端点，usb数据传输的终点 */
 
 
 };
-
+// 端点是USB数据传输的终点
 struct usb_endpoint_descriptor {
 	__u8  bLength;
         __u8  bDescriptorType;
@@ -283,7 +436,7 @@ struct usb_device_descriptor {
 	__u8  bLength;
         __u8  bDescriptorType;
 
-        __le16 bcdUSB;
+        __le16 bcdUSB;			// USB协议版本号，也就是usb设备的版本号, 如2.0, 3.0这样的
         __u8  bDeviceClass;
         __u8  bDeviceSubClass;
         __u8  bDeviceProtocol;
@@ -309,7 +462,7 @@ struct usb_device_descriptor {
 ```c
 struct usb_host_config {
 	struct usb_config_descriptor desc;
-	char *string;           /* 此字段保存了配置描述符中iConfiguration字段对应的字符串 */
+	char *string;           /* 此字段保存了配置描述符中iConfiguration字段对应的字符串描述符信息 */
 
         /* List of any Interface Association Descriptors in this
          * configuration. */
@@ -1441,7 +1594,7 @@ S3就是STR
 
 > STR, 挂起到内存; 与windows里的Standby对应。
 
-## 总线、设备、驱动
+## 铁三角“总线、设备、驱动”
 ### struct bus_type
 * bus_type 让设备、驱动两个链表联系了起来，devices链表、drivers链表
 * 每当出现一个新设备时要向总线报道 
@@ -1475,3 +1628,106 @@ S3就是STR
 
 * David Brownell, 大卫-布劳内尔
 * Alan stern, 艾仑-斯特恩
+
+#### struct bus_type usb_bus_type
+* usb_bus_type
+> Linux设备模型中的总线bus_type放在usb子系统里就是usb_bus_type这个实例
+
+> 它在usb_init函数中初始化
+
+```c
+struct bus_type usb_bus_type = {
+        .name =         "usb",
+        .match =        usb_device_match,		// 它用于在总的设备和驱动之间牵线搭桥，她是红娘, 总线上有新设备或新驱动时，match函数就会被调用
+        .uevent =       usb_uevent,
+        .need_parent_lock =     true,
+};
+```
+
+* 主设备号、次设备号
+> 主设备号用于确定驱动程序
+
+> 次设备号用于让驱动程序明确将要操作的设备是哪一个
+
+> usb设备有很多种，不是每一种都会使用这里预留的主设备号USB_MAJOR
+
+> 大多数usb设备都会与input、video等子系统关联，并不单单只是作为usb设备而存在 
+
+> 如果usb设备没有与其他任何子系统关联才会用来预留的主设备号USB_MAJOR
+
+* 苏格拉底说过一句：学得越多，知道得越多；知道得越多，发现需要知道的越多.
+* 在/proc/devices里显示了所有已经分配出去的主设备号
+```
+180 usb
+189 usb_device
+```
+
+### struct usb_bus
+* usb_bus代表一条具体的总线
+* usb_bus_type代表的是usb类型的总线
+* 从硬件角度讲，一个主机控制器可以连出一条USB总线
+* 从软件上来讲，所有的usb总线都是usb_bus_type类型的
+* 每个总线对应一个struct usb_bus类型的实例，这个实例在主机控制器的驱动中分配
+
+# 其他
+## __init
+```
+#define __init __attribute__ ((__section__ (".init.text")))
+函数前有前缀__init表明：这个函数只在初始化时使用，在模块被装载之后，它占用的资源将被回收
+```
+
+### vmlinux.lds
+> 它存在于arch/<target>/目录中，它是内核链接器脚本
+
+> 它负责链接内核各个节并将它们装入内存中特定偏移量处
+
+## __attribute__((packed))
+```
+struct usb_interface_descriptor {
+        __u8  bLength;				// usb协议中规定，每个描述符必须是一个字节开头来表明描述符的长度
+        __u8  bDescriptorType;
+
+        __u8  bInterfaceNumber;
+        __u8  bAlternateSetting;
+        __u8  bNumEndpoints;
+        __u8  bInterfaceClass;
+        __u8  bInterfaceSubClass;
+        __u8  bInterfaceProtocol;
+        __u8  iInterface;
+} __attribute__ ((packed));	
+// __attribute__ ((packed));就是用来告诉编译器，这个结构的元素都是一字节对齐，不要再添加填充位了
+
+```
+
+## 除了四大描述符外，还有字符串描述符
+> lsusb输出的usb设备，那么长一大串字符有的就存在字符串描述符里
+
+```c
+struct usb_host_endpoint {
+        struct usb_endpoint_descriptor          desc;
+        struct usb_ss_ep_comp_descriptor        ss_ep_comp;
+        struct usb_ssp_isoc_ep_comp_descriptor  ssp_isoc_ep_comp;
+        struct list_head                urb_list;	// 这是端点要处理的urb队列，设备中的每个端点都可以处理一个urb队列 
+        void                            *hcpriv;
+        struct ep_device                *ep_dev;        /* For sysfs info */
+
+        unsigned char *extra;   /* Extra descriptors, 厂商为设备特别定义的描述符*/
+        int extralen;
+        int enabled;
+        int streams;
+};
+
+```
+
+## usb_device_speed
+```c
+enum usb_device_speed {
+        USB_SPEED_UNKNOWN = 0,                  /* enumerating */
+        USB_SPEED_LOW, USB_SPEED_FULL,          /* usb 1.1 */
+        USB_SPEED_HIGH,                         /* usb 2.0 */ 理论值480Mbps, 即60MB/s
+        USB_SPEED_WIRELESS,                     /* wireless (usb 2.5) */
+        USB_SPEED_SUPER,                        /* usb 3.0 */ 5Gbps, 即625MB/s
+        USB_SPEED_SUPER_PLUS,                   /* usb 3.1 */ 10Gbps
+};
+```
+
