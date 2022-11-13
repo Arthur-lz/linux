@@ -284,6 +284,96 @@ struct net_device {
 ## 12.11 内核内部的网络通信
 ## 12.12 小结 
 
+# 第15章
+### 15.7.2 alarm和settimer系统调用
+* alarm用于安装实时定时器
+* settimer可用于安装：实时定时器、虚拟定时器、剖析定时器
+* alarm, setimer都结束于do_settimer
+> 这两个系统调用可能互相干扰
+
+> 其实现中使用了hrtimer, 所以，如果系统支持高分辨率定时器，那么用户层应用也可以利用高分辨率的优点，而不只是内核可以利用
+
+#### 1. task_struct中支持定时器的相关成员
+```
+struct task_struct {
+...
+	/* 进程的实时定时器 */
+	struct hrtimer real_timer;	// 注意，这是一个实例，不是指针, 其用于实现实时定时器
+	struct task_struct *tsk;
+	ktime_t it_real_incr;
+
+	/* 进程的剖析和虚拟定时器 */
+	cputime_t it_prof_expires, it_virt_expires; // 下一次定时器到期的时间
+	cputime_t it_prof_incr, it_virt_incr;	    // 定时器在多长时间之后调用, 即定时器的时间间隔，如果该值为0则定时器不是周期性的，只会被激活一次
+...
+}
+```
+> 每个进程可以有3个不同类型的定时器，受上述2.6.24内核数据结构所限，内核不能用settimer和alarm来管理更多的定时器，即一个进程不能有同类型定时器超过一个
+
+> posix定时器允许有多个同类型的定时器
+
+#### 2. 实时定时器
+* 因每类定时器一个进程中只会有一个，所以，安装新的同类定时器时会覆盖之前的定时器
+* hrtimer_start用于启动定时器, 定时器会在指定的时间到期
+* it_real_fn,它向安装定时器的进程发送SIGALRM信号，但其不会重设信号处理程序（如果重设了信号处理程序，那么信号就会具有周期性）
+> 在进程上下文投递信号时，会重新安装定时器
+
+> 在用hrtimer_foward前推到期时间后，用hrtimer_restart重启定时器
+
+> 在定时器到期后，内核不会立即重新激活定时器
+
+```
+如果进程设置非常短的重复周期，如果内核在定时器到期后立即重新激活定时器，这会让定时器反复到期，这会导致在定时器代码中花费过多时间，这被称为拒绝服务攻击
+```
+
+### 15.7.3 获取当前时间
+#### 有两个理由让我们需要获得系统的当前时间
+* 1. 有很多操作依赖时间
+> 例如，内核需要记录文件上次修改的时间或一些日志信息产生的时间
+
+* 2. 系统的绝对时间，即外界实际的时间
+
+#### 内核提供了两种方法可以获取时间
+* 系统调用adjtimex
+> 用于读取当前内核内部时间
+
+```
+adjtimex-->do_adjtimex(struct timex *txc)
+kernel/time.c
+do_adjtimex(struct timex *txc)
+{
+...
+	do_gettimeofday(&txc->time); // 获得内核内部时间，分辩率是最佳的可能分辨率
+...
+}
+
+```
+* 设备文件/dev/rtc
+
+## 15.8 管理时间
+* task_struct结构中包含两个与进程时间相关的成员比较重要
+```
+<sched.h>
+struct task_struct {
+	...
+	cputime_t utime, stimer;
+	...
+}
+update_process_times用于管理与进程相关的时间数据, 从局部时钟调用, 他需要完成四项工作：
+-->account_process_tick, 1)此func会调用account_user_time或account_sys_time来更新进程在用户态或内核态消耗的cpu时间，也就是更新utime, stime;如果进程超出了Rlimit指定的cpu份额，那么还会每隔1s发SIGXCPU信号 
+
+-->run_local_timers, 2)激活低分辩率定时器，或对其执行到期操作
+
+-->scheduler_tick, 3)CPU调度器
+-->run_posix_cpu_timers, 4)运行当前已经注册的posix定时器
+```
+
+## 15.9 小结
+* 传统上，会使用一个频率为HZ的周期定时器作为时钟
+> 对于缺乏电力的系统来说，在系统处于空闲状态，无事可做时，时钟信号是多余的，可以暂停使用，让系统的各个组件可以进入更尝试的睡眠，而不是被时钟信号周期性的唤醒
+
+> 动态时钟的作用就是为了实现此特性的，如果系统处于空闲状态无事可做时，就禁用周期时钟
+
 
 # 附录D 系统启动    
 ## 启动阶段分为以下3个部分
